@@ -1,0 +1,2 @@
+C:\Users\marlo\source\repos\imp\bin\x64-Debug\glfw3.dll
+C:\Users\marlo\source\repos\imp\build\x64-Debug\imp.vcxproj.CopyComplete
