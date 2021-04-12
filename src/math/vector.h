@@ -34,13 +34,14 @@ namespace imp {
     template<typename U>
     constexpr vector(vector<N, U> const &rhs) noexcept: elements_{} {
       for (auto i = size_t{}; i < N; ++i)
-        elements_[i] = static_cast<T>(rhs.elements_[i]);
+        elements_[i] = static_cast<T>(rhs[i]);
     }
 
     template<typename U>
     constexpr vector &operator=(vector<N, U> const &rhs) noexcept {
       for (auto i = size_t{}; i < N; ++i)
-        elements_[i] = static_cast<T>(rhs.elements_[i]);
+        elements_[i] = static_cast<T>(rhs[i]);
+      return *this;
     }
 
     constexpr auto const &operator[](size_t i) const noexcept {

@@ -4,40 +4,55 @@
 
 #include <GLFW/glfw3.h>
 
-#include "window_manager_create_info.h"
+#include "../math/vector.h"
+#include "gpu_context.h"
 
 namespace imp {
   void init_windows();
   void poll_windows();
 
-  class window_manager {
+  class window {
   public:
-    window_manager(window_manager_create_info const &create_info);
-    ~window_manager();
+    window(gpu_context &context, vector2u const &size, char const *title);
+    ~window();
 
-    GLFWwindow const *get() const noexcept;
-    GLFWwindow *get() noexcept;
     vk::SurfaceKHR surface() const noexcept;
+    vk::SurfaceFormatKHR surface_format() const noexcept;
+    vk::PresentModeKHR present_mode() const noexcept;
+    vk::RenderPass render_pass() const noexcept;
+    vector2u const &swapchain_size() const noexcept;
     int width() const noexcept;
     int height() const noexcept;
     int framebuffer_width() const noexcept;
     int framebuffer_height() const noexcept;
     bool should_close() const noexcept;
 
+    vk::Framebuffer
+    acquire_framebuffer(vk::Semaphore semaphore, vk::Fence fence);
+    void present_framebuffer(
+        uint32_t wait_semaphore_count,
+        vk::Semaphore const *wait_semaphores,
+        vk::Framebuffer framebuffer);
+
   private:
+    gpu_context *context_;
     GLFWwindow *window_;
     vk::UniqueSurfaceKHR surface_;
-    vk::Format format_;
-    vk::ColorSpaceKHR color_space_;
+    vk::SurfaceFormatKHR surface_format_;
     vk::PresentModeKHR present_mode_;
+    vk::UniqueRenderPass render_pass_;
+    vector2u swapchain_size_;
+    vk::UniqueSwapchainKHR swapchain_;
+    std::vector<vk::Image> swapchain_images_;
+    std::vector<vk::UniqueImageView> swapchain_image_views_;
+    std::vector<vk::UniqueFramebuffer> swapchain_framebuffers_;
 
-    GLFWwindow *create_window(window_manager_create_info const &create_info);
-    vk::UniqueSurfaceKHR
-    create_surface(window_manager_create_info const &create_info);
-    vk::Format select_format(window_manager_create_info const &create_info);
-    vk::ColorSpaceKHR
-    select_color_space(window_manager_create_info const &create_info);
-    vk::PresentModeKHR
-    select_present_mode(window_manager_create_info const &create_info);
+    GLFWwindow *create_window(vector2u const &size, char const *title);
+    vk::UniqueSurfaceKHR create_surface();
+    vk::SurfaceFormatKHR select_surface_format();
+    vk::UniqueRenderPass create_render_pass();
+    vk::PresentModeKHR select_present_mode();
+
+    void create_swapchain();
   };
 } // namespace imp

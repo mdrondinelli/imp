@@ -1,18 +1,13 @@
 #pragma once
 
-#include <memory>
-
-#include <vulkan/vulkan.hpp>
-
-#include "gpu_allocator_create_info.h"
 #include "gpu_buffer.h"
 #include "gpu_image.h"
-#include "vk_mem_alloc.h"
 
 namespace imp {
+  class gpu_context;
   class gpu_allocator {
   public:
-    gpu_allocator(gpu_allocator_create_info const &create_info);
+    gpu_allocator(gpu_context &context);
     ~gpu_allocator();
 
     gpu_buffer create_buffer(

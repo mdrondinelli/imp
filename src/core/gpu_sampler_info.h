@@ -6,7 +6,7 @@
 #include "../math/scalar.h"
 
 namespace imp {
-  struct gpu_sampler_create_info {
+  struct gpu_sampler_info {
     vk::Filter mag_filter;
     vk::Filter min_filter;
     vk::SamplerMipmapMode mipmap_mode;
@@ -24,7 +24,7 @@ namespace imp {
   };
 
   constexpr bool operator==(
-      gpu_sampler_create_info const &lhs, gpu_sampler_create_info const &rhs) noexcept {
+      gpu_sampler_info const &lhs, gpu_sampler_info const &rhs) noexcept {
     return lhs.mag_filter == rhs.mag_filter &&
            lhs.min_filter == rhs.min_filter &&
            lhs.mipmap_mode == rhs.mipmap_mode &&
@@ -40,11 +40,11 @@ namespace imp {
   }
 
   constexpr bool operator!=(
-      gpu_sampler_create_info const &lhs, gpu_sampler_create_info const &rhs) noexcept {
+      gpu_sampler_info const &lhs, gpu_sampler_info const &rhs) noexcept {
     return !(lhs == rhs);
   }
 
-  inline size_t hash_value(gpu_sampler_create_info const &info) noexcept {
+  inline size_t hash_value(gpu_sampler_info const &info) noexcept {
     auto seed = size_t{};
     boost::hash_combine(seed, info.mag_filter);
     boost::hash_combine(seed, info.min_filter);
@@ -66,8 +66,8 @@ namespace imp {
 
 namespace std {
   template<>
-  struct hash<imp::gpu_sampler_create_info> {
-    size_t operator()(imp::gpu_sampler_create_info const &info) const noexcept {
+  struct hash<imp::gpu_sampler_info> {
+    size_t operator()(imp::gpu_sampler_info const &info) const noexcept {
       return hash_value(info);
     }
   };

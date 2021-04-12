@@ -2,11 +2,13 @@
 
 #include <stdexcept>
 
+#include "gpu_context.h"
+
 namespace imp {
-  gpu_allocator::gpu_allocator(gpu_allocator_create_info const &create_info):
-      instance_{create_info.instance},
-      physical_device_{create_info.physical_device},
-      device_{create_info.device} {
+  gpu_allocator::gpu_allocator(gpu_context &context):
+      instance_{context.instance()},
+      physical_device_{context.physical_device()},
+      device_{context.device()} {
     auto info = VmaAllocatorCreateInfo{};
     info.physicalDevice = physical_device_;
     info.device = device_;
