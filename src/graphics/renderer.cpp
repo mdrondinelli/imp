@@ -1,7 +1,6 @@
 #include "renderer.h"
 
 #include <fstream>
-#include <iostream>
 
 #include "../math/matrix.h"
 
