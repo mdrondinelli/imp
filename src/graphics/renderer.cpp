@@ -28,7 +28,7 @@ namespace imp {
   vk::UniqueRenderPass renderer::create_atmosphere_pass() {
     auto attachments = std::array<vk::AttachmentDescription, 1>{};
     auto &color_attachment = attachments[0];
-    color_attachment.format = window_->surface_format().format;
+    color_attachment.format = window_->format();
     color_attachment.samples = vk::SampleCountFlagBits::e1;
     color_attachment.loadOp = vk::AttachmentLoadOp::eClear;
     color_attachment.storeOp = vk::AttachmentStoreOp::eStore;
@@ -292,12 +292,12 @@ namespace imp {
     viewport.height = window_->swapchain_size()[1];
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
-    command_buffer.setViewport(0, viewport);
     auto scissor = vk::Rect2D{};
     scissor.offset.x = 0;
     scissor.offset.y = 0;
-    scissor.extent.width = viewport.width;
-    scissor.extent.height = viewport.height;
+    scissor.extent.width = window_->swapchain_size()[0];
+    scissor.extent.height = window_->swapchain_size()[1];
+    command_buffer.setViewport(0, viewport);
     command_buffer.setScissor(0, scissor);
     command_buffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics,
@@ -342,7 +342,7 @@ namespace imp {
         *atmosphere_pipeline_layout_,
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
         0,
-        push_constants.size(),
+        static_cast<uint32_t>(push_constants.size()),
         push_constants.data());
     command_buffer.draw(3, 1, 0, 0);
     command_buffer.endRenderPass();
@@ -365,7 +365,7 @@ namespace imp {
     submit_info.pSignalSemaphores = submit_signal_semaphores.data();
     context_->graphics_queue().submit(submit_info, queue_submission_fence);
     window_->present_framebuffer(
-        submit_signal_semaphores.size(),
+        static_cast<uint32_t>(submit_signal_semaphores.size()),
         submit_signal_semaphores.data(),
         framebuffer);
     ++frame_;

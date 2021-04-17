@@ -79,10 +79,10 @@ namespace imp {
   constexpr float to_f32(T i) noexcept {
     static_assert(std::is_integral_v<T>);
     if constexpr (std::is_unsigned_v<T>) {
-      constexpr auto scale = (size_t{1} << sizeof(T) * CHAR_BIT) - 1.0f;
+      constexpr auto scale = (size_t{1} << (sizeof(T) * CHAR_BIT)) - 1.0f;
       return i / scale;
     } else {
-      constexpr auto scale = (size_t{1} << sizeof(T) * CHAR_BIT - 1) - 1.0f;
+      constexpr auto scale = (size_t{1} << (sizeof(T) * CHAR_BIT - 1)) - 1.0f;
       return max(i / scale, -1.0f);
     }
   }
@@ -91,10 +91,10 @@ namespace imp {
   constexpr double to_f64(T i) noexcept {
     static_assert(std::is_integral_v<T>);
     if constexpr (std::is_unsigned_v<T>) {
-      constexpr auto scale = (size_t{1} << sizeof(T) * CHAR_BIT) - 1.0;
+      constexpr auto scale = (size_t{1} << (sizeof(T) * CHAR_BIT)) - 1.0;
       return i / scale;
     } else {
-      constexpr auto scale = (size_t{1} << sizeof(T) * CHAR_BIT - 1) - 1.0;
+      constexpr auto scale = (size_t{1} << (sizeof(T) * CHAR_BIT - 1)) - 1.0;
       return max(i / scale, -1.0);
     }
   }

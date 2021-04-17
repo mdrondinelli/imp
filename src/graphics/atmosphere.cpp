@@ -228,7 +228,7 @@ namespace imp {
         *scattering_pipeline_layout_,
         vk::ShaderStageFlagBits::eCompute,
         0,
-        push_constants.size(),
+        static_cast<uint32_t>(push_constants.size()),
         push_constants.data());
     auto group_counts = scattering_.size() / 4;
     command_buffer->dispatch(group_counts[0], group_counts[1], group_counts[2]);
@@ -300,7 +300,7 @@ namespace imp {
         *optical_depth_pipeline_layout_,
         vk::ShaderStageFlagBits::eCompute,
         0,
-        push_constants.size(),
+        static_cast<uint32_t>(push_constants.size()),
         push_constants.data());
     auto group_counts = optical_depth_.size() / 8;
     command_buffer->dispatch(group_counts[0], group_counts[1], 1);

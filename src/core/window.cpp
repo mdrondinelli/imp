@@ -1,5 +1,6 @@
 #include "window.h"
 
+#include <iostream>
 #include <stdexcept>
 
 namespace imp {
@@ -24,10 +25,14 @@ namespace imp {
       context_->physical_device().getSurfaceSupportKHR(
           context_->present_family(), *surface_);
     }
+    if (!context_->presentation_enabled()) {
+      throw std::runtime_error{"failed to create window."};
+    }
     create_swapchain();
   }
 
   window::~window() {
+    destroy_swapchain();
     glfwDestroyWindow(window_);
   }
 
@@ -36,7 +41,7 @@ namespace imp {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     auto window = glfwCreateWindow(size[0], size[1], title, nullptr, nullptr);
     if (!window)
-      throw std::runtime_error{"Failed to create window."};
+      throw std::runtime_error{"failed to create window."};
     return window;
   }
 
@@ -44,7 +49,7 @@ namespace imp {
     auto instance = context_->instance();
     auto surface = VkSurfaceKHR{};
     if (glfwCreateWindowSurface(instance, window_, nullptr, &surface)) {
-      throw std::runtime_error{"Failed to create vulkan surface."};
+      throw std::runtime_error{"failed to create vulkan surface."};
     }
     return vk::UniqueSurfaceKHR{surface, instance};
   }
@@ -80,88 +85,82 @@ namespace imp {
           return 3;
         }
       };
-      if (priority(present_mode) < priority(present_modes[i]))
+      if (priority(present_modes[i]) > priority(present_mode)) {
         present_mode = present_modes[i];
+      }
     }
     return present_mode;
   }
 
   vk::UniqueRenderPass window::create_render_pass() {
-    auto attachments = std::array<vk::AttachmentDescription, 1>{};
-    auto &color_attachment = attachments[0];
+    auto color_attachment = vk::AttachmentDescription{};
     color_attachment.format = surface_format_.format;
     color_attachment.samples = vk::SampleCountFlagBits::e1;
     color_attachment.loadOp = vk::AttachmentLoadOp::eClear;
     color_attachment.storeOp = vk::AttachmentStoreOp::eStore;
     color_attachment.initialLayout = vk::ImageLayout::eUndefined;
     color_attachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-    auto subpass_color_attachments = std::array<vk::AttachmentReference, 1>{};
-    auto &subpass_color_attachment = subpass_color_attachments[0];
+    auto subpass_color_attachment = vk::AttachmentReference{};
     subpass_color_attachment.attachment = 0;
     subpass_color_attachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
-    auto subpasses = std::array<vk::SubpassDescription, 1>{};
-    auto &subpass = subpasses[0];
+    auto subpass = vk::SubpassDescription{};
     subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-    subpass.colorAttachmentCount =
-        static_cast<uint32_t>(subpass_color_attachments.size());
-    subpass.pColorAttachments = subpass_color_attachments.data();
-    auto info = vk::RenderPassCreateInfo{};
-    info.attachmentCount = static_cast<uint32_t>(attachments.size());
-    info.pAttachments = attachments.data();
-    info.subpassCount = static_cast<uint32_t>(subpasses.size());
-    info.pSubpasses = subpasses.data();
-    return context_->device().createRenderPassUnique(info);
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &subpass_color_attachment;
+    auto create_info = vk::RenderPassCreateInfo{};
+    create_info.attachmentCount = 1;
+    create_info.pAttachments = &color_attachment;
+    create_info.subpassCount = 1;
+    create_info.pSubpasses = &subpass;
+    return context_->device().createRenderPassUnique(create_info);
   }
 
   void window::create_swapchain() {
     auto physical_device = context_->physical_device();
-    auto logical_device = context_->device();
-    logical_device.waitIdle();
-    swapchain_framebuffers_.clear();
-    swapchain_image_views_.clear();
-    swapchain_images_.clear();
-    swapchain_.reset();
-    auto info = vk::SwapchainCreateInfoKHR{};
-    info.surface = *surface_;
+    auto device = context_->device();
     auto capabilities = physical_device.getSurfaceCapabilitiesKHR(*surface_);
-    info.minImageCount = capabilities.minImageCount + 1;
-    if (capabilities.maxImageCount != 0 &&
-        info.minImageCount > capabilities.maxImageCount) {
-      info.minImageCount = capabilities.maxImageCount;
-    }
-    info.imageFormat = surface_format_.format;
-    info.imageColorSpace = surface_format_.colorSpace;
-    if (capabilities.currentExtent.width ==
+    if (capabilities.currentExtent.width !=
         std::numeric_limits<uint32_t>::max()) {
-      int width;
-      int height;
-      glfwGetFramebufferSize(window_, &width, &height);
-      swapchain_size_[0] = width;
-      swapchain_size_[1] = height;
-    } else {
       swapchain_size_[0] = capabilities.currentExtent.width;
       swapchain_size_[1] = capabilities.currentExtent.height;
+    } else {
+      auto lo = make_vector(
+          capabilities.minImageExtent.width,
+          capabilities.minImageExtent.height);
+      auto hi = make_vector(
+          capabilities.maxImageExtent.width,
+          capabilities.maxImageExtent.height);
+      swapchain_size_ = clamp(framebuffer_size(), lo, hi);
     }
-    info.imageExtent.width = swapchain_size_[0];
-    info.imageExtent.height = swapchain_size_[1];
-    info.imageArrayLayers = 1;
-    info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
     auto queue_family_indices =
         std::array{context_->graphics_family(), context_->present_family()};
-    if (queue_family_indices[0] == queue_family_indices[1]) {
-      info.imageSharingMode = vk::SharingMode::eExclusive;
-    } else {
-      info.imageSharingMode = vk::SharingMode::eConcurrent;
-      info.queueFamilyIndexCount =
-          static_cast<uint32_t>(queue_family_indices.size());
-      info.pQueueFamilyIndices = queue_family_indices.data();
+    auto create_info = vk::SwapchainCreateInfoKHR{};
+    create_info.surface = *surface_;
+    create_info.minImageCount = capabilities.minImageCount + 1;
+    if (create_info.minImageCount > capabilities.maxImageCount &&
+        capabilities.maxImageCount != 0) {
+      create_info.minImageCount = capabilities.maxImageCount;
     }
-    info.preTransform = capabilities.currentTransform;
-    info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-    info.presentMode = present_mode_;
-    info.clipped = true;
-    swapchain_ = logical_device.createSwapchainKHRUnique(info);
-    swapchain_images_ = logical_device.getSwapchainImagesKHR(*swapchain_);
+    create_info.imageFormat = surface_format_.format;
+    create_info.imageColorSpace = surface_format_.colorSpace;
+    create_info.imageExtent.width = swapchain_size_[0];
+    create_info.imageExtent.height = swapchain_size_[1];
+    create_info.imageArrayLayers = 1;
+    create_info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+    if (queue_family_indices[0] != queue_family_indices[1]) {
+      create_info.imageSharingMode = vk::SharingMode::eConcurrent;
+      create_info.queueFamilyIndexCount =
+          static_cast<uint32_t>(queue_family_indices.size());
+      create_info.pQueueFamilyIndices = queue_family_indices.data();
+    } else {
+      create_info.imageSharingMode = vk::SharingMode::eExclusive;
+    }
+    create_info.preTransform = capabilities.currentTransform;
+    create_info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+    create_info.presentMode = present_mode_;
+    create_info.clipped = true;
+    swapchain_ = device.createSwapchainKHRUnique(create_info);
+    swapchain_images_ = device.getSwapchainImagesKHR(*swapchain_);
     for (auto image : swapchain_images_) {
       auto view_info = vk::ImageViewCreateInfo{};
       view_info.image = image;
@@ -174,7 +173,7 @@ namespace imp {
       view_info.subresourceRange.baseArrayLayer = 0;
       view_info.subresourceRange.layerCount = 1;
       swapchain_image_views_.emplace_back(
-          logical_device.createImageViewUnique(view_info));
+          device.createImageViewUnique(view_info));
     }
     for (auto &image_view : swapchain_image_views_) {
       auto framebuffer_info = vk::FramebufferCreateInfo{};
@@ -183,56 +182,42 @@ namespace imp {
       framebuffer_info.attachmentCount =
           static_cast<uint32_t>(attachments.size());
       framebuffer_info.pAttachments = attachments.data();
-      framebuffer_info.width = info.imageExtent.width;
-      framebuffer_info.height = info.imageExtent.height;
+      framebuffer_info.width = swapchain_size_[0];
+      framebuffer_info.height = swapchain_size_[1];
       framebuffer_info.layers = 1;
       swapchain_framebuffers_.emplace_back(
-          logical_device.createFramebufferUnique(framebuffer_info));
+          device.createFramebufferUnique(framebuffer_info));
     }
   }
 
-  vk::SurfaceKHR window::surface() const noexcept {
-    return *surface_;
+  void window::destroy_swapchain() {
+    context_->device().waitIdle();
+    swapchain_framebuffers_.clear();
+    swapchain_image_views_.clear();
+    swapchain_images_.clear();
+    swapchain_.reset();
   }
 
-  vk::SurfaceFormatKHR window::surface_format() const noexcept {
-    return surface_format_;
+  vk::Format window::format() const noexcept {
+    return surface_format_.format;
   }
 
-  vk::PresentModeKHR window::present_mode() const noexcept {
-    return present_mode_;
+  vector2u window::window_size() const noexcept {
+    int width;
+    int height;
+    glfwGetWindowSize(window_, &width, &height);
+    return make_vector(width, height);
   }
 
-  vk::RenderPass window::render_pass() const noexcept {
-    return *render_pass_;
+  vector2u window::framebuffer_size() const noexcept {
+    int width;
+    int height;
+    glfwGetFramebufferSize(window_, &width, &height);
+    return make_vector(width, height);
   }
 
   vector2u const &window::swapchain_size() const noexcept {
     return swapchain_size_;
-  }
-
-  int window::width() const noexcept {
-    int width;
-    glfwGetWindowSize(window_, &width, nullptr);
-    return width;
-  }
-
-  int window::height() const noexcept {
-    int height;
-    glfwGetWindowSize(window_, nullptr, &height);
-    return height;
-  }
-
-  int window::framebuffer_width() const noexcept {
-    int width;
-    glfwGetFramebufferSize(window_, &width, nullptr);
-    return width;
-  }
-
-  int window::framebuffer_height() const noexcept {
-    int height;
-    glfwGetFramebufferSize(window_, nullptr, &height);
-    return height;
   }
 
   bool window::should_close() const noexcept {
@@ -251,6 +236,7 @@ namespace imp {
                        .value;
       return *swapchain_framebuffers_[index];
     } catch (vk::OutOfDateKHRError) {
+      destroy_swapchain();
       create_swapchain();
       return acquire_framebuffer(semaphore, fence);
     }
@@ -279,6 +265,7 @@ namespace imp {
     try {
       context_->present_queue().presentKHR(info);
     } catch (vk::OutOfDateKHRError) {
+      destroy_swapchain();
       create_swapchain();
     }
   }

@@ -44,6 +44,15 @@ namespace imp {
       return *this;
     }
 
+    constexpr operator bool() const noexcept {
+      for (auto i = size_t{}; i < N; ++i) {
+        if (elements_[i]) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     constexpr auto const &operator[](size_t i) const noexcept {
       return elements_[i];
     }
@@ -645,6 +654,26 @@ namespace imp {
       r[n] = to_f64(i[n]);
     }
     return r;
+  }
+
+  template<typename T>
+  auto encode_octahedral(vector<3, T> const &v) noexcept {
+    auto p = make_vector(v[0], v[1]) / (abs(v[0]) + abs(v[1]) + abs(v[2]));
+    return v[2] <= T{0} ? (T{1} - make_vector(abs(p[1]), abs(p[0]))) *
+                              make_vector(
+                                  p[0] >= T{0} ? T{1} : T{-1},
+                                  p[1] >= T{0} ? T{1} : T{-1})
+                        : p;
+  }
+
+  template<typename T>
+  auto decode_octahedral(vector<2, T> const &e) noexcept {
+    auto v = make_vector(e[0], e[1], T{1} - abs(e[0]) - abs(e[1]));
+    if (v[2] < T{0}) {
+      v[0] = (T{1} - abs(e[1])) * (e[0] >= T{0} ? T{1} : T{-1});
+      v[1] = (T{1} - abs(e[0])) * (e[1] >= T{0} ? T{1} : T{-1});
+    }
+    return normalize(v);
   }
 
   template<size_t NewSize, size_t OldSize, typename T>

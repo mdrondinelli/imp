@@ -16,15 +16,10 @@ namespace imp {
     window(gpu_context &context, vector2u const &size, char const *title);
     ~window();
 
-    vk::SurfaceKHR surface() const noexcept;
-    vk::SurfaceFormatKHR surface_format() const noexcept;
-    vk::PresentModeKHR present_mode() const noexcept;
-    vk::RenderPass render_pass() const noexcept;
+    vk::Format format() const noexcept;
+    vector2u window_size() const noexcept;
+    vector2u framebuffer_size() const noexcept;
     vector2u const &swapchain_size() const noexcept;
-    int width() const noexcept;
-    int height() const noexcept;
-    int framebuffer_width() const noexcept;
-    int framebuffer_height() const noexcept;
     bool should_close() const noexcept;
 
     vk::Framebuffer
@@ -54,5 +49,6 @@ namespace imp {
     vk::PresentModeKHR select_present_mode();
 
     void create_swapchain();
+    void destroy_swapchain();
   };
 } // namespace imp
