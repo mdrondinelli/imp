@@ -305,12 +305,8 @@ namespace imp {
         0,
         *atmosphere_descriptor_set_,
         {});
-    auto x = viewport.width > viewport.height
-                 ? 1.0f
-                 : viewport.width / viewport.height;
-    auto y = viewport.height > viewport.width
-                 ? 1.0f
-                 : viewport.height / viewport.width;
+    auto x = max(viewport.width / viewport.height, 1.0f);
+    auto y = max(viewport.height / viewport.width, 1.0f);
     auto eye_position = make_vector(0.0f, 2.0f, 0.0f);
     auto frustum_corners = std::array{
         make_vector(-x, y, -1.0f, 0.0f),
