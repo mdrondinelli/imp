@@ -44,4 +44,11 @@ namespace imp {
     }
     return *this;
   }
+
+  void gpu_image::reset() noexcept {
+    if (image_) {
+      vmaDestroyImage(allocator_, image_, allocation_);
+      image_ = nullptr;
+    }
+  }
 } // namespace imp

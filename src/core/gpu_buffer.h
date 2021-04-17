@@ -16,6 +16,10 @@ namespace imp {
     gpu_buffer(gpu_buffer &&rhs) noexcept;
     gpu_buffer &operator=(gpu_buffer &&rhs) noexcept;
 
+    void reset() noexcept;
+    void map();
+    void unmap() noexcept;
+
     vk::Buffer const *operator->() const noexcept {
       return &buffer_;
     }
@@ -47,9 +51,6 @@ namespace imp {
     char *data() noexcept {
       return static_cast<char *>(allocation_info_.pMappedData);
     }
-
-    void map();
-    void unmap() noexcept;
 
   private:
     vk::Buffer buffer_;

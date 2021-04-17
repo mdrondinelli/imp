@@ -47,6 +47,13 @@ namespace imp {
     return *this;
   }
 
+  void gpu_buffer::reset() noexcept {
+    if (buffer_) {
+      vmaDestroyBuffer(allocator_, buffer_, allocation_);
+      buffer_ = nullptr;
+    }
+  }
+
   void gpu_buffer::map() {
     if (vmaMapMemory(allocator_, allocation_, &allocation_info_.pMappedData)) {
       throw std::runtime_error{"failed to map gpu buffer memory."};

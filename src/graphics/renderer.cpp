@@ -255,7 +255,7 @@ namespace imp {
   }
 
   void renderer::render() {
-    auto logical_device = context_->device();
+    auto device = context_->device();
     auto &frame = frames_[frame_ % frames_.size()];
     auto image_acquisition_semaphore = *frame.image_acquisition_semaphore;
     auto queue_submission_semaphore = *frame.queue_submission_semaphore;
@@ -277,10 +277,10 @@ namespace imp {
     pass_info.renderArea.extent.height = window_->swapchain_size()[1];
     pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
     pass_info.pClearValues = clear_values.data();
-    logical_device.waitForFences(
+    device.waitForFences(
         queue_submission_fence, true, std::numeric_limits<uint64_t>::max());
-    logical_device.resetFences(queue_submission_fence);
-    logical_device.resetCommandPool(command_pool);
+    device.resetFences(queue_submission_fence);
+    device.resetCommandPool(command_pool);
     command_buffer.begin(buffer_info);
     command_buffer.beginRenderPass(pass_info, vk::SubpassContents::eInline);
     command_buffer.bindPipeline(

@@ -16,6 +16,8 @@ namespace imp {
     gpu_image(gpu_image &&rhs) noexcept;
     gpu_image &operator=(gpu_image &&rhs) noexcept;
 
+    void reset() noexcept;
+
     vk::Image const *operator->() const noexcept {
       return &image_;
     }
