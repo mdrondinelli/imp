@@ -202,11 +202,24 @@ namespace imp {
     return context_->create_sampler(info);
   }
 
-  std::vector<gpu_frame> renderer::create_frames() {
-    auto frames = std::vector<gpu_frame>();
-    frames.reserve(3);
-    for (auto i = size_t{}; i < frames.capacity(); ++i) {
-      frames.emplace_back(context_->device(), context_->graphics_family());
+  std::vector<renderer::frame> renderer::create_frames() {
+    auto device = context_->device();
+    auto frames = std::vector<frame>(3);
+    for (auto i = size_t{}; i < frames.size(); ++i) {
+      frames[i].image_acquisition_semaphore = device.createSemaphoreUnique({});
+      frames[i].queue_submission_semaphore = device.createSemaphoreUnique({});
+      frames[i].queue_submission_fence =
+          device.createFenceUnique({vk::FenceCreateFlagBits::eSignaled});
+      auto pool_info = vk::CommandPoolCreateInfo{};
+      pool_info.flags = vk::CommandPoolCreateFlagBits::eTransient;
+      pool_info.queueFamilyIndex = context_->graphics_family();
+      frames[i].command_pool = device.createCommandPoolUnique(pool_info);
+      auto buffer_info = vk::CommandBufferAllocateInfo{};
+      buffer_info.commandPool = *frames[i].command_pool;
+      buffer_info.level = vk::CommandBufferLevel::ePrimary;
+      buffer_info.commandBufferCount = 1;
+      auto command_buffers = device.allocateCommandBuffersUnique(buffer_info);
+      frames[i].command_buffer = std::move(command_buffers[0]);
     }
     return frames;
   }
@@ -244,11 +257,11 @@ namespace imp {
   void renderer::render() {
     auto logical_device = context_->device();
     auto &frame = frames_[frame_ % frames_.size()];
-    auto image_acquisition_semaphore = frame.image_acquisition_semaphore();
-    auto queue_submission_semaphore = frame.queue_submission_semaphore();
-    auto queue_submission_fence = frame.queue_submission_fence();
-    auto command_pool = frame.command_pool();
-    auto command_buffer = frame.command_buffer();
+    auto image_acquisition_semaphore = *frame.image_acquisition_semaphore;
+    auto queue_submission_semaphore = *frame.queue_submission_semaphore;
+    auto queue_submission_fence = *frame.queue_submission_fence;
+    auto command_pool = *frame.command_pool;
+    auto command_buffer = *frame.command_buffer;
     auto framebuffer =
         window_->acquire_framebuffer(image_acquisition_semaphore, {});
     auto buffer_info = vk::CommandBufferBeginInfo{};
@@ -292,12 +305,18 @@ namespace imp {
         0,
         *atmosphere_descriptor_set_,
         {});
-    auto frustum_corners = std::array{
-        make_vector(-1.0f, 9.0f / 16.0f, -1.0f, 0.0f),
-        make_vector(1.0f, 9.0f / 16.0f, -1.0f, 0.0f),
-        make_vector(-1.0f, -9.0f / 16.0f, -1.0f, 0.0f),
-        make_vector(1.0f, -9.0f / 16.0f, -1.0f, 0.0f)};
+    auto x = viewport.width > viewport.height
+                 ? 1.0f
+                 : viewport.width / viewport.height;
+    auto y = viewport.height > viewport.width
+                 ? 1.0f
+                 : viewport.height / viewport.width;
     auto eye_position = make_vector(0.0f, 2.0f, 0.0f);
+    auto frustum_corners = std::array{
+        make_vector(-x, y, -1.0f, 0.0f),
+        make_vector(x, y, -1.0f, 0.0f),
+        make_vector(-x, -y, -1.0f, 0.0f),
+        make_vector(x, -y, -1.0f, 0.0f)};
     auto eye_orientation = rotation_matrix4x4(
         rotation_quaternion(0.0f, make_vector(1.0f, 0.0f, 0.0f)));
     for (auto &corner : frustum_corners) {

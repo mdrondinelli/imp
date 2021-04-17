@@ -12,7 +12,7 @@ namespace imp {
             &allocation_info,
             reinterpret_cast<VkImage *>(&image_),
             &allocation_,
-            nullptr) != VK_SUCCESS) {
+            &allocation_info_) != VK_SUCCESS) {
       throw std::runtime_error{"Failed to create vulkan buffer."};
     }
   }
@@ -26,6 +26,7 @@ namespace imp {
   gpu_image::gpu_image(gpu_image &&rhs) noexcept:
       image_{rhs.image_},
       allocation_{rhs.allocation_},
+      allocation_info_{rhs.allocation_info_},
       allocator_{rhs.allocator_} {
     rhs.image_ = vk::Image{};
   }
@@ -37,13 +38,10 @@ namespace imp {
       }
       image_ = rhs.image_;
       allocation_ = rhs.allocation_;
+      allocation_info_ = rhs.allocation_info_;
       allocator_ = rhs.allocator_;
       rhs.image_ = vk::Image{};
     }
     return *this;
-  }
-
-  vk::Image gpu_image::get() const noexcept {
-    return image_;
   }
 } // namespace imp

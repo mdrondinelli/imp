@@ -15,6 +15,14 @@ namespace imp {
     void render();
 
   private:
+    struct frame {
+      vk::UniqueSemaphore image_acquisition_semaphore;
+      vk::UniqueSemaphore queue_submission_semaphore;
+      vk::UniqueFence queue_submission_fence;
+      vk::UniqueCommandPool command_pool;
+      vk::UniqueCommandBuffer command_buffer;
+    };
+
     gpu_context *context_;
     window *window_;
     atmosphere atmosphere_;
@@ -25,7 +33,7 @@ namespace imp {
     vk::UniqueDescriptorPool descriptor_pool_;
     vk::UniqueDescriptorSet atmosphere_descriptor_set_;
     vk::Sampler lut_sampler_;
-    std::vector<gpu_frame> frames_;
+    std::vector<frame> frames_;
     size_t frame_;
 
     vk::UniqueRenderPass create_atmosphere_pass();
@@ -37,7 +45,7 @@ namespace imp {
     vk::UniqueDescriptorPool create_descriptor_pool();
     vk::UniqueDescriptorSet allocate_atmosphere_descriptor_set();
     vk::Sampler create_lut_sampler();
-    std::vector<gpu_frame> create_frames();
+    std::vector<frame> create_frames();
 
     void update_atmosphere_descriptor_set();
   };

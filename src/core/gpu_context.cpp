@@ -13,11 +13,11 @@ namespace imp {
       instance_{create_instance()},
       physical_device_{select_physical_device()},
       graphics_family_{select_graphics_family()},
-      compute_family_{select_compute_family()},
+      //compute_family_{select_compute_family()},
       present_family_{select_present_family()},
       device_{create_device()},
       graphics_queue_{select_graphics_queue()},
-      compute_queue_{select_compute_queue()},
+      //compute_queue_{select_compute_queue()},
       present_queue_{select_present_queue()},
       allocator_{create_allocator()} {}
 
@@ -135,24 +135,26 @@ namespace imp {
   }
 
   uint32_t gpu_context::select_graphics_family() {
+    constexpr auto const flags =
+        vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute;
     auto queue_families = physical_device_.getQueueFamilyProperties();
     for (auto i = uint32_t{0}; i < queue_families.size(); ++i) {
-      if (queue_families[i].queueFlags & vk::QueueFlagBits::eGraphics) {
+      if ((queue_families[i].queueFlags & flags) == flags) {
         return i;
       }
     }
     throw std::runtime_error{"failed to select graphics family."};
   }
 
-  uint32_t gpu_context::select_compute_family() {
-    auto queue_families = physical_device_.getQueueFamilyProperties();
-    for (auto i = uint32_t{0}; i < queue_families.size(); ++i) {
-      if (queue_families[i].queueFlags & vk::QueueFlagBits::eCompute) {
-        return i;
-      }
-    }
-    throw std::runtime_error{"failed to select compute family."};
-  }
+  // uint32_t gpu_context::select_compute_family() {
+  //  auto queue_families = physical_device_.getQueueFamilyProperties();
+  //  for (auto i = uint32_t{0}; i < queue_families.size(); ++i) {
+  //    if (queue_families[i].queueFlags & vk::QueueFlagBits::eCompute) {
+  //      return i;
+  //    }
+  //  }
+  //  throw std::runtime_error{"failed to select compute family."};
+  //}
 
   uint32_t gpu_context::select_present_family() {
     if (!presentation_enabled_) {
@@ -169,7 +171,7 @@ namespace imp {
   }
 
   vk::UniqueDevice gpu_context::create_device() {
-    auto queue_families = std::unordered_set{graphics_family_, compute_family_};
+    auto queue_families = std::unordered_set{graphics_family_/*, compute_family_*/};
     if (presentation_enabled_) {
       queue_families.emplace(present_family_);
     }
@@ -200,9 +202,9 @@ namespace imp {
     return device_->getQueue(graphics_family_, 0);
   }
 
-  vk::Queue gpu_context::select_compute_queue() {
-    return device_->getQueue(compute_family_, 0);
-  }
+  //vk::Queue gpu_context::select_compute_queue() {
+  //  return device_->getQueue(compute_family_, 0);
+  //}
 
   vk::Queue gpu_context::select_present_queue() {
     return presentation_enabled_ ? device_->getQueue(present_family_, 0)
@@ -242,9 +244,9 @@ namespace imp {
     return graphics_family_;
   }
 
-  uint32_t gpu_context::compute_family() const noexcept {
-    return compute_family_;
-  }
+  //uint32_t gpu_context::compute_family() const noexcept {
+  //  return compute_family_;
+  //}
 
   uint32_t gpu_context::present_family() const noexcept {
     return present_family_;
@@ -258,9 +260,9 @@ namespace imp {
     return graphics_queue_;
   }
 
-  vk::Queue gpu_context::compute_queue() const noexcept {
-    return compute_queue_;
-  }
+  //vk::Queue gpu_context::compute_queue() const noexcept {
+  //  return compute_queue_;
+  //}
 
   vk::Queue gpu_context::present_queue() const noexcept {
     return present_queue_;
@@ -277,13 +279,13 @@ namespace imp {
   }
 
   gpu_buffer gpu_context::create_buffer(
-    vk::BufferCreateInfo const& buffer_info,
+      vk::BufferCreateInfo const &buffer_info,
       VmaAllocationCreateInfo const &allocation_info) {
     return gpu_buffer{buffer_info, allocation_info, allocator_};
   }
-  
+
   gpu_image gpu_context::create_image(
-    vk::ImageCreateInfo const& image_info,
+      vk::ImageCreateInfo const &image_info,
       VmaAllocationCreateInfo const &allocation_info) {
     return gpu_image{image_info, allocation_info, allocator_};
   }

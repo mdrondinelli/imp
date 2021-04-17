@@ -20,14 +20,7 @@ namespace imp {
     image_info.tiling = vk::ImageTiling::eOptimal;
     image_info.usage =
         vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage;
-    if (context.graphics_family() != context.compute_family()) {
-      auto indices = {context.graphics_family(), context.compute_family()};
-      image_info.sharingMode = vk::SharingMode::eConcurrent;
-      image_info.queueFamilyIndexCount = static_cast<uint32_t>(indices.size());
-      image_info.pQueueFamilyIndices = indices.begin();
-    } else {
-      image_info.sharingMode = vk::SharingMode::eExclusive;
-    }
+    image_info.sharingMode = vk::SharingMode::eExclusive;
     image_info.initialLayout = vk::ImageLayout::eUndefined;
     auto alloc_info = VmaAllocationCreateInfo{};
     alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -36,7 +29,7 @@ namespace imp {
 
   vk::UniqueImageView scattering_lut::create_image_view(gpu_context &context) {
     auto view_info = vk::ImageViewCreateInfo{};
-    view_info.image = image_.get();
+    view_info.image = *image_;
     view_info.viewType = vk::ImageViewType::e3D;
     view_info.format = vk::Format::eR16G16B16A16Sfloat;
     view_info.components.r = vk::ComponentSwizzle::eIdentity;
@@ -56,10 +49,10 @@ namespace imp {
   }
 
   vk::Image scattering_lut::image() const noexcept {
-    return image_.get();
+    return *image_;
   }
 
   vk::ImageView scattering_lut::image_view() const noexcept {
-    return image_view_.get();
+    return *image_view_;
   }
 } // namespace imp

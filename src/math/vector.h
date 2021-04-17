@@ -278,14 +278,15 @@ namespace imp {
 
   template<size_t N, typename T, typename U>
   constexpr auto operator/(vector<N, T> const &lhs, U rhs) noexcept {
-    if constexpr (std::is_floating_point_v<T>)
+    if constexpr (std::is_floating_point_v<T>) {
       return lhs * (T{1} / rhs);
-    else if constexpr (std::is_floating_point_v<U>)
+    } else if constexpr (std::is_floating_point_v<U>) {
       return lhs * (U{1} / rhs);
-    else {
+    } else {
       auto ret = vector<N, decltype(lhs[0] / rhs)>{};
-      for (auto i = size_t{}; i < N; ++i)
+      for (auto i = size_t{}; i < N; ++i) {
         ret[i] = lhs[i] / rhs;
+      }
       return ret;
     }
   }
@@ -402,32 +403,18 @@ namespace imp {
 
   template<size_t N, typename T>
   auto exp(vector<N, T> const &v) noexcept {
-    if constexpr (std::is_floating_point_v<T>) {
-      auto ret = vector<N, decltype(std::exp(v[0]))>{};
-      for (auto i = size_t{}; i < N; ++i)
-        ret[i] = std::exp(v[i]);
-      return ret;
-    } else {
-      auto ret = vector<N, float>{};
-      for (auto i = size_t{}; i < N; ++i)
-        ret[i] = std::expf(v[i]);
-      return ret;
-    }
+    auto ret = vector<N, decltype(std::exp(v[0]))>{};
+    for (auto i = size_t{}; i < N; ++i)
+      ret[i] = std::exp(v[i]);
+    return ret;
   }
 
   template<size_t N, typename T>
   auto log(vector<N, T> const &v) noexcept {
-    if constexpr (std::is_floating_point_v<T>) {
-      auto ret = vector<N, decltype(std::log(v[0]))>{};
-      for (auto i = size_t{}; i < N; ++i)
-        ret[i] = std::log(v[i]);
-      return ret;
-    } else {
-      auto ret = vector<N, float>{};
-      for (auto i = size_t{}; i < N; ++i)
-        ret[i] = std::logf(v[i]);
-      return ret;
-    }
+    auto ret = vector<N, decltype(std::log(v[0]))>{};
+    for (auto i = size_t{}; i < N; ++i)
+      ret[i] = std::log(v[i]);
+    return ret;
   }
 
   template<size_t N, typename T>
@@ -440,10 +427,7 @@ namespace imp {
 
   template<size_t N, typename T>
   auto length(vector<N, T> const &v) noexcept {
-    if constexpr (std::is_integral_v<T>)
-      return std::sqrtf(length2(v));
-    else
-      return std::sqrt(length2(v));
+    return std::sqrt(length2(v));
   }
 
   template<size_t N, typename T, typename U>
@@ -489,35 +473,110 @@ namespace imp {
   }
 
   template<size_t N, typename T>
+  auto abs(vector<N, T> const &v) noexcept {
+    auto ret = vector<N, decltype(abs(v[0]))>{};
+    for (auto i = size_t{}; i < N; ++i) {
+      ret[i] = abs(v[i]);
+    }
+    return ret;
+  }
+
+  template<size_t N, typename T>
+  auto round(vector<N, T> const &v) noexcept {
+    auto ret = vector<N, decltype(round(v[0]))>{};
+    for (auto i = size_t{}; i < N; ++i) {
+      ret[i] = round(v[i]);
+    }
+    return ret;
+  }
+
+  template<size_t N, typename T>
   constexpr auto min(vector<N, T> const &v) noexcept {
     auto ret = v[0];
-    for (auto i = size_t{1}; i < N; ++i)
+    for (auto i = size_t{1}; i < N; ++i) {
       ret = min(ret, v[i]);
+    }
     return ret;
   }
 
   template<size_t N, typename T>
   constexpr auto max(vector<N, T> const &v) noexcept {
     auto ret = v[0];
-    for (auto i = size_t{1}; i < N; ++i)
+    for (auto i = size_t{1}; i < N; ++i) {
       ret = max(ret, v[i]);
+    }
+    return ret;
+  }
+
+  template<size_t N, typename T>
+  constexpr auto min(T a, vector<N, T> const &b) noexcept {
+    auto ret = vector<N, T>{};
+    for (auto i = size_t{}; i < N; ++i) {
+      ret[i] = min(a, b[i]);
+    }
+    return ret;
+  }
+
+  template<size_t N, typename T>
+  constexpr auto min(vector<N, T> const &a, T b) noexcept {
+    auto ret = vector<N, T>{};
+    for (auto i = size_t{}; i < N; ++i) {
+      ret[i] = min(a[i], b);
+    }
     return ret;
   }
 
   template<size_t N, typename T>
   constexpr auto min(vector<N, T> const &a, vector<N, T> const &b) noexcept {
     auto ret = vector<N, T>{};
-    for (auto i = size_t{}; i < N; ++i)
+    for (auto i = size_t{}; i < N; ++i) {
       ret[i] = min(a[i], b[i]);
+    }
+    return ret;
+  }
+
+  template<size_t N, typename T>
+  constexpr auto max(T a, vector<N, T> const &b) noexcept {
+    auto ret = vector<N, T>{};
+    for (auto i = size_t{}; i < N; ++i) {
+      ret[i] = max(a, b[i]);
+    }
+    return ret;
+  }
+
+  template<size_t N, typename T>
+  constexpr auto max(vector<N, T> const &a, T b) noexcept {
+    auto ret = vector<N, T>{};
+    for (auto i = size_t{}; i < N; ++i) {
+      ret[i] = max(a[i], b);
+    }
     return ret;
   }
 
   template<size_t N, typename T>
   constexpr auto max(vector<N, T> const &a, vector<N, T> const &b) noexcept {
     auto ret = vector<N, T>{};
-    for (auto i = size_t{}; i < N; ++i)
+    for (auto i = size_t{}; i < N; ++i) {
       ret[i] = max(a[i], b[i]);
+    }
     return ret;
+  }
+
+  template<size_t N, typename T>
+  constexpr auto clamp(vector<N, T> const &x, T a, T b) noexcept {
+    return min(max(x, a), b);
+  }
+
+  template<size_t N, typename T>
+  constexpr auto
+  clamp(vector<N, T> const &x, T a, vector<N, T> const &b) noexcept {
+    return min(max(x, a), b);
+  }
+
+  template<size_t N, typename T>
+  constexpr auto
+  clamp(vector<N, T> const &x, vector<N, T> const &a, T b) noexcept {
+    return min(max(x, a), b);
   }
 
   template<size_t N, typename T>
@@ -534,17 +593,75 @@ namespace imp {
     return (T{1} - t) * p + t * q;
   }
 
+  template<size_t N, typename T>
+  auto to_unorm8(vector<N, T> const &r) noexcept {
+    auto i = vector<N, uint8_t>{};
+    for (auto n = size_t{}; n < N; ++n) {
+      i[n] = to_unorm8(r[n]);
+    }
+    return i;
+  }
+
+  template<size_t N, typename T>
+  auto to_snorm8(vector<N, T> const &r) noexcept {
+    auto i = vector<N, int8_t>{};
+    for (auto n = size_t{}; n < N; ++n) {
+      i[n] = to_snorm8(r[n]);
+    }
+    return i;
+  }
+
+  template<size_t N, typename T>
+  auto to_unorm16(vector<N, T> const &r) noexcept {
+    auto i = vector<N, uint16_t>{};
+    for (auto n = size_t{}; n < N; ++n) {
+      i[n] = to_unorm16(r[n]);
+    }
+    return i;
+  }
+
+  template<size_t N, typename T>
+  auto to_snorm16(vector<N, T> const &r) noexcept {
+    auto i = vector<N, int16_t>{};
+    for (auto n = size_t{}; n < N; ++n) {
+      i[n] = to_snorm16(r[n]);
+    }
+    return i;
+  }
+
+  template<size_t N, typename T>
+  constexpr auto to_f32(vector<N, T> const &i) noexcept {
+    auto r = vector<N, float>{};
+    for (auto n = size_t{}; n < N; ++n) {
+      r[n] = to_f32(i[n]);
+    }
+    return r;
+  }
+
+  template<size_t N, typename T>
+  constexpr auto to_f64(vector<N, T> const &i) noexcept {
+    auto r = vector<N, double>{};
+    for (auto n = size_t{}; n < N; ++n) {
+      r[n] = to_f64(i[n]);
+    }
+    return r;
+  }
+
   template<size_t NewSize, size_t OldSize, typename T>
   constexpr auto resize(vector<OldSize, T> const &v, T x = T{}) noexcept {
     auto ret = vector<NewSize, T>{};
     if constexpr (NewSize > OldSize) {
-      for (auto i = size_t{}; i < OldSize; ++i)
+      for (auto i = size_t{}; i < OldSize; ++i) {
         ret[i] = v[i];
-      for (auto i = OldSize; i < NewSize; ++i)
+      }
+      for (auto i = OldSize; i < NewSize; ++i) {
         ret[i] = x;
-    } else
-      for (auto i = size_t{}; i < NewSize; ++i)
+      }
+    } else {
+      for (auto i = size_t{}; i < NewSize; ++i) {
         ret[i] = v[i];
+      }
+    }
     return ret;
   }
 
@@ -552,8 +669,9 @@ namespace imp {
   constexpr auto slice(vector<N, T> const &v) noexcept {
     static_assert(First < Last && Last <= N);
     auto ret = vector<Last - First, T>{};
-    for (auto i = First; i < Last; ++i)
+    for (auto i = First; i < Last; ++i) {
       ret[i - First] = v[i];
+    }
     return ret;
   }
 
@@ -561,16 +679,18 @@ namespace imp {
   constexpr auto concatenate(T x, vector<N, T> const &v) noexcept {
     auto ret = vector<N + 1, T>{};
     ret[0] = x;
-    for (auto i = size_t{}; i < N; ++i)
+    for (auto i = size_t{}; i < N; ++i) {
       ret[i + 1] = v[i];
+    }
     return ret;
   }
 
   template<size_t N, typename T>
   constexpr auto concatenate(vector<N, T> const &v, T x) noexcept {
     auto ret = vector<N + 1, T>{};
-    for (auto i = size_t{}; i < N; ++i)
+    for (auto i = size_t{}; i < N; ++i) {
       ret[i] = v[i];
+    }
     ret[N] = x;
     return ret;
   }
@@ -579,18 +699,21 @@ namespace imp {
   constexpr auto
   concatenate(vector<N, T> const &p, vector<M, T> const &q) noexcept {
     auto ret = vector<N + M, T>{};
-    for (auto i = size_t{}; i < N; ++i)
+    for (auto i = size_t{}; i < N; ++i) {
       ret[i] = p[i];
-    for (auto i = size_t{}; i < M; ++i)
+    }
+    for (auto i = size_t{}; i < M; ++i) {
       ret[i + N] = q[i];
+    }
     return ret;
   }
 
   template<size_t N, typename T>
   auto &operator<<(std::ostream &os, vector<N, T> const &v) noexcept {
     os << "[" << v[0];
-    for (auto i = size_t{1}; i < N; ++i)
+    for (auto i = size_t{1}; i < N; ++i) {
       os << ", " << v[i];
+    }
     return os << "]";
   }
 

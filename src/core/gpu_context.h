@@ -49,11 +49,11 @@ namespace imp {
     vk::Instance instance() const noexcept;
     vk::PhysicalDevice physical_device() const noexcept;
     uint32_t graphics_family() const noexcept;
-    uint32_t compute_family() const noexcept;
+    //uint32_t compute_family() const noexcept;
     uint32_t present_family() const noexcept;
     vk::Device device() const noexcept;
     vk::Queue graphics_queue() const noexcept;
-    vk::Queue compute_queue() const noexcept;
+    //vk::Queue compute_queue() const noexcept;
     vk::Queue present_queue() const noexcept;
 
     vk::Sampler create_sampler(vk::SamplerCreateInfo const &create_info);
@@ -70,11 +70,11 @@ namespace imp {
     vk::UniqueInstance instance_;
     vk::PhysicalDevice physical_device_;
     uint32_t graphics_family_;
-    uint32_t compute_family_;
+    //uint32_t compute_family_;
     uint32_t present_family_;
     vk::UniqueDevice device_;
     vk::Queue graphics_queue_;
-    vk::Queue compute_queue_;
+    //vk::Queue compute_queue_;
     vk::Queue present_queue_;
     std::unordered_map<vk::SamplerCreateInfo, vk::UniqueSampler> samplers_;
     VmaAllocator allocator_;
@@ -82,11 +82,11 @@ namespace imp {
     vk::UniqueInstance create_instance();
     vk::PhysicalDevice select_physical_device();
     uint32_t select_graphics_family();
-    uint32_t select_compute_family();
+    //uint32_t select_compute_family();
     uint32_t select_present_family();
     vk::UniqueDevice create_device();
     vk::Queue select_graphics_queue();
-    vk::Queue select_compute_queue();
+    //vk::Queue select_compute_queue();
     vk::Queue select_present_queue();
     VmaAllocator create_allocator();
   };

@@ -54,15 +54,6 @@
     <ClInclude Include="src\math\vector.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\spot_light_component.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\point_light_component.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\graphics_system.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\physics\physics_system.h">
       <Filter>Header Files\physics</Filter>
     </ClInclude>
@@ -96,26 +87,14 @@
     <ClInclude Include="src\graphics\atmosphere.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\optical_depth_lut_create_info.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\scattering_lut_create_info.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\gpu_context.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\renderer.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\gpu_allocator.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\vk_mem_alloc.h">
       <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\gpu_frame.h">
-      <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\core\gpu_buffer.h">
       <Filter>Header Files\core</Filter>
@@ -123,14 +102,20 @@
     <ClInclude Include="src\core\gpu_image.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\scene.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\static_mesh.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\static_vertex.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\math\constants.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\graphics\point_light_component.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\spot_light_component.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="src\physics\physics_system.cpp">
       <Filter>Source Files\physics</Filter>
     </ClCompile>
@@ -146,9 +131,6 @@
     <ClCompile Include="src\core\window.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\gpu_frame.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\scattering_lut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
@@ -161,9 +143,6 @@
     <ClCompile Include="src\core\gpu_context.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\gpu_allocator.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\vk_mem_alloc.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
@@ -174,6 +153,9 @@
       <Filter>Source Files\core</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\renderer.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\static_mesh.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
   </ItemGroup>

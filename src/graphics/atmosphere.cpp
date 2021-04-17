@@ -35,7 +35,7 @@ namespace imp {
   vk::UniqueCommandPool atmosphere::create_command_pool() {
     auto info = vk::CommandPoolCreateInfo{};
     info.flags = vk::CommandPoolCreateFlagBits::eTransient;
-    info.queueFamilyIndex = context_->compute_family();
+    info.queueFamilyIndex = context_->graphics_family();
     return context_->device().createCommandPoolUnique(info);
   }
 
@@ -246,8 +246,8 @@ namespace imp {
     auto submit_info = vk::SubmitInfo{};
     submit_info.commandBufferCount = 1;
     submit_info.pCommandBuffers = &*command_buffer;
-    context_->compute_queue().submit(submit_info);
-    context_->compute_queue().waitIdle();
+    context_->graphics_queue().submit(submit_info);
+    context_->graphics_queue().waitIdle();
   }
 
   void atmosphere::update_optical_depth_lut() {
@@ -318,8 +318,8 @@ namespace imp {
     auto submit_info = vk::SubmitInfo{};
     submit_info.commandBufferCount = 1;
     submit_info.pCommandBuffers = &*command_buffer;
-    context_->compute_queue().submit(submit_info);
-    context_->compute_queue().waitIdle();
+    context_->graphics_queue().submit(submit_info);
+    context_->graphics_queue().waitIdle();
   }
 
   scattering_lut const &atmosphere::scattering() const noexcept {
