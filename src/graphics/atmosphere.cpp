@@ -30,6 +30,7 @@ namespace imp {
     update_descriptor_sets();
     update_scattering_lut();
     update_optical_depth_lut();
+    context_->device().resetCommandPool(*command_pool_);
   }
 
   vk::UniqueCommandPool atmosphere::create_command_pool() {
