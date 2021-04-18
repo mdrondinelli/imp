@@ -15,7 +15,7 @@ namespace imp {
             reinterpret_cast<VkBuffer *>(&buffer_),
             &allocation_,
             &allocation_info_) != VK_SUCCESS) {
-      throw std::runtime_error{"Failed to create vulkan buffer."};
+      throw std::runtime_error{"failed to create gpu buffer."};
     }
   }
 

@@ -32,7 +32,7 @@ namespace imp {
     vk::UniquePipeline atmosphere_pipeline_;
     vk::UniqueDescriptorPool descriptor_pool_;
     vk::UniqueDescriptorSet atmosphere_descriptor_set_;
-    vk::Sampler lut_sampler_;
+    vk::UniqueSampler lut_sampler_;
     std::vector<frame> frames_;
     size_t frame_;
 
@@ -44,7 +44,7 @@ namespace imp {
     vk::UniquePipeline create_atmosphere_pipeline();
     vk::UniqueDescriptorPool create_descriptor_pool();
     vk::UniqueDescriptorSet allocate_atmosphere_descriptor_set();
-    vk::Sampler create_lut_sampler();
+    vk::UniqueSampler create_lut_sampler();
     std::vector<frame> create_frames();
 
     void update_atmosphere_descriptor_set();

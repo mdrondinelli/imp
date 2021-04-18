@@ -26,29 +26,25 @@ namespace imp {
   }
 
   vk::UniqueRenderPass renderer::create_atmosphere_pass() {
-    auto attachments = std::array<vk::AttachmentDescription, 1>{};
-    auto &color_attachment = attachments[0];
+    auto color_attachment = vk::AttachmentDescription{};
     color_attachment.format = window_->format();
     color_attachment.samples = vk::SampleCountFlagBits::e1;
     color_attachment.loadOp = vk::AttachmentLoadOp::eClear;
     color_attachment.storeOp = vk::AttachmentStoreOp::eStore;
     color_attachment.initialLayout = vk::ImageLayout::eUndefined;
     color_attachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-    auto subpass_color_attachments = std::array<vk::AttachmentReference, 1>{};
-    auto &subpass_color_attachment = subpass_color_attachments[0];
+    auto subpass_color_attachment = vk::AttachmentReference{};
     subpass_color_attachment.attachment = 0;
     subpass_color_attachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
-    auto subpasses = std::array<vk::SubpassDescription, 1>{};
-    auto &subpass = subpasses[0];
+    auto subpass = vk::SubpassDescription{};
     subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-    subpass.colorAttachmentCount =
-        static_cast<uint32_t>(subpass_color_attachments.size());
-    subpass.pColorAttachments = subpass_color_attachments.data();
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &subpass_color_attachment;
     auto info = vk::RenderPassCreateInfo{};
-    info.attachmentCount = static_cast<uint32_t>(attachments.size());
-    info.pAttachments = attachments.data();
-    info.subpassCount = static_cast<uint32_t>(subpasses.size());
-    info.pSubpasses = subpasses.data();
+    info.attachmentCount = 1;
+    info.pAttachments = &color_attachment;
+    info.subpassCount = 1;
+    info.pSubpasses = &subpass;
     return context_->device().createRenderPassUnique(info);
   }
 
@@ -68,7 +64,7 @@ namespace imp {
     optical_depth_binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
     auto bindings = std::array{scattering_binding, optical_depth_binding};
     auto info = vk::DescriptorSetLayoutCreateInfo{};
-    info.bindingCount = static_cast<uint32_t>(bindings.size());
+    info.bindingCount = static_cast<std::uint32_t>(bindings.size());
     info.pBindings = bindings.data();
     return context_->device().createDescriptorSetLayoutUnique(info);
   }
@@ -80,16 +76,16 @@ namespace imp {
     in.exceptions(std::ios::badbit | std::ios::failbit);
     in.open(path, std::ios::binary);
     in.seekg(0, std::ios::end);
-    auto size = static_cast<size_t>(in.tellg());
-    if (size % sizeof(uint32_t) != 0) {
+    auto size = static_cast<std::size_t>(in.tellg());
+    if (size % 4 != 0) {
       throw std::runtime_error{"failed to create shader module"};
     }
     code.resize(size);
     in.seekg(0, std::ios::beg);
     in.read(code.data(), code.size());
     auto module_info = vk::ShaderModuleCreateInfo{};
-    module_info.codeSize = static_cast<uint32_t>(code.size());
-    module_info.pCode = reinterpret_cast<uint32_t *>(code.data());
+    module_info.codeSize = static_cast<std::uint32_t>(code.size());
+    module_info.pCode = reinterpret_cast<std::uint32_t *>(code.data());
     return context_->device().createShaderModuleUnique(module_info);
   }
 
@@ -149,10 +145,10 @@ namespace imp {
         std::array{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
     auto dynamic_state = vk::PipelineDynamicStateCreateInfo{};
     dynamic_state.dynamicStateCount =
-        static_cast<uint32_t>(dynamic_states.size());
+        static_cast<std::uint32_t>(dynamic_states.size());
     dynamic_state.pDynamicStates = dynamic_states.data();
     auto info = vk::GraphicsPipelineCreateInfo{};
-    info.stageCount = static_cast<uint32_t>(stages.size());
+    info.stageCount = static_cast<std::uint32_t>(stages.size());
     info.pStages = stages.data();
     info.pVertexInputState = &vertex_input_state;
     info.pInputAssemblyState = &input_assembly_state;
@@ -177,7 +173,7 @@ namespace imp {
     auto info = vk::DescriptorPoolCreateInfo{};
     info.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
     info.maxSets = 1;
-    info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
+    info.poolSizeCount = static_cast<std::uint32_t>(pool_sizes.size());
     info.pPoolSizes = pool_sizes.data();
     return context_->device().createDescriptorPoolUnique(info);
   }
@@ -191,7 +187,7 @@ namespace imp {
     return std::move(sets[0]);
   }
 
-  vk::Sampler renderer::create_lut_sampler() {
+  vk::UniqueSampler renderer::create_lut_sampler() {
     auto info = vk::SamplerCreateInfo{};
     info.magFilter = vk::Filter::eLinear;
     info.minFilter = vk::Filter::eLinear;
@@ -199,13 +195,13 @@ namespace imp {
     info.addressModeU = vk::SamplerAddressMode::eClampToEdge;
     info.addressModeV = vk::SamplerAddressMode::eClampToEdge;
     info.addressModeW = vk::SamplerAddressMode::eClampToEdge;
-    return context_->create_sampler(info);
+    return context_->device().createSamplerUnique(info);
   }
 
   std::vector<renderer::frame> renderer::create_frames() {
     auto device = context_->device();
     auto frames = std::vector<frame>(3);
-    for (auto i = size_t{}; i < frames.size(); ++i) {
+    for (auto i = std::size_t{}; i < frames.size(); ++i) {
       frames[i].image_acquisition_semaphore = device.createSemaphoreUnique({});
       frames[i].queue_submission_semaphore = device.createSemaphoreUnique({});
       frames[i].queue_submission_fence =
@@ -226,7 +222,7 @@ namespace imp {
 
   void renderer::update_atmosphere_descriptor_set() {
     auto scattering_lut_info = vk::DescriptorImageInfo{};
-    scattering_lut_info.sampler = lut_sampler_;
+    scattering_lut_info.sampler = *lut_sampler_;
     scattering_lut_info.imageView = atmosphere_.scattering().image_view();
     scattering_lut_info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     auto scattering_lut_write = vk::WriteDescriptorSet{};
@@ -238,7 +234,7 @@ namespace imp {
         vk::DescriptorType::eCombinedImageSampler;
     scattering_lut_write.pImageInfo = &scattering_lut_info;
     auto optical_depth_lut_info = vk::DescriptorImageInfo{};
-    optical_depth_lut_info.sampler = lut_sampler_;
+    optical_depth_lut_info.sampler = *lut_sampler_;
     optical_depth_lut_info.imageView = atmosphere_.optical_depth().image_view();
     optical_depth_lut_info.imageLayout =
         vk::ImageLayout::eShaderReadOnlyOptimal;
@@ -275,10 +271,12 @@ namespace imp {
     pass_info.renderArea.offset.y = 0;
     pass_info.renderArea.extent.width = window_->swapchain_size()[0];
     pass_info.renderArea.extent.height = window_->swapchain_size()[1];
-    pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
+    pass_info.clearValueCount = static_cast<std::uint32_t>(clear_values.size());
     pass_info.pClearValues = clear_values.data();
     device.waitForFences(
-        queue_submission_fence, true, std::numeric_limits<uint64_t>::max());
+        queue_submission_fence,
+        true,
+        std::numeric_limits<std::uint64_t>::max());
     device.resetFences(queue_submission_fence);
     device.resetCommandPool(command_pool);
     command_buffer.begin(buffer_info);
@@ -338,7 +336,7 @@ namespace imp {
         *atmosphere_pipeline_layout_,
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
         0,
-        static_cast<uint32_t>(push_constants.size()),
+        static_cast<std::uint32_t>(push_constants.size()),
         push_constants.data());
     command_buffer.draw(3, 1, 0, 0);
     command_buffer.endRenderPass();
@@ -350,18 +348,18 @@ namespace imp {
     auto submit_signal_semaphores = std::array{queue_submission_semaphore};
     auto submit_info = vk::SubmitInfo{};
     submit_info.waitSemaphoreCount =
-        static_cast<uint32_t>(submit_wait_semaphores.size());
+        static_cast<std::uint32_t>(submit_wait_semaphores.size());
     submit_info.pWaitSemaphores = submit_wait_semaphores.data();
     submit_info.pWaitDstStageMask = submit_wait_stages.data();
     submit_info.commandBufferCount =
-        static_cast<uint32_t>(submit_command_buffers.size());
+        static_cast<std::uint32_t>(submit_command_buffers.size());
     submit_info.pCommandBuffers = submit_command_buffers.data();
     submit_info.signalSemaphoreCount =
-        static_cast<uint32_t>(submit_signal_semaphores.size());
+        static_cast<std::uint32_t>(submit_signal_semaphores.size());
     submit_info.pSignalSemaphores = submit_signal_semaphores.data();
     context_->graphics_queue().submit(submit_info, queue_submission_fence);
     window_->present_framebuffer(
-        static_cast<uint32_t>(submit_signal_semaphores.size()),
+        static_cast<std::uint32_t>(submit_signal_semaphores.size()),
         submit_signal_semaphores.data(),
         framebuffer);
     ++frame_;

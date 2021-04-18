@@ -1,12 +1,7 @@
 #pragma once
 
-#include <cmath>
-
 #include <array>
 #include <ostream>
-#include <type_traits>
-
-#include <boost/container_hash/hash.hpp>
 
 #include "scalar.h"
 
@@ -153,14 +148,14 @@ namespace imp {
   using vector2f = vector2<float>;
   using vector3f = vector3<float>;
   using vector4f = vector4<float>;
-  using vector1i = vector1<int32_t>;
-  using vector2i = vector2<int32_t>;
-  using vector3i = vector3<int32_t>;
-  using vector4i = vector4<int32_t>;
-  using vector1u = vector1<uint32_t>;
-  using vector2u = vector2<uint32_t>;
-  using vector3u = vector3<uint32_t>;
-  using vector4u = vector4<uint32_t>;
+  using vector1i = vector1<std::int32_t>;
+  using vector2i = vector2<std::int32_t>;
+  using vector3i = vector3<std::int32_t>;
+  using vector4i = vector4<std::int32_t>;
+  using vector1u = vector1<std::uint32_t>;
+  using vector2u = vector2<std::uint32_t>;
+  using vector3u = vector3<std::uint32_t>;
+  using vector4u = vector4<std::uint32_t>;
 
   template<size_t N, typename T>
   constexpr auto make_vector(T x) noexcept {
@@ -746,17 +741,23 @@ namespace imp {
     return os << "]";
   }
 
-  template<size_t N, typename T>
-  size_t hash_value(vector<N, T> const &v) noexcept {
-    return boost::hash_range(v.cbegin(), v.cend());
+  //template<size_t N, typename T>
+  //std::size_t hash_value(vector<N, T> const &v) noexcept {
+  //  return boost::hash_range(v.cbegin(), v.cend());
+  //}
+
+  template<size_t N, typename T, typename H>
+  H AbslHashValue(H state, vector<N, T> const &v) noexcept {
+    return H::combine_contiguous(std::move(state), v.data(), v.size());
   }
+
 } // namespace imp
 
-namespace std {
-  template<size_t N, typename T>
-  struct hash<imp::vector<N, T>> {
-    size_t operator()(imp::vector<N, T> const &v) const noexcept {
-      return hash_value(v);
-    }
-  };
-} // namespace std
+//namespace std {
+//  template<size_t N, typename T>
+//  struct hash<imp::vector<N, T>> {
+//    size_t operator()(imp::vector<N, T> const &v) const noexcept {
+//      return hash_value(v);
+//    }
+//  };
+//} // namespace std
