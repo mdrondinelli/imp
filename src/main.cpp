@@ -38,12 +38,19 @@ int main() {
 
   try {
     auto cache = dummy_resource_cache{
-        &loader, &worker, {{0, {69}}, {1, {70}}, {2, {420}}, {3, {421}}}};
+        &loader,
+        &worker,
+        {{"pingas", {69}},
+         {"pengas", {70}},
+         {"pangas", {71}},
+         {"pongas", {420}},
+         {"pungas", {421}}}};
 
     cache.create_reference(0);
     cache.create_reference(1);
     cache.create_reference(2);
     cache.create_reference(3);
+    cache.create_reference(4);
     imp::init_windows();
     auto gpu_context = imp::gpu_context{true, true};
     auto window = imp::window{
@@ -69,6 +76,7 @@ int main() {
     cache.destroy_reference(1);
     cache.destroy_reference(2);
     cache.destroy_reference(3);
+    cache.destroy_reference(4);
   } catch (std::exception &e) {
     std::cerr << e.what() << "\n";
   }

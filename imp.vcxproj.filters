@@ -37,6 +37,12 @@
     <Filter Include="Header Files\geometry">
       <UniqueIdentifier>{6352f9af-84af-494a-b13c-ba3417f9b549}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\engine">
+      <UniqueIdentifier>{55ff9391-0413-4b68-b3a4-4c635054b9d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\engine">
+      <UniqueIdentifier>{66c169a3-efb8-4b52-979c-f68d33a78b83}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\math\interval.h">
@@ -114,9 +120,6 @@
     <ClInclude Include="src\math\constants.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\static_mesh_info.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\static_mesh_loader.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
@@ -129,11 +132,14 @@
     <ClInclude Include="src\core\worker_thread.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\client.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\resource_state.h">
       <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\static_mesh_cache.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\client.h">
+      <Filter>Header Files\engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +190,9 @@
     </ClCompile>
     <ClCompile Include="src\graphics\static_mesh_laoder.cpp">
       <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\client.cpp">
+      <Filter>Source Files\engine</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
