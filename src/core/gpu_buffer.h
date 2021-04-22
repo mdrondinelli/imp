@@ -7,7 +7,7 @@
 namespace imp {
   class gpu_buffer {
   public:
-    gpu_buffer(
+    explicit gpu_buffer(
         vk::BufferCreateInfo const &buffer_info,
         VmaAllocationCreateInfo const &allocation_info,
         VmaAllocator allocator);

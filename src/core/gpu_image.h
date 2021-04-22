@@ -7,7 +7,7 @@
 namespace imp {
   class gpu_image {
   public:
-    gpu_image(
+    explicit gpu_image(
         vk::ImageCreateInfo const &image_info,
         VmaAllocationCreateInfo const &allocation_info,
         VmaAllocator allocator);

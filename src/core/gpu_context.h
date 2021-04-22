@@ -6,7 +6,7 @@
 namespace imp {
   class gpu_context {
   public:
-    gpu_context(bool validation_enabled, bool presentation_enabled);
+    explicit gpu_context(bool validation_enabled, bool presentation_enabled);
     ~gpu_context();
 
     bool validation_enabled() const noexcept;

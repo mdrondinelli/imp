@@ -102,10 +102,10 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <FloatingPointModel>Strict</FloatingPointModel>
+      <PreprocessorDefinitions>_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING;_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -119,10 +119,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <FloatingPointModel>Strict</FloatingPointModel>
+      <PreprocessorDefinitions>NDEBUG;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING;_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,10 +136,10 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <FloatingPointModel>Strict</FloatingPointModel>
+      <PreprocessorDefinitions>_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING;_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,10 +153,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <FloatingPointModel>Strict</FloatingPointModel>
+      <PreprocessorDefinitions>NDEBUG;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING;_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -167,10 +167,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\client.h" />
     <ClInclude Include="src\core\gpu_buffer.h" />
     <ClInclude Include="src\core\gpu_image.h" />
     <ClInclude Include="src\core\gpu_context.h" />
+    <ClInclude Include="src\core\resource_cache.h" />
+    <ClInclude Include="src\core\resource_loader.h" />
+    <ClInclude Include="src\core\resource_state.h" />
     <ClInclude Include="src\core\vk_mem_alloc.h" />
+    <ClInclude Include="src\core\worker_thread.h" />
     <ClInclude Include="src\core\world.h" />
     <ClInclude Include="src\core\transform_component.h" />
     <ClInclude Include="src\core\transform_system.h" />
@@ -183,6 +188,8 @@
     <ClInclude Include="src\graphics\scattering_lut.h" />
     <ClInclude Include="src\graphics\scene.h" />
     <ClInclude Include="src\graphics\static_mesh.h" />
+    <ClInclude Include="src\graphics\static_mesh_info.h" />
+    <ClInclude Include="src\graphics\static_mesh_loader.h" />
     <ClInclude Include="src\graphics\static_vertex.h" />
     <ClInclude Include="src\math\constants.h" />
     <ClInclude Include="src\math\interval.h" />
@@ -198,6 +205,7 @@
     <ClCompile Include="src\core\gpu_image.cpp" />
     <ClCompile Include="src\core\gpu_context.cpp" />
     <ClCompile Include="src\core\vk_mem_alloc.cpp" />
+    <ClCompile Include="src\core\worker_thread.cpp" />
     <ClCompile Include="src\core\world.cpp" />
     <ClCompile Include="src\core\transform_system.cpp" />
     <ClCompile Include="src\core\window.cpp" />
@@ -206,6 +214,7 @@
     <ClCompile Include="src\graphics\renderer.cpp" />
     <ClCompile Include="src\graphics\scattering_lut.cpp" />
     <ClCompile Include="src\graphics\static_mesh.cpp" />
+    <ClCompile Include="src\graphics\static_mesh_laoder.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\physics\physics_system.cpp" />
   </ItemGroup>
