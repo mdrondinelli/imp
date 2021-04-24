@@ -25,7 +25,7 @@ namespace imp {
       optical_depth_pipeline_{create_optical_depth_pipeline()},
       descriptor_pool_{create_descriptor_pool()},
       descriptor_sets_(allocate_descriptor_sets()),
-      scattering_{context, make_vector(32, 512, 256)},
+      scattering_{context, make_vector(64, 256, 256)},
       optical_depth_{context, make_vector(512, 512)} {
     update_descriptor_sets();
     update_scattering_lut();

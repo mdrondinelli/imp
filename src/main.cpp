@@ -16,8 +16,11 @@ struct dummy_resource_info {
   int wonis;
 };
 
+using dummy_resource_cache =
+    imp::resource_cache<dummy_resource, dummy_resource_info>;
+
 struct dummy_resource_loader:
-    imp::resource_loader<dummy_resource, dummy_resource_info> {
+    dummy_resource_cache::loader {
   std::optional<dummy_resource> load(dummy_resource_info const &info) override {
     using namespace std::chrono_literals;
     std::cout << "loading " << info.wonis << "\n";
@@ -27,30 +30,26 @@ struct dummy_resource_loader:
   }
 };
 
-using dummy_resource_cache =
-    imp::resource_cache<dummy_resource, dummy_resource_info>;
 
 int main() {
   using namespace std::chrono_literals;
 
-  auto loader = dummy_resource_loader{};
   auto worker = imp::worker_thread{};
+  auto loader = dummy_resource_loader{};
 
   try {
-    auto cache = dummy_resource_cache{
-        &loader,
-        &worker,
-        {{"pingas", {69}},
-         {"pengas", {70}},
-         {"pangas", {71}},
-         {"pongas", {420}},
-         {"pungas", {421}}}};
+    auto cache = dummy_resource_cache{&worker, &loader};
+    cache.try_emplace("bangus", dummy_resource_info{69});
+    cache.try_emplace("bengus", dummy_resource_info{70});
+    cache.try_emplace("bingus", dummy_resource_info{71});
+    cache.try_emplace("bongus", dummy_resource_info{72});
+    cache.try_emplace("bungus", dummy_resource_info{73});
+    auto bangus = cache.at("bangus");
+    auto bengus = cache.at("bengus");
+    auto bingus = cache.at("bingus");
+    auto bongus = cache.at("bongus");
+    auto bungus = cache.at("bungus");
 
-    cache.create_reference(0);
-    cache.create_reference(1);
-    cache.create_reference(2);
-    cache.create_reference(3);
-    cache.create_reference(4);
     imp::init_windows();
     auto gpu_context = imp::gpu_context{true, true};
     auto window = imp::window{
@@ -72,11 +71,6 @@ int main() {
         frame_count = 0;
       }
     }
-    cache.destroy_reference(0);
-    cache.destroy_reference(1);
-    cache.destroy_reference(2);
-    cache.destroy_reference(3);
-    cache.destroy_reference(4);
   } catch (std::exception &e) {
     std::cerr << e.what() << "\n";
   }

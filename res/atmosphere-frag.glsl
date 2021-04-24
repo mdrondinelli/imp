@@ -1,5 +1,7 @@
 #version 450 core
 
+#include "numeric.glsl"
+
 in vertex_data {
   layout(location = 0) vec3 eye_direction;
   layout(location = 1) vec2 frustum_uv;
@@ -18,6 +20,7 @@ layout(push_constant) uniform push_constants {
   float g;
   float planet_radius;
   float atmosphere_radius;
+  uint frame;
 };
 
 bool ray_atmosphere(vec3 o, vec3 d, out float t0, out float t1) {
@@ -72,20 +75,14 @@ float mie_phase(float cos_theta) {
   return numer / denom;
 }
 
-vec3 partial_tonemap(vec3 x) {
-  float A = 0.15f;
-  float B = 0.50f;
-  float C = 0.10f;
-  float D = 0.20f;
-  float E = 0.02f;
-  float F = 0.30f;
-  return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
-}
-
-vec3 filmic_tonemap(vec3 x) {
-  float exposure_bias = 1.0f / 2.0f;
-  vec3 W = vec3(11.2f);
-  return partial_tonemap(x * exposure_bias) / partial_tonemap(W);
+float tonemap(float x) {
+  x *= 0.6f;
+  float a = 2.51f;
+  float b = 0.03f;
+  float c = 2.43f;
+  float d = 0.59f;
+  float e = 0.14f;
+  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0f, 1.0f);
 }
 
 vec3 compute_in_scattering(vec3 p_a, vec3 p_b) {
@@ -161,44 +158,16 @@ void main() {
     in_scattering = compute_in_scattering(p_a, p_b);
     transmittance = compute_transmittance_segment(p_a, p_b); 
   }
-#if 0
-  float h = eye_position.y + planet_radius;
-  float h2 = h * h;
-  float rp2 = planet_radius * planet_radius;
-  float ra2 = atmosphere_radius * atmosphere_radius;
-  float u = sqrt((h2 - rp2) / (ra2 - rp2));
-  float v = (1.0f + eye_direction.y) / 2.0f;
-  float w = (1.0f - exp(-2.8f * sun_direction.y - 0.8f)) / (1.0f - exp(-3.6f));
-  vec4 scattering_lut_value = texture(scattering_lut, vec3(u, v, w));
-  float cos_theta = dot(sun_direction, eye_direction);
-  vec3 rayleigh_in = sun_radiance * rayleigh_phase(cos_theta) * scattering_lut_value.xyz;
-  vec3 mie_in = sun_radiance * mie_phase(cos_theta) * scattering_lut_value.w;
-  vec3 scattering_in = rayleigh_in + mie_in;
-  float cos_theta = dot(sun_direction, eye_direction);
-  vec3 p_a = eye_position + vec3(0.0f, planet_radius, 0.0f);
-  float t_planet = ray_planet(p_a, eye_direction);
-  float t_atmosphere = ray_atmosphere(p_a, eye_direction);
-  float t = min(t_planet, t_atmosphere);
-  vec3 p_b = p_a + t * eye_direction;
-  vec4 rm_scattering = scattering(p_a, p_b, sun_direction);
-  vec3 total_scattering = rm_scattering.xyz + rm_scattering.www;
-  vec4 rm_depth = optical_depth(p_a, p_b);
-  vec3 total_depth = rm_depth.xyz + rm_depth.www;
-  vec3 total_transmittance = exp(-total_depth);
-  vec3 incoming_radiance = vec3(0.0f);
-  if (t == t_planet) {
-    vec3 p_c = p_b + ray_atmosphere(p_b, sun_direction) * sun_direction;
-    vec4 rm_depth = optical_depth(p_a, p_b);
-    vec3 total_depth = rm_depth.xyz + rm_depth.www;
-    vec3 total_transmittance = exp(-total_depth);
-    vec3 li = sun_radiance * total_transmittance;
-    vec3 brdf = vec3(0.07f) / 3.14f;
-    float n_dot_l = max(dot(normalize(p_b), sun_direction), 0.0f);
-    incoming_radiance = li * brdf * n_dot_l;
-  } else {
-    incoming_radiance = sun_radiance * step(0.99999f, cos_theta);
-  }
-#endif
   vec3 in_radiance = out_radiance * transmittance + in_scattering;
-  frag_color = vec4(filmic_tonemap(in_radiance), 1.0f);
+  in_radiance *= 0.25f;
+  float in_luminance = dot(in_radiance, vec3(0.2126f, 0.7152f, 0.0722f));
+  vec3 linear_color = in_radiance / in_luminance * tonemap(in_luminance);
+  vec3 srgb_color = pow(linear_color, vec3(1.0f / 2.2f));
+  uvec3 seed = uvec3(gl_FragCoord.xy, frame);
+  uvec3 hash = pcg3d(seed);
+  vec3 rand = hash / float(0xffffffffu);
+  rand = rand * 2.0f - 1.0f;
+  rand = sign(rand) * (1.0f - sqrt(1.0f - abs(rand)));
+  srgb_color += 2.0f / 255.0f * rand;
+  frag_color = vec4(srgb_color, 1.0f);
 }

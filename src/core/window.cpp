@@ -59,7 +59,7 @@ namespace imp {
     auto formats = physical_device.getSurfaceFormatsKHR(*surface_);
     auto format = formats[0];
     for (auto i = size_t{1}; i < formats.size(); ++i) {
-      if (formats[i].format == vk::Format::eB8G8R8A8Srgb &&
+      if (formats[i].format == vk::Format::eB8G8R8A8Unorm &&
           formats[i].colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
         format = formats[i];
       }

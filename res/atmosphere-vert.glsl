@@ -13,6 +13,7 @@ layout(push_constant) uniform push_constants {
   float g;
   float planet_radius;
   float atmosphere_radius;
+  uint frame;
 };
 
 vec4 clip_positions[3] = vec4[](

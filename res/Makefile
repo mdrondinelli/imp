@@ -13,5 +13,5 @@ optical_depth.spv: optical_depth.glsl
 atmosphere-vert.spv: atmosphere-vert.glsl
 	$(COMPILE_VERT) -o atmosphere-vert.spv atmosphere-vert.glsl
 
-atmosphere-frag.spv: atmosphere-frag.glsl
+atmosphere-frag.spv: atmosphere-frag.glsl numeric.glsl
 	$(COMPILE_FRAG) -o atmosphere-frag.spv atmosphere-frag.glsl

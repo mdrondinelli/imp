@@ -305,26 +305,28 @@ namespace imp {
         {});
     auto x = max(viewport.width / viewport.height, 1.0f);
     auto y = max(viewport.height / viewport.width, 1.0f);
-    auto eye_position = make_vector(0.0f, 2.0f, 0.0f);
+    auto eye_position = make_vector(0.0f, 50.0f, 0.0f);
     auto frustum_corners = std::array{
         make_vector(-x, y, -1.0f, 0.0f),
         make_vector(x, y, -1.0f, 0.0f),
         make_vector(-x, -y, -1.0f, 0.0f),
         make_vector(x, -y, -1.0f, 0.0f)};
     auto eye_orientation = rotation_matrix4x4(
-        rotation_quaternion(0.0f, make_vector(1.0f, 0.0f, 0.0f)));
+        rotation_quaternion(0.5f, make_vector(1.0f, 0.0f, 0.0f)));
     for (auto &corner : frustum_corners) {
       corner = eye_orientation * corner;
       corner += concatenate(eye_position, 0.0f);
     }
     auto sun_radiance = make_vector(20.0f, 20.0f, 20.0f);
-    auto delta = frame_ / 120000.0f + 1.4f * 3.141592f;
+    auto delta = frame_ / 30.0f + 1.4f * 3.141592f;
+    //auto delta = -1.0f;
     auto sun_direction =
         normalize(make_vector(0.0f, std::cosf(delta), std::sinf(delta)));
     auto g = 0.76f;
     auto planet_radius = 6360e3f;
     auto atmosphere_radius = 6420e3f;
-    auto push_constants = std::array<char, 120>{};
+    auto time = static_cast<std::uint32_t>(frame_);
+    auto push_constants = std::array<char, 124>{};
     std::memcpy(push_constants.data() + 0, &frustum_corners, 64);
     std::memcpy(push_constants.data() + 64, &eye_position, 12);
     std::memcpy(push_constants.data() + 80, &sun_radiance, 12);
@@ -332,6 +334,7 @@ namespace imp {
     std::memcpy(push_constants.data() + 108, &g, 4);
     std::memcpy(push_constants.data() + 112, &planet_radius, 4);
     std::memcpy(push_constants.data() + 116, &atmosphere_radius, 4);
+    std::memcpy(push_constants.data() + 120, &time, 4);
     command_buffer.pushConstants(
         *atmosphere_pipeline_layout_,
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
