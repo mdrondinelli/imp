@@ -34,9 +34,6 @@
     <Filter Include="Source Files\core">
       <UniqueIdentifier>{f74440ab-058e-4214-b766-546c8deec4c2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\geometry">
-      <UniqueIdentifier>{6352f9af-84af-494a-b13c-ba3417f9b549}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\engine">
       <UniqueIdentifier>{55ff9391-0413-4b68-b3a4-4c635054b9d7}</UniqueIdentifier>
     </Filter>
@@ -45,19 +42,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\math\interval.h">
+    <ClInclude Include="src\math\Interval.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\math\matrix.h">
+    <ClInclude Include="src\math\Matrix.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\math\quaternion.h">
+    <ClInclude Include="src\math\Quaternion.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\math\scalar.h">
+    <ClInclude Include="src\math\Scalar.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\math\vector.h">
+    <ClInclude Include="src\math\Vector.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
     <ClInclude Include="src\physics\physics_system.h">
@@ -69,130 +66,133 @@
     <ClInclude Include="src\physics\rigid_body_component.h">
       <Filter>Header Files\physics</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\world.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\transform_system.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\window.h">
+    <ClInclude Include="src\core\Window.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\geometry\ray.h">
-      <Filter>Header Files\geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\geometry\sphere.h">
-      <Filter>Header Files\geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\scattering_lut.h">
+    <ClInclude Include="src\graphics\ScatteringLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\optical_depth_lut.h">
+    <ClInclude Include="src\graphics\OpticalDepthLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\atmosphere.h">
+    <ClInclude Include="src\graphics\Atmosphere.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\gpu_context.h">
+    <ClInclude Include="src\core\GpuContext.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\renderer.h">
+    <ClInclude Include="src\graphics\Renderer.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\core\vk_mem_alloc.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\gpu_buffer.h">
+    <ClInclude Include="src\core\GpuBuffer.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\gpu_image.h">
+    <ClInclude Include="src\core\GpuImage.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\scene.h">
+    <ClInclude Include="src\graphics\Scene.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\static_mesh.h">
+    <ClInclude Include="src\graphics\StaticMesh.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\static_vertex.h">
+    <ClInclude Include="src\graphics\StaticVertex.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\math\constants.h">
+    <ClInclude Include="src\math\Constants.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\static_mesh_loader.h">
+    <ClInclude Include="src\graphics\StaticMeshLoader.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\resource_loader.h">
+    <ClInclude Include="src\core\ResourceLoader.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\resource_cache.h">
+    <ClInclude Include="src\core\ResourceCache.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\worker_thread.h">
+    <ClInclude Include="src\core\WorkerThread.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\resource_state.h">
+    <ClInclude Include="src\core\ResourceState.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\static_mesh_cache.h">
+    <ClInclude Include="src\graphics\StaticMeshCache.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\client.h">
+    <ClInclude Include="src\engine\Client.h">
       <Filter>Header Files\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\Camera.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\Transform.h">
+      <Filter>Header Files\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\physics\physics_system.cpp">
       <Filter>Source Files\physics</Filter>
     </ClCompile>
-    <ClCompile Include="src\main.cpp">
+    <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\world.cpp">
-      <Filter>Source Files\core</Filter>
     </ClCompile>
     <ClCompile Include="src\core\transform_system.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\window.cpp">
+    <ClCompile Include="src\core\Window.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\scattering_lut.cpp">
+    <ClCompile Include="src\graphics\ScatteringLut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\optical_depth_lut.cpp">
+    <ClCompile Include="src\graphics\OpticalDepthLut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\atmosphere.cpp">
+    <ClCompile Include="src\graphics\Atmosphere.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\gpu_context.cpp">
+    <ClCompile Include="src\core\GpuContext.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
     <ClCompile Include="src\core\vk_mem_alloc.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\gpu_buffer.cpp">
+    <ClCompile Include="src\core\GpuBuffer.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\gpu_image.cpp">
+    <ClCompile Include="src\core\GpuImage.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\renderer.cpp">
+    <ClCompile Include="src\graphics\Renderer.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\static_mesh.cpp">
+    <ClCompile Include="src\graphics\StaticMesh.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\worker_thread.cpp">
+    <ClCompile Include="src\core\WorkerThread.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\static_mesh_laoder.cpp">
+    <ClCompile Include="src\graphics\StaticMeshLoader.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\client.cpp">
+    <ClCompile Include="src\engine\Client.cpp">
       <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\Camera.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\Scene.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Transform.cpp">
+      <Filter>Source Files\core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

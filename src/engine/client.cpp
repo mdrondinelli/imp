@@ -1,7 +1,7 @@
-#include "client.h"
+#include "Client.h"
 
 namespace imp {
-  client::~client() {
-    loading_thread_.join();
+  Client::~Client() {
+    loadingThread_.join();
   }
 } // namespace imp

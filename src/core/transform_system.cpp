@@ -51,18 +51,18 @@ namespace imp {
     }
   }
 
-  vector3f const &transform_system::translation(entt::entity e) const {
+  Vector3f const &transform_system::translation(entt::entity e) const {
     return registry_->get<transform_component>(e).translation;
   }
 
-  quaternionf const &transform_system::rotation(entt::entity e) const {
+  Quaternionf const &transform_system::rotation(entt::entity e) const {
     return registry_->get<transform_component>(e).rotation;
   }
 
-  matrix4x4f const &transform_system::matrix(entt::entity e) {
+  Matrix4x4f const &transform_system::matrix(entt::entity e) {
     auto &component = registry_->get<transform_component>(e);
     if (!component.matrix_valid) {
-      component.matrix = rotation_matrix4x4(component.rotation);
+      component.matrix = rotationMatrix4x4(component.rotation);
       component.matrix[3] = concatenate(component.translation, 1.0f);
       if (component.parent != entt::null)
         component.matrix = matrix(component.parent) * component.matrix;
@@ -71,31 +71,31 @@ namespace imp {
     return component.matrix;
   }
 
-  void transform_system::translate(entt::entity e, vector3f const &v) {
+  void transform_system::translate(entt::entity e, Vector3f const &v) {
     auto &component = registry_->get<transform_component>(e);
     component.translation += v;
     invalidate_matrix(e);
   }
 
-  void transform_system::pre_rotate(entt::entity e, quaternionf const &q) {
+  void transform_system::pre_rotate(entt::entity e, Quaternionf const &q) {
     auto &component = registry_->get<transform_component>(e);
     component.rotation *= q;
     invalidate_matrix(e);
   }
 
-  void transform_system::post_rotate(entt::entity e, quaternionf const &q) {
+  void transform_system::post_rotate(entt::entity e, Quaternionf const &q) {
     auto &component = registry_->get<transform_component>(e);
     component.rotation = q * component.rotation;
     invalidate_matrix(e);
   }
 
-  void transform_system::set_translation(entt::entity e, vector3f const &v) {
+  void transform_system::set_translation(entt::entity e, Vector3f const &v) {
     auto &component = registry_->get<transform_component>(e);
     component.translation = v;
     invalidate_matrix(e);
   }
 
-  void transform_system::set_rotation(entt::entity e, quaternionf const &q) {
+  void transform_system::set_rotation(entt::entity e, Quaternionf const &q) {
     auto &component = registry_->get<transform_component>(e);
     component.rotation = q;
     invalidate_matrix(e);

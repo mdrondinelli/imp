@@ -4,9 +4,9 @@
 
 namespace imp {
   template<typename Resource, typename ResourceInfo>
-  class resource_loader {
+  class ResourceLoader {
   public:
-    virtual ~resource_loader() = default;
+    virtual ~ResourceLoader() = default;
     virtual std::optional<Resource> load(ResourceInfo const &info) = 0;
   };
 } // namespace imp

@@ -1,66 +1,66 @@
-#include "gpu_buffer.h"
+#include "GpuBuffer.h"
 
 #include <stdexcept>
 
 namespace imp {
-  gpu_buffer::gpu_buffer(
-      vk::BufferCreateInfo const &buffer_info,
-      VmaAllocationCreateInfo const &allocation_info,
+  GpuBuffer::GpuBuffer(
+      vk::BufferCreateInfo const &bufferCreateInfo,
+      VmaAllocationCreateInfo const &allocationCreateInfo,
       VmaAllocator allocator):
       allocator_{allocator} {
     if (vmaCreateBuffer(
             allocator_,
-            reinterpret_cast<VkBufferCreateInfo const *>(&buffer_info),
-            &allocation_info,
+            reinterpret_cast<VkBufferCreateInfo const *>(&bufferCreateInfo),
+            &allocationCreateInfo,
             reinterpret_cast<VkBuffer *>(&buffer_),
             &allocation_,
-            &allocation_info_) != VK_SUCCESS) {
+            &allocationInfo_) != VK_SUCCESS) {
       throw std::runtime_error{"failed to create gpu buffer."};
     }
   }
 
-  gpu_buffer::~gpu_buffer() {
+  GpuBuffer::~GpuBuffer() {
     if (buffer_) {
       vmaDestroyBuffer(allocator_, buffer_, allocation_);
     }
   }
 
-  gpu_buffer::gpu_buffer(gpu_buffer &&rhs) noexcept:
+  GpuBuffer::GpuBuffer(GpuBuffer &&rhs) noexcept:
       buffer_{rhs.buffer_},
       allocation_{rhs.allocation_},
-      allocation_info_{rhs.allocation_info_},
+      allocationInfo_{rhs.allocationInfo_},
       allocator_{rhs.allocator_} {
     rhs.buffer_ = nullptr;
   }
 
-  gpu_buffer &gpu_buffer::operator=(gpu_buffer &&rhs) noexcept {
+  GpuBuffer &GpuBuffer::operator=(GpuBuffer &&rhs) noexcept {
     if (&rhs != this) {
       if (buffer_) {
         vmaDestroyBuffer(allocator_, buffer_, allocation_);
       }
       buffer_ = rhs.buffer_;
       allocation_ = rhs.allocation_;
-      allocation_info_ = rhs.allocation_info_;
+      allocationInfo_ = rhs.allocationInfo_;
       allocator_ = rhs.allocator_;
       rhs.buffer_ = nullptr;
     }
     return *this;
   }
 
-  void gpu_buffer::reset() noexcept {
+  void GpuBuffer::reset() noexcept {
     if (buffer_) {
       vmaDestroyBuffer(allocator_, buffer_, allocation_);
       buffer_ = nullptr;
     }
   }
 
-  void gpu_buffer::map() {
-    if (vmaMapMemory(allocator_, allocation_, &allocation_info_.pMappedData)) {
+  void GpuBuffer::map() {
+    if (vmaMapMemory(allocator_, allocation_, &allocationInfo_.pMappedData)) {
       throw std::runtime_error{"failed to map gpu buffer memory."};
     }
   }
 
-  void gpu_buffer::unmap() noexcept {
+  void GpuBuffer::unmap() noexcept {
     vmaUnmapMemory(allocator_, allocation_);
   }
 } // namespace imp

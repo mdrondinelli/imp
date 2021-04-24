@@ -1,7 +1,7 @@
-#include "worker_thread.h"
+#include "WorkerThread.h"
 
 namespace imp {
-  worker_thread::worker_thread():
+  WorkerThread::WorkerThread():
       joining_{false}, thread_{[this]() {
         for (;;) {
           auto lock = std::unique_lock{mutex_};
@@ -18,12 +18,12 @@ namespace imp {
         }
       }} {}
 
-  void worker_thread::wait() {
+  void WorkerThread::wait() {
     auto lock = std::unique_lock{mutex_};
     condvar_.wait(lock, [this]() { return queue_.empty(); });
   }
 
-  void worker_thread::join() {
+  void WorkerThread::join() {
     {
       auto lock = std::scoped_lock{mutex_};
       joining_ = true;

@@ -1,10 +1,6 @@
 #pragma once
 
-#include <memory>
-
 #include <bullet/btBulletDynamicsCommon.h>
-
-#include "../math/quaternion.h"
 
 namespace imp {
   class physics_system {

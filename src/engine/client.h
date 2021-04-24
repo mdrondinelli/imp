@@ -1,24 +1,24 @@
 #pragma once
 
-#include "../core/gpu_context.h"
-#include "../core/window.h"
-#include "../core/worker_thread.h"
-#include "../graphics/renderer.h"
-#include "../graphics/static_mesh_cache.h"
-#include "../graphics/static_mesh_loader.h"
+#include "../core/GpuContext.h"
+#include "../core/Window.h"
+#include "../core/WorkerThread.h"
+#include "../graphics/Renderer.h"
+#include "../graphics/StaticMeshCache.h"
+#include "../graphics/StaticMeshLoader.h"
 
 namespace imp {
-  class client {
+  class Client {
   public:
-    client();
-    ~client();
+    Client();
+    ~Client();
 
   private:
-    gpu_context gpu_context_;
-    worker_thread loading_thread_;
-    static_mesh_loader static_mesh_loader_;
-    static_mesh_cache static_mesh_cache_;
-    window window_;
-    renderer renderer_;
+    GpuContext gpuContext_;
+    WorkerThread loadingThread_;
+    StaticMeshLoader staticMeshLoader_;
+    StaticMeshCache staticMeshCache_;
+    Window window_;
+    Renderer renderer_;
   };
 } // namespace imp

@@ -5,16 +5,16 @@
 #include "vk_mem_alloc.h"
 
 namespace imp {
-  class gpu_buffer {
+  class GpuBuffer {
   public:
-    explicit gpu_buffer(
-        vk::BufferCreateInfo const &buffer_info,
-        VmaAllocationCreateInfo const &allocation_info,
+    explicit GpuBuffer(
+        vk::BufferCreateInfo const &bufferCreateInfo,
+        VmaAllocationCreateInfo const &allocationCreateInfo,
         VmaAllocator allocator);
-    ~gpu_buffer();
+    ~GpuBuffer();
 
-    gpu_buffer(gpu_buffer &&rhs) noexcept;
-    gpu_buffer &operator=(gpu_buffer &&rhs) noexcept;
+    GpuBuffer(GpuBuffer &&rhs) noexcept;
+    GpuBuffer &operator=(GpuBuffer &&rhs) noexcept;
 
     void reset() noexcept;
     void map();
@@ -32,30 +32,30 @@ namespace imp {
       return buffer_;
     }
 
-    vk::DeviceMemory device_memory() const noexcept {
-      return allocation_info_.deviceMemory;
+    vk::DeviceMemory deviceMemory() const noexcept {
+      return allocationInfo_.deviceMemory;
     }
 
     vk::DeviceSize offset() const noexcept {
-      return allocation_info_.offset;
+      return allocationInfo_.offset;
     }
 
     vk::DeviceSize size() const noexcept {
-      return allocation_info_.size;
+      return allocationInfo_.size;
     }
 
     char const *data() const noexcept {
-      return static_cast<char *>(allocation_info_.pMappedData);
+      return static_cast<char *>(allocationInfo_.pMappedData);
     }
 
     char *data() noexcept {
-      return static_cast<char *>(allocation_info_.pMappedData);
+      return static_cast<char *>(allocationInfo_.pMappedData);
     }
 
   private:
     vk::Buffer buffer_;
     VmaAllocation allocation_;
-    VmaAllocationInfo allocation_info_;
+    VmaAllocationInfo allocationInfo_;
     VmaAllocator allocator_;
   };
 } // namespace imp

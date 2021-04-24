@@ -4,13 +4,12 @@
 
 in vertex_data {
   layout(location = 0) vec3 eye_direction;
-  layout(location = 1) vec2 frustum_uv;
 } in_data;
 
 layout(location = 0) out vec4 frag_color;
 
-layout(set = 0, binding = 0) uniform sampler3D scattering_lut;
-layout(set = 0, binding = 1) uniform sampler2D optical_depth_lut;
+layout(set = 0, binding = 0) uniform sampler2D optical_depth_lut;
+layout(set = 0, binding = 1) uniform sampler3D scattering_lut;
 
 layout(push_constant) uniform push_constants {
   vec3 frustum_corners[4];

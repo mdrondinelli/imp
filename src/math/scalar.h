@@ -11,6 +11,46 @@ namespace imp {
   }
 
   template<typename T>
+  auto exp(T x) noexcept {
+    return std::exp(x);
+  }
+
+  template<typename T>
+  auto log(T x) noexcept {
+    return std::log(x);
+  }
+
+  template<typename T, typename U>
+  auto pow(T base, U exponent) noexcept {
+    return std::pow(base, exponent);
+  }
+
+  template<typename T>
+  auto sqrt(T x) noexcept {
+    return std::sqrt(x);
+  }
+
+  template<typename T>
+  auto cbrt(T x) noexcept {
+    return std::cbrt(x);
+  }
+
+  template<typename T>
+  auto sin(T x) noexcept {
+    return std::sin(x);
+  }
+
+  template<typename T>
+  auto cos(T x) noexcept {
+    return std::cos(x);
+  }
+
+  template<typename T>
+  auto tan(T x) noexcept {
+    return std::tan(x);
+  }
+
+  template<typename T>
   auto round(T x) noexcept {
     return std::round(x);
   }
@@ -36,31 +76,31 @@ namespace imp {
   }
 
   template<typename T>
-  auto to_unorm8(T r) noexcept {
+  auto toUnorm8(T r) noexcept {
     static_assert(std::is_floating_point_v<T>);
     return static_cast<std::uint8_t>(round(clamp(r, T{0}, T{1}) * T{255}));
   }
 
   template<typename T>
-  auto to_snorm8(T r) noexcept {
+  auto toSnorm8(T r) noexcept {
     static_assert(std::is_floating_point_v<T>);
     return static_cast<std::int8_t>(round(clamp(r, T{-1}, T{1}) * T{127}));
   }
 
   template<typename T>
-  auto to_unorm16(T r) noexcept {
+  auto toUnorm16(T r) noexcept {
     static_assert(std::is_floating_point_v<T>);
     return static_cast<std::uint16_t>(round(clamp(r, T{0}, T{1}) * T{65535}));
   }
 
   template<typename T>
-  auto to_snorm16(T r) noexcept {
+  auto toSnorm16(T r) noexcept {
     static_assert(std::is_floating_point_v<T>);
     return static_cast<std::int16_t>(round(clamp(r, T{-1}, T{1}) * T{32767}));
   }
 
   template<typename T>
-  constexpr auto to_f32(T i) noexcept {
+  constexpr auto toFloat32(T i) noexcept {
     static_assert(std::is_integral_v<T>);
     if constexpr (std::is_unsigned_v<T>) {
       constexpr auto scale = (std::size_t{1} << (sizeof(T) * 8)) - 1.0f;
@@ -72,7 +112,7 @@ namespace imp {
   }
 
   template<typename T>
-  constexpr auto to_f64(T i) noexcept {
+  constexpr auto toFloat64(T i) noexcept {
     static_assert(std::is_integral_v<T>);
     if constexpr (std::is_unsigned_v<T>) {
       constexpr auto scale = (std::size_t{1} << (sizeof(T) * 8)) - 1.0;
@@ -82,14 +122,4 @@ namespace imp {
       return max(i / scale, -1.0);
     }
   }
-
-  // template<typename T>
-  // constexpr auto square(T x) noexcept {
-  //  return x * x;
-  //}
-
-  // template<typename T>
-  // constexpr auto cube(T x) noexcept {
-  //  return x * x * x;
-  //}
 } // namespace imp

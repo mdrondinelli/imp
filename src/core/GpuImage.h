@@ -5,16 +5,16 @@
 #include "vk_mem_alloc.h"
 
 namespace imp {
-  class gpu_image {
+  class GpuImage {
   public:
-    explicit gpu_image(
-        vk::ImageCreateInfo const &image_info,
-        VmaAllocationCreateInfo const &allocation_info,
+    explicit GpuImage(
+        vk::ImageCreateInfo const &imageCreateInfo,
+        VmaAllocationCreateInfo const &allocationCreateInfo,
         VmaAllocator allocator);
-    ~gpu_image();
+    ~GpuImage();
 
-    gpu_image(gpu_image &&rhs) noexcept;
-    gpu_image &operator=(gpu_image &&rhs) noexcept;
+    GpuImage(GpuImage &&rhs) noexcept;
+    GpuImage &operator=(GpuImage &&rhs) noexcept;
 
     void reset() noexcept;
 
@@ -33,7 +33,7 @@ namespace imp {
   private:
     vk::Image image_;
     VmaAllocation allocation_;
-    VmaAllocationInfo allocation_info_;
+    VmaAllocationInfo allocationInfo_;
     VmaAllocator allocator_;
   };
 } // namespace imp

@@ -1,42 +1,42 @@
-#include "window.h"
+#include "Window.h"
 
 #include <iostream>
 #include <stdexcept>
 
 namespace imp {
-  void init_windows() {
+  void initWindows() {
     if (!glfwInit())
       throw std::runtime_error{"Failed to initialize glfw."};
     std::atexit(glfwTerminate);
   }
 
-  void poll_windows() {
+  void pollWindows() {
     glfwPollEvents();
   }
 
-  window::window(gpu_context &context, vector2u const &size, char const *title):
-      context_{&context},
-      window_{create_window(size, title)},
-      surface_{create_surface()},
-      surface_format_{select_surface_format()},
-      present_mode_{select_present_mode()},
-      render_pass_{create_render_pass()} {
-    if (context_->validation_enabled()) {
-      context_->physical_device().getSurfaceSupportKHR(
-          context_->present_family(), *surface_);
+  Window::Window(WindowCreateInfo const &createInfo):
+      context_{createInfo.context},
+      window_{createWindow(createInfo.size, createInfo.title)},
+      surface_{createSurface()},
+      surfaceFormat_{selectSurfaceFormat()},
+      presentMode_{selectPresentMode()},
+      renderPass_{createRenderPass()} {
+    if (context_->isValidationEnabled()) {
+      context_->getPhysicalDevice().getSurfaceSupportKHR(
+          context_->getPresentFamily(), *surface_);
     }
-    if (!context_->presentation_enabled()) {
+    if (!context_->isPresentationEnabled()) {
       throw std::runtime_error{"failed to create window."};
     }
-    create_swapchain();
+    createSwapchain();
   }
 
-  window::~window() {
-    destroy_swapchain();
+  Window::~Window() {
+    destroySwapchain();
     glfwDestroyWindow(window_);
   }
 
-  GLFWwindow *window::create_window(vector2u const &size, char const *title) {
+  GLFWwindow *Window::createWindow(Vector2u const &size, char const *title) {
     glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     auto window = glfwCreateWindow(size[0], size[1], title, nullptr, nullptr);
@@ -45,8 +45,8 @@ namespace imp {
     return window;
   }
 
-  vk::UniqueSurfaceKHR window::create_surface() {
-    auto instance = context_->instance();
+  vk::UniqueSurfaceKHR Window::createSurface() {
+    auto instance = context_->getInstance();
     auto surface = VkSurfaceKHR{};
     if (glfwCreateWindowSurface(instance, window_, nullptr, &surface)) {
       throw std::runtime_error{"failed to create vulkan surface."};
@@ -54,8 +54,8 @@ namespace imp {
     return vk::UniqueSurfaceKHR{surface, instance};
   }
 
-  vk::SurfaceFormatKHR window::select_surface_format() {
-    auto physical_device = context_->physical_device();
+  vk::SurfaceFormatKHR Window::selectSurfaceFormat() {
+    auto physical_device = context_->getPhysicalDevice();
     auto formats = physical_device.getSurfaceFormatsKHR(*surface_);
     auto format = formats[0];
     for (auto i = size_t{1}; i < formats.size(); ++i) {
@@ -67,8 +67,8 @@ namespace imp {
     return format;
   }
 
-  vk::PresentModeKHR window::select_present_mode() {
-    auto physical_device = context_->physical_device();
+  vk::PresentModeKHR Window::selectPresentMode() {
+    auto physical_device = context_->getPhysicalDevice();
     auto present_modes = physical_device.getSurfacePresentModesKHR(*surface_);
     auto present_mode = present_modes[0];
     for (auto i = size_t{1}; i < present_modes.size(); ++i) {
@@ -92,9 +92,9 @@ namespace imp {
     return present_mode;
   }
 
-  vk::UniqueRenderPass window::create_render_pass() {
+  vk::UniqueRenderPass Window::createRenderPass() {
     auto color_attachment = vk::AttachmentDescription{};
-    color_attachment.format = surface_format_.format;
+    color_attachment.format = surfaceFormat_.format;
     color_attachment.samples = vk::SampleCountFlagBits::e1;
     color_attachment.loadOp = vk::AttachmentLoadOp::eClear;
     color_attachment.storeOp = vk::AttachmentStoreOp::eStore;
@@ -112,28 +112,28 @@ namespace imp {
     create_info.pAttachments = &color_attachment;
     create_info.subpassCount = 1;
     create_info.pSubpasses = &subpass;
-    return context_->device().createRenderPassUnique(create_info);
+    return context_->getDevice().createRenderPassUnique(create_info);
   }
 
-  void window::create_swapchain() {
-    auto physical_device = context_->physical_device();
-    auto device = context_->device();
+  void Window::createSwapchain() {
+    auto physical_device = context_->getPhysicalDevice();
+    auto device = context_->getDevice();
     auto capabilities = physical_device.getSurfaceCapabilitiesKHR(*surface_);
     if (capabilities.currentExtent.width !=
         std::numeric_limits<uint32_t>::max()) {
-      swapchain_size_[0] = capabilities.currentExtent.width;
-      swapchain_size_[1] = capabilities.currentExtent.height;
+      swapchainSize_[0] = capabilities.currentExtent.width;
+      swapchainSize_[1] = capabilities.currentExtent.height;
     } else {
-      auto lo = make_vector(
+      auto lo = makeVector(
           capabilities.minImageExtent.width,
           capabilities.minImageExtent.height);
-      auto hi = make_vector(
+      auto hi = makeVector(
           capabilities.maxImageExtent.width,
           capabilities.maxImageExtent.height);
-      swapchain_size_ = clamp(framebuffer_size(), lo, hi);
+      swapchainSize_ = clamp(getFramebufferSize(), lo, hi);
     }
     auto queue_family_indices =
-        std::array{context_->graphics_family(), context_->present_family()};
+        std::array{context_->getGraphicsFamily(), context_->getPresentFamily()};
     auto create_info = vk::SwapchainCreateInfoKHR{};
     create_info.surface = *surface_;
     create_info.minImageCount = capabilities.minImageCount + 1;
@@ -141,10 +141,10 @@ namespace imp {
         capabilities.maxImageCount != 0) {
       create_info.minImageCount = capabilities.maxImageCount;
     }
-    create_info.imageFormat = surface_format_.format;
-    create_info.imageColorSpace = surface_format_.colorSpace;
-    create_info.imageExtent.width = swapchain_size_[0];
-    create_info.imageExtent.height = swapchain_size_[1];
+    create_info.imageFormat = surfaceFormat_.format;
+    create_info.imageColorSpace = surfaceFormat_.colorSpace;
+    create_info.imageExtent.width = swapchainSize_[0];
+    create_info.imageExtent.height = swapchainSize_[1];
     create_info.imageArrayLayers = 1;
     create_info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
     if (queue_family_indices[0] != queue_family_indices[1]) {
@@ -157,92 +157,96 @@ namespace imp {
     }
     create_info.preTransform = capabilities.currentTransform;
     create_info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-    create_info.presentMode = present_mode_;
+    create_info.presentMode = presentMode_;
     create_info.clipped = true;
     swapchain_ = device.createSwapchainKHRUnique(create_info);
-    swapchain_images_ = device.getSwapchainImagesKHR(*swapchain_);
-    for (auto image : swapchain_images_) {
+    swapchainImages_ = device.getSwapchainImagesKHR(*swapchain_);
+    for (auto image : swapchainImages_) {
       auto view_info = vk::ImageViewCreateInfo{};
       view_info.image = image;
       view_info.viewType = vk::ImageViewType::e2D;
-      view_info.format = surface_format_.format;
+      view_info.format = surfaceFormat_.format;
       view_info.components = vk::ComponentMapping{};
       view_info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
       view_info.subresourceRange.baseMipLevel = 0;
       view_info.subresourceRange.levelCount = 1;
       view_info.subresourceRange.baseArrayLayer = 0;
       view_info.subresourceRange.layerCount = 1;
-      swapchain_image_views_.emplace_back(
+      swapchainImageViews_.emplace_back(
           device.createImageViewUnique(view_info));
     }
-    for (auto &image_view : swapchain_image_views_) {
+    for (auto &image_view : swapchainImageViews_) {
       auto framebuffer_info = vk::FramebufferCreateInfo{};
-      framebuffer_info.renderPass = *render_pass_;
+      framebuffer_info.renderPass = *renderPass_;
       auto attachments = std::array{*image_view};
       framebuffer_info.attachmentCount =
           static_cast<uint32_t>(attachments.size());
       framebuffer_info.pAttachments = attachments.data();
-      framebuffer_info.width = swapchain_size_[0];
-      framebuffer_info.height = swapchain_size_[1];
+      framebuffer_info.width = swapchainSize_[0];
+      framebuffer_info.height = swapchainSize_[1];
       framebuffer_info.layers = 1;
-      swapchain_framebuffers_.emplace_back(
+      swapchainFramebuffers_.emplace_back(
           device.createFramebufferUnique(framebuffer_info));
     }
   }
 
-  void window::destroy_swapchain() {
-    context_->device().waitIdle();
-    swapchain_framebuffers_.clear();
-    swapchain_image_views_.clear();
-    swapchain_images_.clear();
+  void Window::destroySwapchain() {
+    context_->getDevice().waitIdle();
+    swapchainFramebuffers_.clear();
+    swapchainImageViews_.clear();
+    swapchainImages_.clear();
     swapchain_.reset();
   }
 
-  vk::Format window::format() const noexcept {
-    return surface_format_.format;
+  vk::Format Window::getFormat() const noexcept {
+    return surfaceFormat_.format;
   }
 
-  vector2u window::window_size() const noexcept {
+  vk::ColorSpaceKHR Window::getColorSpace() const noexcept {
+    return surfaceFormat_.colorSpace;
+  }
+
+  Vector2u Window::getWindowSize() const noexcept {
     int width;
     int height;
     glfwGetWindowSize(window_, &width, &height);
-    return make_vector(width, height);
+    return makeVector(width, height);
   }
 
-  vector2u window::framebuffer_size() const noexcept {
+  Vector2u Window::getFramebufferSize() const noexcept {
     int width;
     int height;
     glfwGetFramebufferSize(window_, &width, &height);
-    return make_vector(width, height);
+    return makeVector(width, height);
   }
 
-  vector2u const &window::swapchain_size() const noexcept {
-    return swapchain_size_;
+  Vector2u const &Window::getSwapchainSize() const noexcept {
+    return swapchainSize_;
   }
 
-  bool window::should_close() const noexcept {
+  bool Window::shouldClose() const noexcept {
     return glfwWindowShouldClose(window_);
   }
 
   vk::Framebuffer
-  window::acquire_framebuffer(vk::Semaphore semaphore, vk::Fence fence) {
+  Window::acquireFramebuffer(vk::Semaphore semaphore, vk::Fence fence) {
     try {
-      auto index = context_->device()
+      auto index = context_->getDevice()
                        .acquireNextImageKHR(
                            *swapchain_,
                            std::numeric_limits<uint64_t>::max(),
                            semaphore,
                            fence)
                        .value;
-      return *swapchain_framebuffers_[index];
+      return *swapchainFramebuffers_[index];
     } catch (vk::OutOfDateKHRError) {
-      destroy_swapchain();
-      create_swapchain();
-      return acquire_framebuffer(semaphore, fence);
+      destroySwapchain();
+      createSwapchain();
+      return acquireFramebuffer(semaphore, fence);
     }
   }
 
-  void window::present_framebuffer(
+  void Window::presentFramebuffer(
       uint32_t wait_semaphore_count,
       vk::Semaphore const *wait_semaphores,
       vk::Framebuffer framebuffer) {
@@ -252,21 +256,21 @@ namespace imp {
     info.swapchainCount = 1;
     info.pSwapchains = &*swapchain_;
     auto it = std::find_if(
-        swapchain_framebuffers_.begin(),
-        swapchain_framebuffers_.end(),
+        swapchainFramebuffers_.begin(),
+        swapchainFramebuffers_.end(),
         [=](auto &swapchain_framebuffer) {
           return *swapchain_framebuffer == framebuffer;
         });
-    if (it == swapchain_framebuffers_.end()) {
+    if (it == swapchainFramebuffers_.end()) {
       throw std::runtime_error{"failed to present framebuffer"};
     }
-    auto idx = static_cast<uint32_t>(it - swapchain_framebuffers_.begin());
+    auto idx = static_cast<uint32_t>(it - swapchainFramebuffers_.begin());
     info.pImageIndices = &idx;
     try {
-      context_->present_queue().presentKHR(info);
+      context_->getPresentQueue().presentKHR(info);
     } catch (vk::OutOfDateKHRError) {
-      destroy_swapchain();
-      create_swapchain();
+      destroySwapchain();
+      createSwapchain();
     }
   }
 } // namespace imp

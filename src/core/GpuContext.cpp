@@ -1,4 +1,4 @@
-#include "gpu_context.h"
+#include "GpuContext.h"
 
 #include <optional>
 #include <string>
@@ -7,26 +7,26 @@
 #include <GLFW/glfw3.h>
 
 namespace imp {
-  gpu_context::gpu_context(bool validation_enabled, bool presentation_enabled):
-      validation_enabled_{validation_enabled},
-      presentation_enabled_{presentation_enabled},
-      instance_{create_instance()},
-      physical_device_{select_physical_device()},
-      graphics_family_{select_graphics_family()},
-      transfer_family_{select_transfer_family()},
-      present_family_{select_present_family()},
-      device_{create_device()},
-      graphics_queue_{select_graphics_queue()},
-      transfer_queue_{select_transfer_queue()},
-      present_queue_{select_present_queue()},
-      allocator_{create_allocator()} {}
+  GpuContext::GpuContext(GpuContextCreateInfo const &createInfo):
+      validationEnabled_{createInfo.validation},
+      presentationEnabled_{createInfo.presentation},
+      instance_{createInstance()},
+      physicalDevice_{selectPhysicalDevice()},
+      graphicsFamily_{selectGraphicsFamily()},
+      transferFamily_{selectTransferFamily()},
+      presentFamily_{selectPresentFamily()},
+      device_{createDevice()},
+      graphicsQueue_{selectGraphicsQueue()},
+      transferQueue_{selectTransferQueue()},
+      presentQueue_{selectPresentQueue()},
+      allocator_{createAllocator()} {}
 
-  gpu_context::~gpu_context() {
+  GpuContext::~GpuContext() {
     device_->waitIdle();
     vmaDestroyAllocator(allocator_);
   }
 
-  vk::UniqueInstance gpu_context::create_instance() {
+  vk::UniqueInstance GpuContext::createInstance() {
     auto app_info = vk::ApplicationInfo{};
     app_info.pApplicationName = "imp";
     app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -34,11 +34,11 @@ namespace imp {
     app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     app_info.apiVersion = VK_API_VERSION_1_1;
     auto layers = std::vector<char const *>{};
-    if (validation_enabled_) {
+    if (validationEnabled_) {
       layers.emplace_back("VK_LAYER_KHRONOS_validation");
     }
     auto extensions = std::vector<char const *>{};
-    if (presentation_enabled_) {
+    if (presentationEnabled_) {
       auto glfw_extension_count = uint32_t{};
       auto glfw_extensions =
           glfwGetRequiredInstanceExtensions(&glfw_extension_count);
@@ -57,9 +57,9 @@ namespace imp {
     return vk::createInstanceUnique(create_info);
   }
 
-  vk::PhysicalDevice gpu_context::select_physical_device() {
+  vk::PhysicalDevice GpuContext::selectPhysicalDevice() {
     auto required_extensions = std::unordered_set<std::string>{};
-    if (presentation_enabled_) {
+    if (presentationEnabled_) {
       required_extensions.emplace(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
     auto physical_devices = std::vector<vk::PhysicalDevice>{};
@@ -91,7 +91,7 @@ namespace imp {
       if (!has_graphics) {
         continue;
       }
-      if (presentation_enabled_) {
+      if (presentationEnabled_) {
         auto has_presentation = false;
         for (auto i = uint32_t{}; i < queue_families.size(); ++i) {
           if (glfwGetPhysicalDevicePresentationSupport(*instance_, pd, i)) {
@@ -136,8 +136,8 @@ namespace imp {
     return best_pd;
   }
 
-  std::uint32_t gpu_context::select_graphics_family() {
-    auto queue_families = physical_device_.getQueueFamilyProperties();
+  std::uint32_t GpuContext::selectGraphicsFamily() {
+    auto queue_families = physicalDevice_.getQueueFamilyProperties();
     for (auto i = std::uint32_t{0}; i < queue_families.size(); ++i) {
       if ((queue_families[i].queueFlags &
            (vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute)) ==
@@ -148,8 +148,8 @@ namespace imp {
     throw std::runtime_error{"failed to select graphics family."};
   }
 
-  std::uint32_t gpu_context::select_transfer_family() {
-    auto queue_families = physical_device_.getQueueFamilyProperties();
+  std::uint32_t GpuContext::selectTransferFamily() {
+    auto queue_families = physicalDevice_.getQueueFamilyProperties();
     for (auto i = std::uint32_t{0}; i < queue_families.size(); ++i) {
       if ((queue_families[i].queueFlags &
            (vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute |
@@ -157,33 +157,33 @@ namespace imp {
         return i;
       }
     }
-    return graphics_family_;
+    return graphicsFamily_;
   }
 
-  std::uint32_t gpu_context::select_present_family() {
-    if (!presentation_enabled_) {
+  std::uint32_t GpuContext::selectPresentFamily() {
+    if (!presentationEnabled_) {
       return 0xffffffff;
     }
     if (glfwGetPhysicalDevicePresentationSupport(
-            *instance_, physical_device_, graphics_family_)) {
-      return graphics_family_;
+            *instance_, physicalDevice_, graphicsFamily_)) {
+      return graphicsFamily_;
     }
-    auto queue_families = physical_device_.getQueueFamilyProperties();
+    auto queue_families = physicalDevice_.getQueueFamilyProperties();
     for (auto i = std::uint32_t{0}; i < queue_families.size(); ++i) {
       if (glfwGetPhysicalDevicePresentationSupport(
-              *instance_, physical_device_, i)) {
+              *instance_, physicalDevice_, i)) {
         return i;
       }
     }
     throw std::runtime_error{"failed to select present family."};
   }
 
-  vk::UniqueDevice gpu_context::create_device() {
+  vk::UniqueDevice GpuContext::createDevice() {
     auto queue_families = std::unordered_set<uint32_t>{};
-    queue_families.emplace(graphics_family_);
-    queue_families.emplace(transfer_family_);
-    if (presentation_enabled_) {
-      queue_families.emplace(present_family_);
+    queue_families.emplace(graphicsFamily_);
+    queue_families.emplace(transferFamily_);
+    if (presentationEnabled_) {
+      queue_families.emplace(presentFamily_);
     }
     auto queue_create_infos = std::vector<vk::DeviceQueueCreateInfo>{};
     auto queue_priority = 1.0f;
@@ -195,7 +195,7 @@ namespace imp {
       queue_create_infos.emplace_back(queue_create_info);
     }
     auto extensions = std::vector<char const *>{};
-    if (presentation_enabled_) {
+    if (presentationEnabled_) {
       extensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
     auto features = vk::PhysicalDeviceFeatures{};
@@ -208,25 +208,25 @@ namespace imp {
         static_cast<uint32_t>(extensions.size());
     create_info.ppEnabledExtensionNames = extensions.data();
     create_info.pEnabledFeatures = &features;
-    return physical_device_.createDeviceUnique(create_info);
+    return physicalDevice_.createDeviceUnique(create_info);
   }
 
-  vk::Queue gpu_context::select_graphics_queue() {
-    return device_->getQueue(graphics_family_, 0);
+  vk::Queue GpuContext::selectGraphicsQueue() {
+    return device_->getQueue(graphicsFamily_, 0);
   }
 
-  vk::Queue gpu_context::select_transfer_queue() {
-    return device_->getQueue(transfer_family_, 0);
+  vk::Queue GpuContext::selectTransferQueue() {
+    return device_->getQueue(transferFamily_, 0);
   }
 
-  vk::Queue gpu_context::select_present_queue() {
-    return presentation_enabled_ ? device_->getQueue(present_family_, 0)
-                                 : vk::Queue{};
+  vk::Queue GpuContext::selectPresentQueue() {
+    return presentationEnabled_ ? device_->getQueue(presentFamily_, 0)
+                                : vk::Queue{};
   }
 
-  VmaAllocator gpu_context::create_allocator() {
+  VmaAllocator GpuContext::createAllocator() {
     auto info = VmaAllocatorCreateInfo{};
-    info.physicalDevice = physical_device_;
+    info.physicalDevice = physicalDevice_;
     info.device = *device_;
     info.instance = *instance_;
     info.vulkanApiVersion = VK_API_VERSION_1_1;
@@ -237,69 +237,69 @@ namespace imp {
     return allocator;
   }
 
-  bool gpu_context::validation_enabled() const noexcept {
-    return validation_enabled_;
+  bool GpuContext::isValidationEnabled() const noexcept {
+    return validationEnabled_;
   }
 
-  bool gpu_context::presentation_enabled() const noexcept {
-    return presentation_enabled_;
+  bool GpuContext::isPresentationEnabled() const noexcept {
+    return presentationEnabled_;
   }
 
-  vk::Instance gpu_context::instance() const noexcept {
+  vk::Instance GpuContext::getInstance() const noexcept {
     return *instance_;
   }
 
-  vk::PhysicalDevice gpu_context::physical_device() const noexcept {
-    return physical_device_;
+  vk::PhysicalDevice GpuContext::getPhysicalDevice() const noexcept {
+    return physicalDevice_;
   }
 
-  std::uint32_t gpu_context::graphics_family() const noexcept {
-    return graphics_family_;
+  std::uint32_t GpuContext::getGraphicsFamily() const noexcept {
+    return graphicsFamily_;
   }
 
-  std::uint32_t gpu_context::transfer_family() const noexcept {
-    return transfer_family_;
+  std::uint32_t GpuContext::getTransferFamily() const noexcept {
+    return transferFamily_;
   }
 
-  std::uint32_t gpu_context::present_family() const noexcept {
-    return present_family_;
+  std::uint32_t GpuContext::getPresentFamily() const noexcept {
+    return presentFamily_;
   }
 
-  vk::Device gpu_context::device() const noexcept {
+  vk::Device GpuContext::getDevice() const noexcept {
     return *device_;
   }
 
-  vk::Queue gpu_context::graphics_queue() const noexcept {
-    return graphics_queue_;
+  vk::Queue GpuContext::getGraphicsQueue() const noexcept {
+    return graphicsQueue_;
   }
 
-  vk::Queue gpu_context::transfer_queue() const noexcept {
-    return transfer_queue_;
+  vk::Queue GpuContext::getTransferQueue() const noexcept {
+    return transferQueue_;
   }
 
-  vk::Queue gpu_context::present_queue() const noexcept {
-    return present_queue_;
+  vk::Queue GpuContext::getPresentQueue() const noexcept {
+    return presentQueue_;
   }
 
-  gpu_buffer gpu_context::create_buffer(
+  GpuBuffer GpuContext::createBuffer(
       vk::BufferCreateInfo const &buffer_info,
       VmaAllocationCreateInfo const &allocation_info) {
-    return gpu_buffer{buffer_info, allocation_info, allocator_};
+    return GpuBuffer{buffer_info, allocation_info, allocator_};
   }
 
-  gpu_image gpu_context::create_image(
+  GpuImage GpuContext::createImage(
       vk::ImageCreateInfo const &image_info,
       VmaAllocationCreateInfo const &allocation_info) {
-    return gpu_image{image_info, allocation_info, allocator_};
+    return GpuImage{image_info, allocation_info, allocator_};
   }
 
-  //vk::Sampler
-  //gpu_context::create_sampler(vk::SamplerCreateInfo const &create_info) {
+  // vk::Sampler
+  // GpuContext::create_sampler(vk::SamplerCreateInfo const &create_info) {
   //  if (auto it = samplers_.find(create_info); it != samplers_.end()) {
   //    return *it->second;
   //  }
   //  return *samplers_
-  //              .emplace(create_info, device_->createSamplerUnique(create_info))
-  //              .first->second;
+  //              .emplace(create_info,
+  //              device_->createSamplerUnique(create_info)) .first->second;
   //}
 } // namespace imp

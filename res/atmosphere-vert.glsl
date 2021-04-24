@@ -2,7 +2,6 @@
 
 out vertex_data {
   layout(location = 0) vec3 eye_direction;
-  layout(location = 1) vec2 frustum_uv;
 } out_data;
 
 layout(push_constant) uniform push_constants {
@@ -30,6 +29,5 @@ void main() {
       mix(frustum_corners[2], frustum_corners[3], u),
       v);
   out_data.eye_direction = point - eye_position;
-  out_data.frustum_uv = vec2(u, v);
   gl_Position = clip_positions[gl_VertexIndex];
 }

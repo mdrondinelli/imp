@@ -2,7 +2,7 @@
 
 #include <entt/entt.hpp>
 
-#include "../math/matrix.h"
+#include "../math/Matrix.h"
 
 namespace imp {
   class transform_system {
@@ -25,44 +25,44 @@ namespace imp {
     void detach(entt::entity child);
 
     /**
-     * @returns the translation of entity e.
+     * @returns the translation of entity E.
      */
-    vector3f const &translation(entt::entity e) const;
+    Vector3f const &translation(entt::entity e) const;
 
     /**
-     * @returns the rotation of entity e.
+     * @returns the rotation of entity E.
      */
-    quaternionf const &rotation(entt::entity e) const;
+    Quaternionf const &rotation(entt::entity e) const;
 
     /**
-     * @returns the matrix of entity e.
+     * @returns the Matrix of entity E.
      */
-    matrix4x4f const &matrix(entt::entity e);
+    Matrix4x4f const &matrix(entt::entity e);
 
     /**
-     * @brief Translates entity e by vector v.
+     * @brief Translates entity E by vector v.
      */
-    void translate(entt::entity e, vector3f const &v);
+    void translate(entt::entity e, Vector3f const &v);
 
     /**
-     * @brief Pre-rotates entity e by quaternion q.
+     * @brief Pre-rotates entity E by Quaternion q.
      */
-    void pre_rotate(entt::entity e, quaternionf const &q);
+    void pre_rotate(entt::entity e, Quaternionf const &q);
 
     /**
-     * @brief Post-rotates entity e by quaternion q.
+     * @brief Post-rotates entity E by Quaternion q.
      */
-    void post_rotate(entt::entity e, quaternionf const &q);
+    void post_rotate(entt::entity e, Quaternionf const &q);
 
     /**
-     * @brief sets the translation of entity e.
+     * @brief sets the translation of entity E.
      */
-    void set_translation(entt::entity e, vector3f const &v);
+    void set_translation(entt::entity e, Vector3f const &v);
 
     /**
-     * @brief sets the rotation of entity e.
+     * @brief sets the rotation of entity E.
      */
-    void set_rotation(entt::entity e, quaternionf const &q);
+    void set_rotation(entt::entity e, Quaternionf const &q);
 
   private:
     entt::registry *registry_;

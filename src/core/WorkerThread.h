@@ -7,9 +7,9 @@
 #include <thread>
 
 namespace imp {
-  class worker_thread {
+  class WorkerThread {
   public:
-    worker_thread();
+    WorkerThread();
 
     void wait();
     void join();

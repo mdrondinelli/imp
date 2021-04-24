@@ -1,10 +1,10 @@
-#include "static_mesh_loader.h"
+#include "StaticMeshLoader.h"
 
 #include <fstream>
 
 namespace imp {
-  std::optional<static_mesh>
-  static_mesh_loader::load(std::filesystem::path const &path) {
+  std::optional<StaticMesh>
+  StaticMeshLoader::load(std::filesystem::path const &path) {
     try {
       auto in = std::ifstream{};
       in.exceptions(std::ios::badbit | std::ios::failbit);

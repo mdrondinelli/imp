@@ -4,51 +4,58 @@
 
 #include <GLFW/glfw3.h>
 
-#include "../math/vector.h"
-#include "gpu_context.h"
+#include "../math/Vector.h"
+#include "GpuContext.h"
 
 namespace imp {
-  void init_windows();
-  void poll_windows();
+  void initWindows();
+  void pollWindows();
 
-  class window {
+  struct WindowCreateInfo {
+    GpuContext *context;
+    Vector2u size;
+    char const *title;
+  };
+
+  class Window {
   public:
-    window(gpu_context &context, vector2u const &size, char const *title);
-    ~window();
+    explicit Window(WindowCreateInfo const &createInfo);
+    ~Window();
 
-    vk::Format format() const noexcept;
-    vector2u window_size() const noexcept;
-    vector2u framebuffer_size() const noexcept;
-    vector2u const &swapchain_size() const noexcept;
-    bool should_close() const noexcept;
+    vk::Format getFormat() const noexcept;
+    vk::ColorSpaceKHR getColorSpace() const noexcept;
+    Vector2u getWindowSize() const noexcept;
+    Vector2u getFramebufferSize() const noexcept;
+    Vector2u const &getSwapchainSize() const noexcept;
+    bool shouldClose() const noexcept;
 
     vk::Framebuffer
-    acquire_framebuffer(vk::Semaphore semaphore, vk::Fence fence);
-    void present_framebuffer(
-        uint32_t wait_semaphore_count,
-        vk::Semaphore const *wait_semaphores,
+    acquireFramebuffer(vk::Semaphore semaphore, vk::Fence fence);
+    void presentFramebuffer(
+        std::uint32_t waitSemaphoreCount,
+        vk::Semaphore const *waitSemaphores,
         vk::Framebuffer framebuffer);
 
   private:
-    gpu_context *context_;
+    GpuContext *context_;
     GLFWwindow *window_;
     vk::UniqueSurfaceKHR surface_;
-    vk::SurfaceFormatKHR surface_format_;
-    vk::PresentModeKHR present_mode_;
-    vk::UniqueRenderPass render_pass_;
-    vector2u swapchain_size_;
+    vk::SurfaceFormatKHR surfaceFormat_;
+    vk::PresentModeKHR presentMode_;
+    vk::UniqueRenderPass renderPass_;
+    Vector2u swapchainSize_;
     vk::UniqueSwapchainKHR swapchain_;
-    std::vector<vk::Image> swapchain_images_;
-    std::vector<vk::UniqueImageView> swapchain_image_views_;
-    std::vector<vk::UniqueFramebuffer> swapchain_framebuffers_;
+    std::vector<vk::Image> swapchainImages_;
+    std::vector<vk::UniqueImageView> swapchainImageViews_;
+    std::vector<vk::UniqueFramebuffer> swapchainFramebuffers_;
 
-    GLFWwindow *create_window(vector2u const &size, char const *title);
-    vk::UniqueSurfaceKHR create_surface();
-    vk::SurfaceFormatKHR select_surface_format();
-    vk::UniqueRenderPass create_render_pass();
-    vk::PresentModeKHR select_present_mode();
+    GLFWwindow *createWindow(Vector2u const &size, char const *title);
+    vk::UniqueSurfaceKHR createSurface();
+    vk::SurfaceFormatKHR selectSurfaceFormat();
+    vk::PresentModeKHR selectPresentMode();
+    vk::UniqueRenderPass createRenderPass();
 
-    void create_swapchain();
-    void destroy_swapchain();
+    void createSwapchain();
+    void destroySwapchain();
   };
 } // namespace imp
