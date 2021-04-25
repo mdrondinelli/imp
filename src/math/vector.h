@@ -83,48 +83,318 @@ namespace imp {
       return elements_.cend();
     }
 
-    constexpr auto const &x() const noexcept {
-      static_assert(N >= 1);
-      return (*this)[0];
+  private:
+    std::array<T, N> elements_;
+  };
+
+  template<typename T>
+  class Vector<1, T> {
+  public:
+    using Scalar = T;
+
+    constexpr Vector() noexcept: elements_{} {}
+
+    constexpr Vector(T x) noexcept: elements_{x} {}
+
+    constexpr Vector &operator=(T x) noexcept {
+      elements_[0] = x;
     }
 
-    constexpr auto &x() noexcept {
-      static_assert(N >= 1);
-      return (*this)[0];
+    template<typename U>
+    constexpr Vector(Vector<1, U> const &rhs) noexcept:
+        elements_{static_cast<T>(rhs.elements[0])} {}
+
+    template<typename U>
+    constexpr Vector &operator=(Vector<1, U> const &rhs) noexcept {
+      elements_[0] = static_cast<T>(rhs.elements_[0]);
+      return *this;
     }
 
-    constexpr auto const &y() const noexcept {
-      static_assert(N >= 2);
-      return (*this)[1];
+    constexpr auto const &operator[](size_t i) const noexcept {
+      return elements_[i];
     }
 
-    constexpr auto &y() noexcept {
-      static_assert(N >= 2);
-      return (*this)[1];
+    constexpr auto &operator[](size_t i) noexcept {
+      return elements_[i];
     }
 
-    constexpr auto const &z() const noexcept {
-      static_assert(N >= 3);
-      return (*this)[2];
+    constexpr auto size() const noexcept {
+      return 1;
     }
 
-    constexpr auto &z() noexcept {
-      static_assert(N >= 3);
-      return (*this)[2];
+    constexpr auto data() const noexcept {
+      return elements_.data();
     }
 
-    constexpr auto const &w() const noexcept {
-      static_assert(N >= 4);
-      return (*this)[3];
+    constexpr auto data() noexcept {
+      return elements_.data();
     }
 
-    constexpr auto &w() noexcept {
-      static_assert(N >= 4);
-      return (*this)[3];
+    constexpr auto begin() noexcept {
+      return elements_.begin();
+    }
+
+    constexpr auto begin() const noexcept {
+      return elements_.begin();
+    }
+
+    constexpr auto cbegin() const noexcept {
+      return elements_.cbegin();
+    }
+
+    constexpr auto end() noexcept {
+      return elements_.end();
+    }
+
+    constexpr auto end() const noexcept {
+      return elements_.end();
+    }
+
+    constexpr auto cend() const noexcept {
+      return elements_.cend();
     }
 
   private:
-    std::array<T, N> elements_;
+    std::array<T, 1> elements_;
+  };
+
+  template<typename T>
+  class Vector<2, T> {
+  public:
+    using Scalar = T;
+
+    constexpr Vector() noexcept: elements_{} {}
+
+    constexpr Vector(T x) noexcept: elements_{x, x} {}
+
+    constexpr Vector(T x, T y) noexcept: elements_{x, y} {}
+
+    constexpr Vector &operator=(T x) noexcept {
+      elements_[0] = x;
+      elements_[1] = x;
+    }
+
+    template<typename U>
+    constexpr Vector(Vector<2, U> const &rhs) noexcept:
+        elements_{
+            static_cast<T>(rhs.elements[0]), static_cast<T>(rhs.elements[1])} {}
+
+    template<typename U>
+    constexpr Vector &operator=(Vector<2, U> const &rhs) noexcept {
+      elements_[0] = static_cast<T>(rhs.elements_[0]);
+      elements_[1] = static_cast<T>(rhs.elements_[1]);
+      return *this;
+    }
+
+    constexpr auto const &operator[](size_t i) const noexcept {
+      return elements_[i];
+    }
+
+    constexpr auto &operator[](size_t i) noexcept {
+      return elements_[i];
+    }
+
+    constexpr auto size() const noexcept {
+      return 2;
+    }
+
+    constexpr auto data() const noexcept {
+      return elements_.data();
+    }
+
+    constexpr auto data() noexcept {
+      return elements_.data();
+    }
+
+    constexpr auto begin() noexcept {
+      return elements_.begin();
+    }
+
+    constexpr auto begin() const noexcept {
+      return elements_.begin();
+    }
+
+    constexpr auto cbegin() const noexcept {
+      return elements_.cbegin();
+    }
+
+    constexpr auto end() noexcept {
+      return elements_.end();
+    }
+
+    constexpr auto end() const noexcept {
+      return elements_.end();
+    }
+
+    constexpr auto cend() const noexcept {
+      return elements_.cend();
+    }
+
+  private:
+    std::array<T, 2> elements_;
+  };
+
+  template<typename T>
+  class Vector<3, T> {
+  public:
+    using Scalar = T;
+
+    constexpr Vector() noexcept: elements_{} {}
+
+    constexpr Vector(T x) noexcept: elements_{x, x, x} {}
+
+    constexpr Vector(T x, T y, T z) noexcept: elements_{x, y, z} {}
+
+    constexpr Vector &operator=(T x) noexcept {
+      elements_[0] = x;
+      elements_[1] = x;
+      elements_[2] = x;
+    }
+
+    template<typename U>
+    constexpr Vector(Vector<3, U> const &rhs) noexcept:
+        elements_{
+            static_cast<T>(rhs.elements[0]),
+            static_cast<T>(rhs.elements[1]),
+            static_cast<T>(rhs.elements[2])} {}
+
+    template<typename U>
+    constexpr Vector &operator=(Vector<3, U> const &rhs) noexcept {
+      elements_[0] = static_cast<T>(rhs.elements_[0]);
+      elements_[1] = static_cast<T>(rhs.elements_[1]);
+      elements_[2] = static_cast<T>(rhs.elements_[2]);
+      return *this;
+    }
+
+    constexpr auto const &operator[](size_t i) const noexcept {
+      return elements_[i];
+    }
+
+    constexpr auto &operator[](size_t i) noexcept {
+      return elements_[i];
+    }
+
+    constexpr auto size() const noexcept {
+      return 3;
+    }
+
+    constexpr auto data() const noexcept {
+      return elements_.data();
+    }
+
+    constexpr auto data() noexcept {
+      return elements_.data();
+    }
+
+    constexpr auto begin() noexcept {
+      return elements_.begin();
+    }
+
+    constexpr auto begin() const noexcept {
+      return elements_.begin();
+    }
+
+    constexpr auto cbegin() const noexcept {
+      return elements_.cbegin();
+    }
+
+    constexpr auto end() noexcept {
+      return elements_.end();
+    }
+
+    constexpr auto end() const noexcept {
+      return elements_.end();
+    }
+
+    constexpr auto cend() const noexcept {
+      return elements_.cend();
+    }
+
+  private:
+    std::array<T, 3> elements_;
+  };
+
+  template<typename T>
+  class Vector<4, T> {
+  public:
+    using Scalar = T;
+
+    constexpr Vector() noexcept: elements_{} {}
+
+    constexpr Vector(T x) noexcept: elements_{x, x, x, x} {}
+
+    constexpr Vector(T x, T y, T z, T w) noexcept: elements_{x, y, z, w} {}
+
+    constexpr Vector &operator=(T x) noexcept {
+      elements_[0] = x;
+      elements_[1] = x;
+      elements_[2] = x;
+      elements_[3] = x;
+    }
+
+    template<typename U>
+    constexpr Vector(Vector<4, U> const &rhs) noexcept:
+        elements_{
+            static_cast<T>(rhs.elements[0]),
+            static_cast<T>(rhs.elements[1]),
+            static_cast<T>(rhs.elements[2]),
+            static_cast<T>(rhs.elements[3])} {}
+
+    template<typename U>
+    constexpr Vector &operator=(Vector<4, U> const &rhs) noexcept {
+      elements_[0] = static_cast<T>(rhs.elements_[0]);
+      elements_[1] = static_cast<T>(rhs.elements_[1]);
+      elements_[2] = static_cast<T>(rhs.elements_[2]);
+      elements_[3] = static_cast<T>(rhs.elements_[3]);
+      return *this;
+    }
+
+    constexpr auto const &operator[](size_t i) const noexcept {
+      return elements_[i];
+    }
+
+    constexpr auto &operator[](size_t i) noexcept {
+      return elements_[i];
+    }
+
+    constexpr auto size() const noexcept {
+      return 4;
+    }
+
+    constexpr auto data() const noexcept {
+      return elements_.data();
+    }
+
+    constexpr auto data() noexcept {
+      return elements_.data();
+    }
+
+    constexpr auto begin() noexcept {
+      return elements_.begin();
+    }
+
+    constexpr auto begin() const noexcept {
+      return elements_.begin();
+    }
+
+    constexpr auto cbegin() const noexcept {
+      return elements_.cbegin();
+    }
+
+    constexpr auto end() noexcept {
+      return elements_.end();
+    }
+
+    constexpr auto end() const noexcept {
+      return elements_.end();
+    }
+
+    constexpr auto cend() const noexcept {
+      return elements_.cend();
+    }
+
+  private:
+    std::array<T, 4> elements_;
   };
 
   template<typename T>
@@ -151,101 +421,6 @@ namespace imp {
   using Vector2u = Vector2<std::uint32_t>;
   using Vector3u = Vector3<std::uint32_t>;
   using Vector4u = Vector4<std::uint32_t>;
-
-  template<size_t N, typename T>
-  constexpr auto makeVector(T x) noexcept {
-    auto ret = Vector<N, T>{};
-    for (auto i = size_t{}; i < N; ++i)
-      ret[i] = x;
-    return ret;
-  }
-
-  template<typename T>
-  constexpr auto makeVector(T x) noexcept {
-    auto ret = Vector<1, T>{};
-    ret[0] = x;
-    return ret;
-  }
-
-  template<typename T>
-  constexpr auto makeVector(T x, T y) noexcept {
-    auto ret = Vector<2, T>{};
-    ret[0] = x;
-    ret[1] = y;
-    return ret;
-  }
-
-  template<typename T>
-  constexpr auto makeVector(T x, T y, T z) noexcept {
-    auto ret = Vector<3, T>{};
-    ret[0] = x;
-    ret[1] = y;
-    ret[2] = z;
-    return ret;
-  }
-
-  template<typename T>
-  constexpr auto makeVector(T x, T y, T z, T w) noexcept {
-    auto ret = Vector<4, T>{};
-    ret[0] = x;
-    ret[1] = y;
-    ret[2] = z;
-    ret[3] = w;
-    return ret;
-  }
-
-  template<size_t N, typename T>
-  constexpr auto zeroVector() noexcept {
-    return Vector<N, T>{};
-  }
-
-  constexpr auto zeroVector1f() noexcept {
-    return zeroVector<1u, float>();
-  }
-
-  constexpr auto zeroVector2f() noexcept {
-    return zeroVector<2u, float>();
-  }
-
-  constexpr auto zeroVector3f() noexcept {
-    return zeroVector<3u, float>();
-  }
-
-  constexpr auto zeroVector4f() noexcept {
-    return zeroVector<4u, float>();
-  }
-
-  constexpr auto zeroVector1i() noexcept {
-    return zeroVector<1u, std::int32_t>();
-  }
-
-  constexpr auto zeroVector2i() noexcept {
-    return zeroVector<2u, std::int32_t>();
-  }
-
-  constexpr auto zeroVector3i() noexcept {
-    return zeroVector<3u, std::int32_t>();
-  }
-
-  constexpr auto zeroVector4i() noexcept {
-    return zeroVector<4u, std::int32_t>();
-  }
-
-  constexpr auto zeroVector1u() noexcept {
-    return zeroVector<1u, std::uint32_t>();
-  }
-
-  constexpr auto zeroVector2u() noexcept {
-    return zeroVector<2u, std::uint32_t>();
-  }
-
-  constexpr auto zeroVector3u() noexcept {
-    return zeroVector<3u, std::uint32_t>();
-  }
-
-  constexpr auto zeroVector4u() noexcept {
-    return zeroVector<4u, std::uint32_t>();
-  }
 
   template<size_t N, typename T, typename U>
   constexpr bool
@@ -564,7 +739,7 @@ namespace imp {
 
   template<size_t N, typename T>
   auto length(Vector<N, T> const &v) noexcept {
-    return std::sqrt(length2(v));
+    return sqrt(length2(v));
   }
 
   template<size_t N, typename T, typename U>
@@ -603,10 +778,10 @@ namespace imp {
 
   template<typename T, typename U>
   constexpr auto cross(Vector3<T> const &p, Vector3<U> const &q) noexcept {
-    return makeVector(
+    return Vector3<decltype(p[0] * q[0])>{
         p[1] * q[2] - p[2] * q[1],
         p[2] * q[0] - p[0] * q[2],
-        p[0] * q[1] - p[1] * q[0]);
+        p[0] * q[1] - p[1] * q[0]};
   }
 
   template<size_t N, typename T>
@@ -767,21 +942,21 @@ namespace imp {
   }
 
   template<typename T>
-  auto encodeOctahedral(Vector<3, T> const &v) noexcept {
-    auto p = makeVector(v[0], v[1]) / (abs(v[0]) + abs(v[1]) + abs(v[2]));
-    return v[2] <= T{0} ? (T{1} - makeVector(abs(p[1]), abs(p[0]))) *
-                              makeVector(
-                                  p[0] >= T{0} ? T{1} : T{-1},
-                                  p[1] >= T{0} ? T{1} : T{-1})
-                        : p;
+  auto encodeOctahedral(Vector3<T> const &v) noexcept {
+    auto p = Vector2<T>{v[0], v[1]} / (abs(v[0]) + abs(v[1]) + abs(v[2]));
+    return v[2] <= T{0}
+               ? (T{1} - Vector2<T>{abs(p[1]), abs(p[0])}) *
+                     Vector2<T>{
+                         p[0] >= 0 ? T{1} : T{-1}, p[1] >= 0 ? T{1} : T{-1}}
+               : p;
   }
 
   template<typename T>
-  auto decodeOctahedral(Vector<2, T> const &e) noexcept {
-    auto v = makeVector(e[0], e[1], T{1} - abs(e[0]) - abs(e[1]));
+  auto decodeOctahedral(Vector2<T> const &e) noexcept {
+    auto v = Vector3<T>{e[0], e[1], T{1} - abs(e[0]) - abs(e[1])};
     if (v[2] < T{0}) {
-      v[0] = (T{1} - abs(e[1])) * (e[0] >= T{0} ? T{1} : T{-1});
-      v[1] = (T{1} - abs(e[0])) * (e[1] >= T{0} ? T{1} : T{-1});
+      v[0] = (T{1} - abs(e[1])) * (e[0] >= 0 ? T{1} : T{-1});
+      v[1] = (T{1} - abs(e[0])) * (e[1] >= 0 ? T{1} : T{-1});
     }
     return normalize(v);
   }

@@ -9,10 +9,9 @@ namespace imp {
     GpuContext *context;
     float planetRadius = 6360e3f;
     float atmosphereRadius = 6420e3f;
-    Vector4f scatteringCoefficients =
-        makeVector(3.8e-6f, 13.5e-6f, 33.1e-6f, 21e-6f);
-    Vector2u opticalDepthLutSize = makeVector(512u, 512u);
-    Vector3u scatteringLutSize = makeVector(64u, 256u, 256u);
+    Vector4f scatteringCoefficients = {3.8e-6f, 13.5e-6f, 33.1e-6f, 21e-6f};
+    Vector2u opticalDepthLutSize = {512u, 512u};
+    Vector3u scatteringLutSize = {64u, 256u, 256u};
   };
 
   class Atmosphere {

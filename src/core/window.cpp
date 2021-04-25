@@ -124,12 +124,12 @@ namespace imp {
       swapchainSize_[0] = capabilities.currentExtent.width;
       swapchainSize_[1] = capabilities.currentExtent.height;
     } else {
-      auto lo = makeVector(
+      auto lo = Vector2u{
           capabilities.minImageExtent.width,
-          capabilities.minImageExtent.height);
-      auto hi = makeVector(
+          capabilities.minImageExtent.height};
+      auto hi = Vector2u{
           capabilities.maxImageExtent.width,
-          capabilities.maxImageExtent.height);
+          capabilities.maxImageExtent.height};
       swapchainSize_ = clamp(getFramebufferSize(), lo, hi);
     }
     auto queue_family_indices =
@@ -210,14 +210,16 @@ namespace imp {
     int width;
     int height;
     glfwGetWindowSize(window_, &width, &height);
-    return makeVector(width, height);
+    return {
+        static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height)};
   }
 
   Vector2u Window::getFramebufferSize() const noexcept {
     int width;
     int height;
     glfwGetFramebufferSize(window_, &width, &height);
-    return makeVector(width, height);
+    return {
+        static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height)};
   }
 
   Vector2u const &Window::getSwapchainSize() const noexcept {

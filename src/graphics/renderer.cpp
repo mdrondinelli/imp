@@ -54,7 +54,7 @@ namespace imp {
         std::numeric_limits<std::uint64_t>::max());
     device.resetFences(queue_submission_fence);
     device.resetCommandPool(command_pool);
-    updateAtmosphereDescriptorSet(frame, scene.getAtmosphere());
+    updateAtmosphereDescriptorSet(frame, *scene.getAtmosphere());
     command_buffer.begin(buffer_info);
     command_buffer.beginRenderPass(pass_info, vk::SubpassContents::eInline);
     command_buffer.bindPipeline(
@@ -79,27 +79,28 @@ namespace imp {
         0,
         frame.atmosphereDescriptorSet,
         {});
-    auto &camera = scene.getCamera();
-    auto eyePosition = camera.getTransform().getTranslation();
+    auto atmosphere = scene.getAtmosphere();
+    auto camera = scene.getCamera();
+    auto eyePosition = camera->getTransform().getTranslation();
     auto frustumCorners = std::array{
-        makeVector(-1.0f, -1.0f, 1.0f, 1.0f),
-        makeVector(1.0f, -1.0f, 1.0f, 1.0f),
-        makeVector(-1.0f, 1.0f, 1.0f, 1.0f),
-        makeVector(1.0f, 1.0f, 1.0f, 1.0f)};
-    auto invProjection = inverse(camera.getProjectionMatrix());
-    auto invView = inverse(camera.getViewMatrix());
+        Vector4f{-1.0f, -1.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, -1.0f, 1.0f, 1.0f},
+        Vector4f{-1.0f, 1.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 1.0f, 1.0f, 1.0f}};
+    auto invProjection = inverse(camera->getProjectionMatrix());
+    auto invView = camera->getTransform().getMatrix();
     for (auto &p : frustumCorners) {
       p = invProjection * p;
       p /= p[3];
-      p += concatenate(eyePosition, 0.0f);
+      p = invView * p;
     }
-    auto sun_radiance = makeVector(20.0f, 20.0f, 20.0f);
+    auto sun_radiance = Vector3f{20.0f, 20.0f, 20.0f};
     auto delta = frame_ / 30.0f + 1.4f * 3.141592f;
     auto sun_direction =
-        normalize(makeVector(0.0f, std::cosf(delta), std::sinf(delta)));
+        normalize(Vector3f{0.0f, std::cosf(delta), std::sinf(delta)});
     auto g = 0.76f;
-    auto planetRadius = scene.getAtmosphere().getPlanetRadius();
-    auto atmosphereRadius = scene.getAtmosphere().getAtmosphereRadius();
+    auto planetRadius = atmosphere->getPlanetRadius();
+    auto atmosphereRadius = atmosphere->getAtmosphereRadius();
     auto time = static_cast<std::uint32_t>(frame_);
     auto push_constants = std::array<char, 124>{};
     std::memcpy(push_constants.data() + 0, &frustumCorners, 64);

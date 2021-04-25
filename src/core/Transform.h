@@ -6,7 +6,7 @@ namespace imp {
   class Transform {
   public:
     Transform(
-        Vector3f const &translation = zeroVector<3, float>(),
+        Vector3f const &translation = {},
         Quaternionf const &rotation = identityQuaternion<float>()) noexcept;
 
     Vector3f const &getTranslation() const noexcept;

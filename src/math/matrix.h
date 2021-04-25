@@ -21,13 +21,13 @@ namespace imp {
     template<typename U>
     constexpr Matrix(Matrix<N, M, U> const &rhs) noexcept: cols_{} {
       for (auto i = size_t{}; i < N; ++i)
-        cols_[i] = rhs.cols_[i];
+        cols_[i] = rhs[i];
     }
 
     template<typename U>
     constexpr Matrix &operator=(Matrix<N, M, U> const &rhs) noexcept {
       for (auto i = size_t{}; i < N; ++i)
-        cols_[i] = rhs.cols_[i];
+        cols_[i] = rhs[i];
     }
 
     constexpr std::size_t cols() const noexcept {
@@ -72,6 +72,279 @@ namespace imp {
 
   private:
     std::array<Column, N> cols_;
+  };
+
+  template<std::size_t M, typename T>
+  class Matrix<1, M, T> {
+  public:
+    using Column = Vector<M, T>;
+    using Scalar = T;
+
+    constexpr Matrix() noexcept: cols_{} {}
+
+    constexpr Matrix(Vector<M, T> const &i) noexcept: cols_{i} {}
+
+    template<typename U>
+    constexpr Matrix(Matrix<1, M, U> const &rhs) noexcept: cols_{rhs[0]} {}
+
+    template<typename U>
+    constexpr Matrix &operator=(Matrix<1, M, U> const &rhs) noexcept {
+      cols_[0] = rhs[0];
+    }
+
+    constexpr std::size_t cols() const noexcept {
+      return 1;
+    }
+
+    constexpr std::size_t rows() const noexcept {
+      return M;
+    }
+
+    constexpr auto begin() noexcept {
+      return cols_.begin();
+    }
+
+    constexpr auto begin() const noexcept {
+      return cols_.begin();
+    }
+
+    constexpr auto cbegin() const noexcept {
+      return cols_.cbegin();
+    }
+
+    constexpr auto end() noexcept {
+      return cols_.end();
+    }
+
+    constexpr auto end() const noexcept {
+      return cols_.end();
+    }
+
+    constexpr auto cend() const noexcept {
+      return cols_.cend();
+    }
+
+    constexpr auto const &operator[](size_t i) const noexcept {
+      return cols_[i];
+    }
+
+    constexpr auto &operator[](size_t i) noexcept {
+      return cols_[i];
+    }
+
+  private:
+    std::array<Vector<M, T>, 1> cols_;
+  };
+
+  template<std::size_t M, typename T>
+  class Matrix<2, M, T> {
+  public:
+    using Column = Vector<M, T>;
+    using Scalar = T;
+
+    constexpr Matrix() noexcept: cols_{} {}
+
+    constexpr Matrix(Vector<M, T> const &i) noexcept: cols_{i, i} {}
+
+    constexpr Matrix(Vector<M, T> const &i, Vector<M, T> const &j) noexcept:
+        cols_{i, j} {}
+
+    template<typename U>
+    constexpr Matrix(Matrix<2, M, U> const &rhs) noexcept:
+        cols_{rhs[0], rhs[1]} {}
+
+    template<typename U>
+    constexpr Matrix &operator=(Matrix<2, M, U> const &rhs) noexcept {
+      cols_[0] = rhs[0];
+      cols_[1] = rhs[1];
+    }
+
+    constexpr std::size_t cols() const noexcept {
+      return 2;
+    }
+
+    constexpr std::size_t rows() const noexcept {
+      return M;
+    }
+
+    constexpr auto begin() noexcept {
+      return cols_.begin();
+    }
+
+    constexpr auto begin() const noexcept {
+      return cols_.begin();
+    }
+
+    constexpr auto cbegin() const noexcept {
+      return cols_.cbegin();
+    }
+
+    constexpr auto end() noexcept {
+      return cols_.end();
+    }
+
+    constexpr auto end() const noexcept {
+      return cols_.end();
+    }
+
+    constexpr auto cend() const noexcept {
+      return cols_.cend();
+    }
+
+    constexpr auto const &operator[](size_t i) const noexcept {
+      return cols_[i];
+    }
+
+    constexpr auto &operator[](size_t i) noexcept {
+      return cols_[i];
+    }
+
+  private:
+    std::array<Vector<M, T>, 2> cols_;
+  };
+
+  template<std::size_t M, typename T>
+  class Matrix<3, M, T> {
+  public:
+    using Column = Vector<M, T>;
+    using Scalar = T;
+
+    constexpr Matrix() noexcept: cols_{} {}
+
+    constexpr Matrix(Vector<M, T> const &i) noexcept: cols_{i, i, i} {}
+
+    constexpr Matrix(
+        Vector<M, T> const &i,
+        Vector<M, T> const &j,
+        Vector<M, T> const &k) noexcept:
+        cols_{i, j, k} {}
+
+    template<typename U>
+    constexpr Matrix(Matrix<3, M, U> const &rhs) noexcept:
+        cols_{rhs[0], rhs[1], rhs[2]} {}
+
+    template<typename U>
+    constexpr Matrix &operator=(Matrix<3, M, U> const &rhs) noexcept {
+      cols_[0] = rhs[0];
+      cols_[1] = rhs[1];
+      cols_[2] = rhs[2];
+    }
+
+    constexpr std::size_t cols() const noexcept {
+      return 3;
+    }
+
+    constexpr std::size_t rows() const noexcept {
+      return M;
+    }
+
+    constexpr auto begin() noexcept {
+      return cols_.begin();
+    }
+
+    constexpr auto begin() const noexcept {
+      return cols_.begin();
+    }
+
+    constexpr auto cbegin() const noexcept {
+      return cols_.cbegin();
+    }
+
+    constexpr auto end() noexcept {
+      return cols_.end();
+    }
+
+    constexpr auto end() const noexcept {
+      return cols_.end();
+    }
+
+    constexpr auto cend() const noexcept {
+      return cols_.cend();
+    }
+
+    constexpr auto const &operator[](size_t i) const noexcept {
+      return cols_[i];
+    }
+
+    constexpr auto &operator[](size_t i) noexcept {
+      return cols_[i];
+    }
+
+  private:
+    std::array<Vector<M, T>, 3> cols_;
+  };
+
+  template<std::size_t M, typename T>
+  class Matrix<4, M, T> {
+  public:
+    using Column = Vector<M, T>;
+    using Scalar = T;
+
+    constexpr Matrix() noexcept: cols_{} {}
+
+    constexpr Matrix(Vector<M, T> const &i) noexcept: cols_{i, i, i, i} {}
+
+    constexpr Matrix(
+        Vector<M, T> const &i,
+        Vector<M, T> const &j,
+        Vector<M, T> const &k,
+        Vector<M, T> const &l) noexcept:
+        cols_{i, j, k, l} {}
+
+    template<typename U>
+    constexpr Matrix(Matrix<4, M, U> const &rhs) noexcept:
+        cols_{rhs[0], rhs[1], rhs[2], rhs[3]} {}
+
+    template<typename U>
+    constexpr Matrix &operator=(Matrix<4, M, U> const &rhs) noexcept {
+      cols_[0] = rhs[0];
+      cols_[1] = rhs[1];
+      cols_[2] = rhs[2];
+      cols_[3] = rhs[3];
+    }
+
+    constexpr std::size_t cols() const noexcept {
+      return 4;
+    }
+
+    constexpr std::size_t rows() const noexcept {
+      return M;
+    }
+
+    constexpr auto begin() noexcept {
+      return cols_.begin();
+    }
+
+    constexpr auto begin() const noexcept {
+      return cols_.begin();
+    }
+
+    constexpr auto cbegin() const noexcept {
+      return cols_.cbegin();
+    }
+
+    constexpr auto end() noexcept {
+      return cols_.end();
+    }
+
+    constexpr auto end() const noexcept {
+      return cols_.end();
+    }
+
+    constexpr auto cend() const noexcept {
+      return cols_.cend();
+    }
+
+    constexpr auto const &operator[](size_t i) const noexcept {
+      return cols_[i];
+    }
+
+    constexpr auto &operator[](size_t i) noexcept {
+      return cols_[i];
+    }
+
+  private:
+    std::array<Vector<M, T>, 4> cols_;
   };
 
   template<typename T>
@@ -168,54 +441,6 @@ namespace imp {
   using Matrix4x3u = Matrix4x3<std::uint32_t>;
   using Matrix4x4u = Matrix4x4<std::uint32_t>;
 
-  template<size_t N = 1, size_t M, typename T>
-  constexpr auto makeMatrix(Vector<M, T> const &c) noexcept {
-    auto ret = Matrix<N, M, T>{};
-    for (auto i = size_t{}; i < N; ++i)
-      ret[i] = c;
-    return ret;
-  }
-
-  template<size_t M, typename T>
-  constexpr auto
-  makeMatrix(Vector<M, T> const &c0, Vector<M, T> const &c1) noexcept {
-    auto ret = Matrix<2, M, T>{};
-    ret[0] = c0;
-    ret[1] = c1;
-    return ret;
-  }
-
-  template<size_t M, typename T>
-  constexpr auto makeMatrix(
-      Vector<M, T> const &c0,
-      Vector<M, T> const &c1,
-      Vector<M, T> const &c2) noexcept {
-    auto ret = Matrix<3, M, T>{};
-    ret[0] = c0;
-    ret[1] = c1;
-    ret[2] = c2;
-    return ret;
-  }
-
-  template<size_t M, typename T>
-  constexpr auto makeMatrix(
-      Vector<M, T> const &c0,
-      Vector<M, T> const &c1,
-      Vector<M, T> const &c2,
-      Vector<M, T> const &c3) noexcept {
-    auto ret = Matrix<4, M, T>{};
-    ret[0] = c0;
-    ret[1] = c1;
-    ret[2] = c2;
-    ret[3] = c3;
-    return ret;
-  }
-
-  template<size_t N, size_t M = N, typename T>
-  constexpr auto zeroMatrix() noexcept {
-    return Matrix<N, M, T>{};
-  }
-
   template<size_t N, size_t M = N, typename T>
   constexpr auto identityMatrix() noexcept {
     auto ret = Matrix<N, M, T>{};
@@ -254,112 +479,112 @@ namespace imp {
 
   template<typename T>
   constexpr auto rotationMatrix3x3(Quaternion<T> const &q) {
-    auto wx = q.w() * q.x();
-    auto wy = q.w() * q.y();
-    auto wz = q.w() * q.z();
-    auto x2 = q.x() * q.x();
-    auto xy = q.x() * q.y();
-    auto xz = q.x() * q.z();
-    auto y2 = q.y() * q.y();
-    auto yz = q.y() * q.z();
-    auto z2 = q.z() * q.z();
-    return makeMatrix(
-        makeVector(
+    auto wx = q.s * q.v[0];
+    auto wy = q.s * q.v[1];
+    auto wz = q.s * q.v[2];
+    auto x2 = q.v[0] * q.v[0];
+    auto xy = q.v[0] * q.v[1];
+    auto xz = q.v[0] * q.v[2];
+    auto y2 = q.v[1] * q.v[1];
+    auto yz = q.v[1] * q.v[2];
+    auto z2 = q.v[2] * q.v[2];
+    return Matrix3x3<T>(
+        Vector3<T>{
             T{1} - T{2} * y2 - T{2} * z2,
             T{2} * xy + T{2} * wz,
-            T{2} * xz - T{2} * wy),
-        makeVector(
+            T{2} * xz - T{2} * wy},
+        Vector3<T>{
             T{2} * xy - T{2} * wz,
             T{1} - T{2} * x2 - T{2} * z2,
-            T{2} * yz + T{2} * wx),
-        makeVector(
+            T{2} * yz + T{2} * wx},
+        Vector3<T>{
             T{2} * xz + T{2} * wy,
             T{2} * yz - T{2} * wx,
-            T{1} - T{2} * x2 - T{2} * y2));
+            T{1} - T{2} * x2 - T{2} * y2});
   }
 
   template<typename T>
   constexpr auto rotationMatrix4x3(Quaternion<T> const &q) {
-    auto wx = q.w() * q.x();
-    auto wy = q.w() * q.y();
-    auto wz = q.w() * q.z();
-    auto x2 = q.x() * q.x();
-    auto xy = q.x() * q.y();
-    auto xz = q.x() * q.z();
-    auto y2 = q.y() * q.y();
-    auto yz = q.y() * q.z();
-    auto z2 = q.z() * q.z();
-    return makeMatrix(
-        makeVector(
+    auto wx = q.s * q.v[0];
+    auto wy = q.s * q.v[1];
+    auto wz = q.s * q.v[2];
+    auto x2 = q.v[0] * q.v[0];
+    auto xy = q.v[0] * q.v[1];
+    auto xz = q.v[0] * q.v[2];
+    auto y2 = q.v[1] * q.v[1];
+    auto yz = q.v[1] * q.v[2];
+    auto z2 = q.v[2] * q.v[2];
+    return Matrix4x3<T>{
+        Vector3<T>{
             T{1} - T{2} * y2 - T{2} * z2,
             T{2} * xy + T{2} * wz,
-            T{2} * xz - T{2} * wy),
-        makeVector(
+            T{2} * xz - T{2} * wy},
+        Vector3<T>{
             T{2} * xy - T{2} * wz,
             T{1} - T{2} * x2 - T{2} * z2,
-            T{2} * yz + T{2} * wx),
-        makeVector(
+            T{2} * yz + T{2} * wx},
+        Vector3<T>{
             T{2} * xz + T{2} * wy,
             T{2} * yz - T{2} * wx,
-            T{1} - T{2} * x2 - T{2} * y2),
-        zeroVector<3, T>());
+            T{1} - T{2} * x2 - T{2} * y2},
+        Vector3<T>{}};
   }
 
   template<typename T>
   constexpr auto rotationMatrix4x4(Quaternion<T> const &q) {
-    auto wx = q.w() * q.x();
-    auto wy = q.w() * q.y();
-    auto wz = q.w() * q.z();
-    auto x2 = q.x() * q.x();
-    auto xy = q.x() * q.y();
-    auto xz = q.x() * q.z();
-    auto y2 = q.y() * q.y();
-    auto yz = q.y() * q.z();
-    auto z2 = q.z() * q.z();
-    return makeMatrix(
-        makeVector(
+    auto wx = q.s * q.v[0];
+    auto wy = q.s * q.v[1];
+    auto wz = q.s * q.v[2];
+    auto x2 = q.v[0] * q.v[0];
+    auto xy = q.v[0] * q.v[1];
+    auto xz = q.v[0] * q.v[2];
+    auto y2 = q.v[1] * q.v[1];
+    auto yz = q.v[1] * q.v[2];
+    auto z2 = q.v[2] * q.v[2];
+    return Matrix4x4<T>{
+        Vector4<T>{
             T{1} - T{2} * y2 - T{2} * z2,
             T{2} * xy + T{2} * wz,
             T{2} * xz - T{2} * wy,
-            T{}),
-        makeVector(
+            T{}},
+        Vector4<T>{
             T{2} * xy - T{2} * wz,
             T{1} - T{2} * x2 - T{2} * z2,
             T{2} * yz + T{2} * wx,
-            T{}),
-        makeVector(
+            T{}},
+        Vector4<T>{
             T{2} * xz + T{2} * wy,
             T{2} * yz - T{2} * wx,
             T{1} - T{2} * x2 - T{2} * y2,
-            T{}),
-        makeVector(T{}, T{}, T{}, T{1}));
+            T{}},
+        Vector4<T>{T{}, T{}, T{}, T{1}}};
   }
 
   template<typename T>
   constexpr auto translationMatrix4x3(Vector3<T> const &v) {
-    return makeMatrix(
-        makeVector(T{1}, T{0}, T{0}),
-        makeVector(T{0}, T{1}, T{0}),
-        makeVector(T{0}, T{0}, T{1}),
-        v);
+    return Matrix4x3<T>{
+        Vector3<T>{T{1}, T{0}, T{0}},
+        Vector3<T>{T{0}, T{1}, T{0}},
+        Vector3<T>{T{0}, T{0}, T{1}},
+        v};
   }
 
   template<typename T>
   constexpr auto translationMatrix4x4(Vector3<T> const &v) {
-    return makeMatrix(
-        makeVector(T{1}, T{0}, T{0}, T{0}),
-        makeVector(T{0}, T{1}, T{0}, T{0}),
-        makeVector(T{0}, T{0}, T{1}, T{0}),
-        makeVector(v[0], v[1], v[2], T{1}));
+    return Matrix4x4<T>{
+        Vector4<T>{T{1}, T{0}, T{0}, T{0}},
+        Vector4<T>{T{0}, T{1}, T{0}, T{0}},
+        Vector4<T>{T{0}, T{0}, T{1}, T{0}},
+        Vector4<T>{v[0], v[1], v[2], T{1}}};
   }
 
   template<typename T>
   constexpr auto perspectiveMatrix(T l, T r, T t, T b, T n, T f) {
-    return makeMatrix(
-        makeVector(T{2} * n / (r - l), T{0}, T{0}, T{0}),
-        makeVector(T{0}, T{2} * n / (b - t), T{0}, T{0}),
-        makeVector((r + l) / (r - l), (b + t) / (b - t), n / (f - n), T{-1}),
-        makeVector(T{0}, T{0}, n * f / (f - n), T{0}));
+    return Matrix4x4<T>{
+        Vector4<T>{T{2} * n / (r - l), T{0}, T{0}, T{0}},
+        Vector4<T>{T{0}, T{2} * n / (b - t), T{0}, T{0}},
+        Vector4<T>{(r + l) / (r - l), (b + t) / (b - t), n / (f - n), T{-1}},
+        Vector4<T>{T{0}, T{0}, n * f / (f - n), T{0}}};
   }
 
   template<size_t N, size_t M, typename T>

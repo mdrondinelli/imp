@@ -18,38 +18,6 @@ namespace imp {
     constexpr Quaternion() noexcept: s{}, v{} {}
 
     constexpr Quaternion(T s, Vector3<T> const &v) noexcept: s{s}, v{v} {}
-
-    constexpr T const &w() const noexcept {
-      return s;
-    }
-
-    constexpr T &w() noexcept {
-      return s;
-    }
-
-    constexpr T const &x() const noexcept {
-      return v.x();
-    }
-
-    constexpr T &x() noexcept {
-      return v.x();
-    }
-
-    constexpr T const &y() const noexcept {
-      return v.y();
-    }
-
-    constexpr T &y() noexcept {
-      return v.y();
-    }
-
-    constexpr T const &z() const noexcept {
-      return v.z();
-    }
-
-    constexpr T &z() noexcept {
-      return v.z();
-    }
   };
 
   using Quaternionf = Quaternion<float>;
@@ -149,10 +117,7 @@ namespace imp {
 
   template<typename T>
   auto length(Quaternion<T> const &q) noexcept {
-    if (std::is_same_v<T, double>)
-      return std::sqrt(length2(q));
-    else
-      return std::sqrtf(length2(q));
+    return sqrt(length2(q));
   }
 
   template<typename T>
@@ -171,18 +136,13 @@ namespace imp {
   }
 
   template<typename T>
-  constexpr auto zeroQuaternion() noexcept {
-    return Quaternion<T>{};
-  }
-
-  template<typename T>
   constexpr auto identityQuaternion() noexcept {
-    return Quaternion{T{1}, zeroVector<3, T>()};
+    return Quaternion{T{1}, Vector3<T>{}};
   }
 
   template<typename T>
   auto rotationQuaternion(T angle, Vector3<T> const &axis) noexcept {
-    return Quaternion{std::cos(angle / 2), axis * std::sin(angle / 2)};
+    return Quaternion{cos(angle / 2), axis * sin(angle / 2)};
   }
 
   template<typename T>
@@ -206,9 +166,9 @@ namespace imp {
   template<typename T>
   auto &operator<<(std::ostream &os, Quaternion<T> const &q) noexcept {
     os << q.w();
-    os << (q.x() < 0 ? " - " : " + ") << std::abs(q.x()) << "i";
-    os << (q.y() < 0 ? " - " : " + ") << std::abs(q.y()) << "j";
-    os << (q.z() < 0 ? " - " : " + ") << std::abs(q.z()) << "k";
+    os << (q.x() < 0 ? " - " : " + ") << abs(q.x()) << "i";
+    os << (q.y() < 0 ? " - " : " + ") << abs(q.y()) << "j";
+    os << (q.z() < 0 ? " - " : " + ") << abs(q.z()) << "k";
     return os;
   }
 } // namespace imp

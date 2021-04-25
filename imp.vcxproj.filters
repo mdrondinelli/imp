@@ -57,18 +57,6 @@
     <ClInclude Include="src\math\Vector.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\physics\physics_system.h">
-      <Filter>Header Files\physics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\transform_component.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\physics\rigid_body_component.h">
-      <Filter>Header Files\physics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\transform_system.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\Window.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
@@ -137,14 +125,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\physics\physics_system.cpp">
-      <Filter>Source Files\physics</Filter>
-    </ClCompile>
     <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\transform_system.cpp">
-      <Filter>Source Files\core</Filter>
     </ClCompile>
     <ClCompile Include="src\core\Window.cpp">
       <Filter>Source Files\core</Filter>

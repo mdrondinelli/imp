@@ -176,8 +176,6 @@
     <ClInclude Include="src\core\Transform.h" />
     <ClInclude Include="src\core\vk_mem_alloc.h" />
     <ClInclude Include="src\core\WorkerThread.h" />
-    <ClInclude Include="src\core\transform_component.h" />
-    <ClInclude Include="src\core\transform_system.h" />
     <ClInclude Include="src\core\Window.h" />
     <ClInclude Include="src\engine\Client.h" />
     <ClInclude Include="src\graphics\Atmosphere.h" />
@@ -196,8 +194,6 @@
     <ClInclude Include="src\math\Quaternion.h" />
     <ClInclude Include="src\math\Scalar.h" />
     <ClInclude Include="src\math\Vector.h" />
-    <ClInclude Include="src\physics\physics_system.h" />
-    <ClInclude Include="src\physics\rigid_body_component.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\GpuBuffer.cpp" />
@@ -206,7 +202,6 @@
     <ClCompile Include="src\core\Transform.cpp" />
     <ClCompile Include="src\core\vk_mem_alloc.cpp" />
     <ClCompile Include="src\core\WorkerThread.cpp" />
-    <ClCompile Include="src\core\transform_system.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\engine\Client.cpp" />
     <ClCompile Include="src\graphics\Atmosphere.cpp" />
@@ -218,7 +213,6 @@
     <ClCompile Include="src\graphics\StaticMesh.cpp" />
     <ClCompile Include="src\graphics\StaticMeshLoader.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\physics\physics_system.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

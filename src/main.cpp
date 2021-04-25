@@ -50,17 +50,24 @@ int main() {
     gpuContextCreateInfo.validation = true;
     gpuContextCreateInfo.presentation = true;
     auto gpuContext = imp::GpuContext{gpuContextCreateInfo};
+    // Atmosphere
+    auto atmosphereCreateInfo = imp::AtmosphereCreateInfo{};
+    atmosphereCreateInfo.context = &gpuContext;
+    auto atmosphere = std::make_shared<imp::Atmosphere>(atmosphereCreateInfo);
+    // Camera
+    auto cameraCreateInfo = imp::CameraCreateInfo{};
+    cameraCreateInfo.transform.translate({0.0f, 100.0f, 0.0f});
+    auto camera = std::make_shared<imp::Camera>(cameraCreateInfo);
     // Scene
     auto sceneCreateInfo = imp::SceneCreateInfo{};
     sceneCreateInfo.context = &gpuContext;
+    sceneCreateInfo.atmosphere = atmosphere;
+    sceneCreateInfo.camera = camera;
     auto scene = imp::Scene{sceneCreateInfo};
-    scene.getCamera().translate(imp::makeVector(0.0f, 1000.0f, 0.0f));
-    scene.getCamera().setTanHalfFovY(
-        0.75f * scene.getCamera().getTanHalfFovX());
     // Window
     auto windowCreateInfo = imp::WindowCreateInfo{};
     windowCreateInfo.context = &gpuContext;
-    windowCreateInfo.size = imp::makeVector(800, 600);
+    windowCreateInfo.size = {800u, 600u};
     windowCreateInfo.title = "I Love Laiba Sunrise Simulator Sunrise Oooweeeh";
     auto window = imp::Window{windowCreateInfo};
     // Renderer
@@ -72,7 +79,10 @@ int main() {
     auto frame_count = 0;
     while (!window.shouldClose()) {
       imp::pollWindows();
-      if (window.getFramebufferSize() != imp::zeroVector2u()) {
+      if (window.getFramebufferSize() != imp::Vector2u{}) {
+        auto aspect = float(window.getSwapchainSize()[0]) /
+                      float(window.getSwapchainSize()[1]);
+        camera->setTanHalfFovX(aspect * camera->getTanHalfFovY());
         renderer.render(scene);
       }
       ++frame_count;
@@ -81,7 +91,6 @@ int main() {
         frame_time = std::chrono::high_resolution_clock::now();
         frame_count = 0;
       }
-      std::this_thread::sleep_for(1ms);
     }
   } catch (std::exception &e) {
     std::cerr << e.what() << "\n";
