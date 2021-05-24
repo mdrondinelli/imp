@@ -5,35 +5,31 @@
 #include "vk_mem_alloc.h"
 
 namespace imp {
+  class GpuContext;
+
+  struct GpuImageCreateInfo {
+    vk::ImageCreateInfo image;
+    VmaAllocationCreateInfo allocation;
+  };
+
   class GpuImage {
   public:
-    explicit GpuImage(
-        vk::ImageCreateInfo const &imageCreateInfo,
-        VmaAllocationCreateInfo const &allocationCreateInfo,
-        VmaAllocator allocator);
+    GpuImage(GpuContext &context, GpuImageCreateInfo const &createInfo);
     ~GpuImage();
 
     GpuImage(GpuImage &&rhs) noexcept;
     GpuImage &operator=(GpuImage &&rhs) noexcept;
 
-    void reset() noexcept;
-
-    vk::Image const *operator->() const noexcept {
-      return &image_;
-    }
-
-    vk::Image const &operator*() const noexcept {
-      return image_;
-    }
-
-    operator bool() const noexcept {
-      return image_;
-    }
+    vk::Image get() const noexcept;
 
   private:
+    VmaAllocator allocator_;
     vk::Image image_;
     VmaAllocation allocation_;
-    VmaAllocationInfo allocationInfo_;
-    VmaAllocator allocator_;
   };
+
+  template<typename H>
+  H AbslHashValue(H state, GpuImage const &image) noexcept {
+    return H::combine(std::move(state), image.get());
+  }
 } // namespace imp

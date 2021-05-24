@@ -4,6 +4,8 @@
 
 #include <type_traits>
 
+#include "Constants.h"
+
 namespace imp {
   template<typename T>
   auto abs(T x) noexcept {
@@ -73,6 +75,16 @@ namespace imp {
   template<typename T>
   constexpr auto lerp(T a, T b, T t) noexcept {
     return (1 - t) * a + t * b;
+  }
+
+  template<typename T>
+  constexpr auto toRadians(T x) noexcept {
+    return x * Constants<T>::PI / T{180};
+  }
+
+  template<typename T>
+  constexpr auto toDegrees(T x) noexcept {
+    return x * T{180} / Constants<T>::PI;
   }
 
   template<typename T>

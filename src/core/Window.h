@@ -15,6 +15,7 @@ namespace imp {
     GpuContext *context;
     Vector2u size;
     char const *title;
+    bool fullscreen;
   };
 
   class Window {
@@ -22,8 +23,8 @@ namespace imp {
     explicit Window(WindowCreateInfo const &createInfo);
     ~Window();
 
-    vk::Format getFormat() const noexcept;
-    vk::ColorSpaceKHR getColorSpace() const noexcept;
+    GpuContext *getContext() const noexcept;
+    vk::SurfaceFormatKHR const &getSurfaceFormat() const noexcept;
     Vector2u getWindowSize() const noexcept;
     Vector2u getFramebufferSize() const noexcept;
     Vector2u const &getSwapchainSize() const noexcept;
@@ -49,7 +50,8 @@ namespace imp {
     std::vector<vk::UniqueImageView> swapchainImageViews_;
     std::vector<vk::UniqueFramebuffer> swapchainFramebuffers_;
 
-    GLFWwindow *createWindow(Vector2u const &size, char const *title);
+    GLFWwindow *
+    createWindow(Vector2u const &size, char const *title, bool fullscreen);
     vk::UniqueSurfaceKHR createSurface();
     vk::SurfaceFormatKHR selectSurfaceFormat();
     vk::PresentModeKHR selectPresentMode();

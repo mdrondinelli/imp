@@ -60,10 +60,7 @@
     <ClInclude Include="src\core\Window.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\ScatteringLut.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\OpticalDepthLut.h">
+    <ClInclude Include="src\graphics\TransmittanceLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Atmosphere.h">
@@ -123,6 +120,30 @@
     <ClInclude Include="src\core\Transform.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\DirectionalLight.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\SkyViewLut.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\Frame.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\GpuDescriptorSetLayoutCache.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\TransmittanceLutFlyweight.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\SkyViewLutFlyweight.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\GpuSamplerCache.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\FrameFlyweight.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.cpp">
@@ -131,10 +152,7 @@
     <ClCompile Include="src\core\Window.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\ScatteringLut.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\OpticalDepthLut.cpp">
+    <ClCompile Include="src\graphics\TransmittanceLut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\Atmosphere.cpp">
@@ -175,6 +193,30 @@
     </ClCompile>
     <ClCompile Include="src\core\Transform.cpp">
       <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\DirectionalLight.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\SkyViewLut.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\Frame.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\GpuDescriptorSetLayoutCache.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\TransmittanceLutFlyweight.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\GpuSamplerCache.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\SkyViewLutFlyweight.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\FrameFlyweight.cpp">
+      <Filter>Source Files\graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

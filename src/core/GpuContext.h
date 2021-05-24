@@ -1,7 +1,12 @@
 #pragma once
 
-#include "GpuBuffer.h"
-#include "GpuImage.h"
+#include <mutex>
+
+#include <vulkan/vulkan.hpp>
+
+#include "GpuDescriptorSetLayoutCache.h"
+#include "GpuSamplerCache.h"
+#include "vk_mem_alloc.h"
 
 namespace imp {
   struct GpuContextCreateInfo {
@@ -25,13 +30,13 @@ namespace imp {
     vk::Queue getGraphicsQueue() const noexcept;
     vk::Queue getTransferQueue() const noexcept;
     vk::Queue getPresentQueue() const noexcept;
+    VmaAllocator getAllocator() const noexcept;
 
-    GpuBuffer createBuffer(
-        vk::BufferCreateInfo const &bufferCreateInfo,
-        VmaAllocationCreateInfo const &allocationCreateInfo);
-    GpuImage createImage(
-        vk::ImageCreateInfo const &imageCreateInfo,
-        VmaAllocationCreateInfo const &allocationCreateInfo);
+    vk::DescriptorSetLayout createDescriptorSetLayout(
+        GpuDescriptorSetLayoutCreateInfo const &createInfo);
+
+    vk::Sampler createSampler(
+        GpuSamplerCreateInfo const &createInfo);
 
   private:
     bool validationEnabled_;
@@ -46,6 +51,10 @@ namespace imp {
     vk::Queue transferQueue_;
     vk::Queue presentQueue_;
     VmaAllocator allocator_;
+    GpuDescriptorSetLayoutCache descriptorSetLayouts_;
+    GpuSamplerCache samplers_;
+    std::mutex descriptorSetLayoutsMutex_;
+    std::mutex samplersMutex_;
 
     vk::UniqueInstance createInstance();
     vk::PhysicalDevice selectPhysicalDevice();

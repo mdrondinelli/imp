@@ -4,6 +4,7 @@
 
 #include "core/ResourceCache.h"
 #include "graphics/Renderer.h"
+#include "math/Constants.h"
 
 struct DummyResource {
   int wenis;
@@ -47,32 +48,42 @@ int main() {
     auto bungus = cache.at("bungus");
     // GpuContext
     auto gpuContextCreateInfo = imp::GpuContextCreateInfo{};
-    gpuContextCreateInfo.validation = true;
+    gpuContextCreateInfo.validation = false;
     gpuContextCreateInfo.presentation = true;
     auto gpuContext = imp::GpuContext{gpuContextCreateInfo};
     // Atmosphere
     auto atmosphereCreateInfo = imp::AtmosphereCreateInfo{};
-    atmosphereCreateInfo.context = &gpuContext;
     auto atmosphere = std::make_shared<imp::Atmosphere>(atmosphereCreateInfo);
     // Camera
     auto cameraCreateInfo = imp::CameraCreateInfo{};
-    cameraCreateInfo.transform.translate({0.0f, 100.0f, 0.0f});
+    cameraCreateInfo.transform.translate(imp::Vector3f{0.0f, 1000.0f, 0.0f});
+    cameraCreateInfo.transform.rotateGlobal(imp::rotationQuaternion(
+        imp::toRadians(0.0f), imp::Vector3f{1.0f, 0.0f, 0.0f}));
     auto camera = std::make_shared<imp::Camera>(cameraCreateInfo);
+    // Sun
+    // wikipedia: radiance of the sun is 15.4 megawatts per meter squared per
+    // steradian. 42% of that is visible. I assume evenly divided into rgb.
+    auto sunCreateInfo = imp::DirectionalLightCreateInfo{};
+    sunCreateInfo.irradiance = imp::Vector3f{200.0f};
+    sunCreateInfo.direction = imp::normalize(imp::Vector3f{0.0f, -1.0f, 1.0f});
+    auto sun = std::make_shared<imp::DirectionalLight>(sunCreateInfo);
     // Scene
     auto sceneCreateInfo = imp::SceneCreateInfo{};
     sceneCreateInfo.context = &gpuContext;
     sceneCreateInfo.atmosphere = atmosphere;
+    sceneCreateInfo.sunLight = sun;
+    sceneCreateInfo.moonLight = nullptr;
     sceneCreateInfo.camera = camera;
     auto scene = imp::Scene{sceneCreateInfo};
     // Window
     auto windowCreateInfo = imp::WindowCreateInfo{};
     windowCreateInfo.context = &gpuContext;
-    windowCreateInfo.size = {800u, 600u};
+    windowCreateInfo.size = imp::Vector2u{1920u, 1080u};
     windowCreateInfo.title = "I Love Laiba Sunrise Simulator Sunrise Oooweeeh";
+    windowCreateInfo.fullscreen = true;
     auto window = imp::Window{windowCreateInfo};
     // Renderer
     auto rendererCreateInfo = imp::RendererCreateInfo{};
-    rendererCreateInfo.context = &gpuContext;
     rendererCreateInfo.window = &window;
     auto renderer = imp::Renderer{rendererCreateInfo};
     auto frame_time = std::chrono::high_resolution_clock::now();
@@ -80,9 +91,19 @@ int main() {
     while (!window.shouldClose()) {
       imp::pollWindows();
       if (window.getFramebufferSize() != imp::Vector2u{}) {
-        auto aspect = float(window.getSwapchainSize()[0]) /
-                      float(window.getSwapchainSize()[1]);
-        camera->setTanHalfFovX(aspect * camera->getTanHalfFovY());
+        auto angle = float(glfwGetTime()) * 0.0043633f * 4.0f - 0.15f;
+        //auto angle = imp::toRadians(45.0f);
+        sun->setDirection(
+            imp::Vector3f{0.0f, imp::sin(angle), -imp::cos(angle)});
+        auto aspect = float(window.getFramebufferSize()[0]) /
+                      float(window.getFramebufferSize()[1]);
+        if (aspect >= 1.0f) {
+          camera->setTanHalfFovX(imp::tan(imp::toRadians(70.0f / 2.0f)));
+          camera->setTanHalfFovY(camera->getTanHalfFovX() / aspect);
+        } else {
+          camera->setTanHalfFovY(imp::tan(imp::toRadians(70.0f / 2.0f)));
+          camera->setTanHalfFovX(camera->getTanHalfFovY() * aspect);
+        }
         renderer.render(scene);
       }
       ++frame_count;

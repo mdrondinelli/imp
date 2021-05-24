@@ -16,7 +16,8 @@ namespace imp {
 
   Window::Window(WindowCreateInfo const &createInfo):
       context_{createInfo.context},
-      window_{createWindow(createInfo.size, createInfo.title)},
+      window_{createWindow(
+          createInfo.size, createInfo.title, createInfo.fullscreen)},
       surface_{createSurface()},
       surfaceFormat_{selectSurfaceFormat()},
       presentMode_{selectPresentMode()},
@@ -36,10 +37,16 @@ namespace imp {
     glfwDestroyWindow(window_);
   }
 
-  GLFWwindow *Window::createWindow(Vector2u const &size, char const *title) {
+  GLFWwindow *Window::createWindow(
+      Vector2u const &size, char const *title, bool fullscreen) {
     glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    auto window = glfwCreateWindow(size[0], size[1], title, nullptr, nullptr);
+    auto window = glfwCreateWindow(
+        size[0],
+        size[1],
+        title,
+        fullscreen ? glfwGetPrimaryMonitor() : nullptr,
+        nullptr);
     if (!window)
       throw std::runtime_error{"failed to create window."};
     return window;
@@ -198,12 +205,20 @@ namespace imp {
     swapchain_.reset();
   }
 
-  vk::Format Window::getFormat() const noexcept {
+  /*vk::Format Window::getFormat() const noexcept {
     return surfaceFormat_.format;
   }
 
   vk::ColorSpaceKHR Window::getColorSpace() const noexcept {
     return surfaceFormat_.colorSpace;
+  }*/
+
+  GpuContext* Window::getContext() const noexcept {
+    return context_;
+  }
+
+  vk::SurfaceFormatKHR const &Window::getSurfaceFormat() const noexcept {
+    return surfaceFormat_;
   }
 
   Vector2u Window::getWindowSize() const noexcept {

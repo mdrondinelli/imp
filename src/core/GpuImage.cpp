@@ -1,54 +1,48 @@
 #include "GpuImage.h"
 
+#include "GpuContext.h"
+
 namespace imp {
-  GpuImage::GpuImage(
-      vk::ImageCreateInfo const &image_info,
-      VmaAllocationCreateInfo const &allocation_info,
-      VmaAllocator allocator):
-      allocator_{allocator} {
+  GpuImage::GpuImage(GpuContext &context, GpuImageCreateInfo const &createInfo):
+      allocator_{context.getAllocator()}, image_{}, allocation_{} {
     if (vmaCreateImage(
             allocator_,
-            reinterpret_cast<VkImageCreateInfo const *>(&image_info),
-            &allocation_info,
+            reinterpret_cast<VkImageCreateInfo const *>(&createInfo.image),
+            &createInfo.allocation,
             reinterpret_cast<VkImage *>(&image_),
             &allocation_,
-            &allocationInfo_) != VK_SUCCESS) {
+            nullptr) != VK_SUCCESS) {
       throw std::runtime_error{"failed to create gpu image."};
     }
   }
 
   GpuImage::~GpuImage() {
-    if (image_) {
+    if (allocator_) {
       vmaDestroyImage(allocator_, image_, allocation_);
     }
   }
 
   GpuImage::GpuImage(GpuImage &&rhs) noexcept:
+      allocator_{rhs.allocator_},
       image_{rhs.image_},
-      allocation_{rhs.allocation_},
-      allocationInfo_{rhs.allocationInfo_},
-      allocator_{rhs.allocator_} {
-    rhs.image_ = vk::Image{};
+      allocation_{rhs.allocation_} {
+    rhs.allocator_ = nullptr;
   }
 
   GpuImage &GpuImage::operator=(GpuImage &&rhs) noexcept {
     if (&rhs != this) {
-      if (image_) {
+      if (allocator_) {
         vmaDestroyImage(allocator_, image_, allocation_);
       }
+      allocator_ = rhs.allocator_;
       image_ = rhs.image_;
       allocation_ = rhs.allocation_;
-      allocationInfo_ = rhs.allocationInfo_;
-      allocator_ = rhs.allocator_;
-      rhs.image_ = vk::Image{};
+      rhs.allocator_ = nullptr;
     }
     return *this;
   }
 
-  void GpuImage::reset() noexcept {
-    if (image_) {
-      vmaDestroyImage(allocator_, image_, allocation_);
-      image_ = nullptr;
-    }
+  vk::Image GpuImage::get() const noexcept {
+    return image_;
   }
 } // namespace imp

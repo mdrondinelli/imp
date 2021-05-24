@@ -168,8 +168,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\core\GpuBuffer.h" />
+    <ClInclude Include="src\core\GpuDescriptorSetLayoutCache.h" />
     <ClInclude Include="src\core\GpuImage.h" />
     <ClInclude Include="src\core\GpuContext.h" />
+    <ClInclude Include="src\core\GpuSamplerCache.h" />
     <ClInclude Include="src\core\ResourceCache.h" />
     <ClInclude Include="src\core\ResourceLoader.h" />
     <ClInclude Include="src\core\ResourceState.h" />
@@ -180,14 +182,19 @@
     <ClInclude Include="src\engine\Client.h" />
     <ClInclude Include="src\graphics\Atmosphere.h" />
     <ClInclude Include="src\graphics\Camera.h" />
-    <ClInclude Include="src\graphics\OpticalDepthLut.h" />
+    <ClInclude Include="src\graphics\DirectionalLight.h" />
+    <ClInclude Include="src\graphics\Frame.h" />
+    <ClInclude Include="src\graphics\FrameFlyweight.h" />
+    <ClInclude Include="src\graphics\SkyViewLutFlyweight.h" />
+    <ClInclude Include="src\graphics\TransmittanceLut.h" />
     <ClInclude Include="src\graphics\Renderer.h" />
-    <ClInclude Include="src\graphics\ScatteringLut.h" />
     <ClInclude Include="src\graphics\Scene.h" />
+    <ClInclude Include="src\graphics\SkyViewLut.h" />
     <ClInclude Include="src\graphics\StaticMesh.h" />
     <ClInclude Include="src\graphics\StaticMeshCache.h" />
     <ClInclude Include="src\graphics\StaticMeshLoader.h" />
     <ClInclude Include="src\graphics\StaticVertex.h" />
+    <ClInclude Include="src\graphics\TransmittanceLutFlyweight.h" />
     <ClInclude Include="src\math\Constants.h" />
     <ClInclude Include="src\math\Interval.h" />
     <ClInclude Include="src\math\Matrix.h" />
@@ -197,8 +204,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\GpuBuffer.cpp" />
+    <ClCompile Include="src\core\GpuDescriptorSetLayoutCache.cpp" />
     <ClCompile Include="src\core\GpuImage.cpp" />
     <ClCompile Include="src\core\GpuContext.cpp" />
+    <ClCompile Include="src\core\GpuSamplerCache.cpp" />
     <ClCompile Include="src\core\Transform.cpp" />
     <ClCompile Include="src\core\vk_mem_alloc.cpp" />
     <ClCompile Include="src\core\WorkerThread.cpp" />
@@ -206,12 +215,17 @@
     <ClCompile Include="src\engine\Client.cpp" />
     <ClCompile Include="src\graphics\Atmosphere.cpp" />
     <ClCompile Include="src\graphics\Camera.cpp" />
-    <ClCompile Include="src\graphics\OpticalDepthLut.cpp" />
+    <ClCompile Include="src\graphics\DirectionalLight.cpp" />
+    <ClCompile Include="src\graphics\Frame.cpp" />
+    <ClCompile Include="src\graphics\FrameFlyweight.cpp" />
+    <ClCompile Include="src\graphics\SkyViewLutFlyweight.cpp" />
+    <ClCompile Include="src\graphics\TransmittanceLut.cpp" />
     <ClCompile Include="src\graphics\Renderer.cpp" />
-    <ClCompile Include="src\graphics\ScatteringLut.cpp" />
     <ClCompile Include="src\graphics\Scene.cpp" />
+    <ClCompile Include="src\graphics\SkyViewLut.cpp" />
     <ClCompile Include="src\graphics\StaticMesh.cpp" />
     <ClCompile Include="src\graphics\StaticMeshLoader.cpp" />
+    <ClCompile Include="src\graphics\TransmittanceLutFlyweight.cpp" />
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

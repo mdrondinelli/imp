@@ -19,11 +19,73 @@ namespace imp {
       graphicsQueue_{selectGraphicsQueue()},
       transferQueue_{selectTransferQueue()},
       presentQueue_{selectPresentQueue()},
-      allocator_{createAllocator()} {}
+      allocator_{createAllocator()},
+      descriptorSetLayouts_{*this},
+      samplers_{*this} {}
 
   GpuContext::~GpuContext() {
     device_->waitIdle();
     vmaDestroyAllocator(allocator_);
+  }
+
+  bool GpuContext::isValidationEnabled() const noexcept {
+    return validationEnabled_;
+  }
+
+  bool GpuContext::isPresentationEnabled() const noexcept {
+    return presentationEnabled_;
+  }
+
+  vk::Instance GpuContext::getInstance() const noexcept {
+    return *instance_;
+  }
+
+  vk::PhysicalDevice GpuContext::getPhysicalDevice() const noexcept {
+    return physicalDevice_;
+  }
+
+  std::uint32_t GpuContext::getGraphicsFamily() const noexcept {
+    return graphicsFamily_;
+  }
+
+  std::uint32_t GpuContext::getTransferFamily() const noexcept {
+    return transferFamily_;
+  }
+
+  std::uint32_t GpuContext::getPresentFamily() const noexcept {
+    return presentFamily_;
+  }
+
+  vk::Device GpuContext::getDevice() const noexcept {
+    return *device_;
+  }
+
+  vk::Queue GpuContext::getGraphicsQueue() const noexcept {
+    return graphicsQueue_;
+  }
+
+  vk::Queue GpuContext::getTransferQueue() const noexcept {
+    return transferQueue_;
+  }
+
+  vk::Queue GpuContext::getPresentQueue() const noexcept {
+    return presentQueue_;
+  }
+
+  VmaAllocator GpuContext::getAllocator() const noexcept {
+    return allocator_;
+  }
+
+  vk::DescriptorSetLayout GpuContext::createDescriptorSetLayout(
+      GpuDescriptorSetLayoutCreateInfo const &createInfo) {
+    auto lock = std::scoped_lock{descriptorSetLayoutsMutex_};
+    return descriptorSetLayouts_.create(createInfo);
+  }
+
+  vk::Sampler
+  GpuContext::createSampler(GpuSamplerCreateInfo const &createInfo) {
+    auto lock = std::scoped_lock{samplersMutex_};
+    return samplers_.create(createInfo);
   }
 
   vk::UniqueInstance GpuContext::createInstance() {
@@ -236,70 +298,4 @@ namespace imp {
     }
     return allocator;
   }
-
-  bool GpuContext::isValidationEnabled() const noexcept {
-    return validationEnabled_;
-  }
-
-  bool GpuContext::isPresentationEnabled() const noexcept {
-    return presentationEnabled_;
-  }
-
-  vk::Instance GpuContext::getInstance() const noexcept {
-    return *instance_;
-  }
-
-  vk::PhysicalDevice GpuContext::getPhysicalDevice() const noexcept {
-    return physicalDevice_;
-  }
-
-  std::uint32_t GpuContext::getGraphicsFamily() const noexcept {
-    return graphicsFamily_;
-  }
-
-  std::uint32_t GpuContext::getTransferFamily() const noexcept {
-    return transferFamily_;
-  }
-
-  std::uint32_t GpuContext::getPresentFamily() const noexcept {
-    return presentFamily_;
-  }
-
-  vk::Device GpuContext::getDevice() const noexcept {
-    return *device_;
-  }
-
-  vk::Queue GpuContext::getGraphicsQueue() const noexcept {
-    return graphicsQueue_;
-  }
-
-  vk::Queue GpuContext::getTransferQueue() const noexcept {
-    return transferQueue_;
-  }
-
-  vk::Queue GpuContext::getPresentQueue() const noexcept {
-    return presentQueue_;
-  }
-
-  GpuBuffer GpuContext::createBuffer(
-      vk::BufferCreateInfo const &buffer_info,
-      VmaAllocationCreateInfo const &allocation_info) {
-    return GpuBuffer{buffer_info, allocation_info, allocator_};
-  }
-
-  GpuImage GpuContext::createImage(
-      vk::ImageCreateInfo const &image_info,
-      VmaAllocationCreateInfo const &allocation_info) {
-    return GpuImage{image_info, allocation_info, allocator_};
-  }
-
-  // vk::Sampler
-  // GpuContext::create_sampler(vk::SamplerCreateInfo const &create_info) {
-  //  if (auto it = samplers_.find(create_info); it != samplers_.end()) {
-  //    return *it->second;
-  //  }
-  //  return *samplers_
-  //              .emplace(create_info,
-  //              device_->createSamplerUnique(create_info)) .first->second;
-  //}
 } // namespace imp
