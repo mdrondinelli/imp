@@ -17,12 +17,12 @@ namespace imp {
     return window_;
   }
 
-  std::shared_ptr<TransmittanceLutFlyweight const>
+  std::shared_ptr<TransmittanceLut::Flyweight const>
   FrameFlyweight::getTransmittanceLutFlyweight() const noexcept {
     return transmittanceLutFlyweight_;
   }
 
-  std::shared_ptr<SkyViewLutFlyweight const>
+  std::shared_ptr<SkyViewLut::Flyweight const>
   FrameFlyweight::getSkyViewLutFlyweight() const noexcept {
     return skyViewLutFlyweight_;
   }

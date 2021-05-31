@@ -123,7 +123,7 @@ namespace imp {
   }
 
   AerialPerspectiveLut::AerialPerspectiveLut(
-      std::shared_ptr<Flyweight> flyweight, Vector3u const &size):
+      std::shared_ptr<Flyweight const> flyweight, Vector3u const &size):
       flyweight_{std::move(flyweight)},
       size_{size},
       image_{createImage()},

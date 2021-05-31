@@ -1,9 +1,128 @@
 #include "SkyViewLut.h"
 
+#include <fstream>
+#include <vector>
+
+#include "Scene.h"
+#include "TransmittanceLut.h"
+
 namespace imp {
+  SkyViewLut::Flyweight::Flyweight(GpuContext &context):
+      context_{&context},
+      imageDescriptorSetLayout_{createImageDescriptorSetLayout()},
+      textureDescriptorSetLayout_{createTextureDescriptorSetLayout()},
+      pipelineLayout_{createPipelineLayout()},
+      pipeline_{createPipeline()},
+      sampler_{createSampler()} {}
+
+  GpuContext &SkyViewLut::Flyweight::getContext() const noexcept {
+    return *context_;
+  }
+
+  vk::DescriptorSetLayout
+  SkyViewLut::Flyweight::getImageDescriptorSetLayout() const noexcept {
+    return imageDescriptorSetLayout_;
+  }
+
+  vk::DescriptorSetLayout
+  SkyViewLut::Flyweight::getTextureDescriptorSetLayout() const noexcept {
+    return textureDescriptorSetLayout_;
+  }
+
+  vk::PipelineLayout SkyViewLut::Flyweight::getPipelineLayout() const noexcept {
+    return *pipelineLayout_;
+  }
+
+  vk::Pipeline SkyViewLut::Flyweight::getPipeline() const noexcept {
+    return *pipeline_;
+  }
+
+  vk::Sampler SkyViewLut::Flyweight::getSampler() const noexcept {
+    return sampler_;
+  }
+
+  vk::DescriptorSetLayout
+  SkyViewLut::Flyweight::createImageDescriptorSetLayout() {
+    auto binding = GpuDescriptorSetLayoutBinding{};
+    binding.descriptorType = vk::DescriptorType::eStorageImage;
+    binding.descriptorCount = 1;
+    binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
+    createInfo.bindingCount = 1;
+    createInfo.bindings = &binding;
+    return context_->createDescriptorSetLayout(createInfo);
+  }
+
+  vk::DescriptorSetLayout
+  SkyViewLut::Flyweight::createTextureDescriptorSetLayout() {
+    auto binding = GpuDescriptorSetLayoutBinding{};
+    binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    binding.descriptorCount = 1;
+    binding.stageFlags =
+        vk::ShaderStageFlagBits::eCompute | vk::ShaderStageFlagBits::eFragment;
+    auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
+    createInfo.bindingCount = 1;
+    createInfo.bindings = &binding;
+    return context_->createDescriptorSetLayout(createInfo);
+  }
+
+  vk::UniquePipelineLayout SkyViewLut::Flyweight::createPipelineLayout() {
+    auto setLayouts =
+        std::array{textureDescriptorSetLayout_, imageDescriptorSetLayout_};
+    auto pushConstantRange = vk::PushConstantRange{};
+    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = 96;
+    auto createInfo = vk::PipelineLayoutCreateInfo{};
+    createInfo.setLayoutCount = static_cast<std::uint32_t>(setLayouts.size());
+    createInfo.pSetLayouts = setLayouts.data();
+    createInfo.pushConstantRangeCount = 1;
+    createInfo.pPushConstantRanges = &pushConstantRange;
+    return context_->getDevice().createPipelineLayoutUnique(createInfo);
+  }
+
+  vk::UniquePipeline SkyViewLut::Flyweight::createPipeline() {
+    auto ifs = std::ifstream{};
+    ifs.exceptions(std::ios::badbit | std::ios::failbit);
+    ifs.open("./res/SkyView.spv", std::ios::binary);
+    ifs.seekg(0, std::ios::end);
+    auto code = std::vector<char>{};
+    code.resize(ifs.tellg());
+    if (code.size() % 4 != 0) {
+      throw std::runtime_error{"invalid shader module"};
+    }
+    ifs.seekg(0, std::ios::beg);
+    ifs.read(code.data(), code.size());
+    ifs.close();
+    auto moduleCreateInfo = vk::ShaderModuleCreateInfo{};
+    moduleCreateInfo.codeSize = code.size();
+    moduleCreateInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+    auto module =
+        context_->getDevice().createShaderModuleUnique(moduleCreateInfo);
+    auto createInfo = vk::ComputePipelineCreateInfo{};
+    createInfo.stage.stage = vk::ShaderStageFlagBits::eCompute;
+    createInfo.stage.module = *module;
+    createInfo.stage.pName = "main";
+    createInfo.layout = *pipelineLayout_;
+    createInfo.basePipelineIndex = -1;
+    return context_->getDevice()
+        .createComputePipelineUnique({}, createInfo)
+        .value;
+  }
+
+  vk::Sampler SkyViewLut::Flyweight::createSampler() {
+    auto createInfo = GpuSamplerCreateInfo{};
+    createInfo.magFilter = vk::Filter::eLinear;
+    createInfo.minFilter = vk::Filter::eLinear;
+    createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
+    createInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+    createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+    createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
+    return context_->createSampler(createInfo);
+  }
+
   SkyViewLut::SkyViewLut(
-      std::shared_ptr<SkyViewLutFlyweight const> flyweight,
-      Vector2u const &size):
+      std::shared_ptr<Flyweight const> flyweight, Vector2u const &size):
       flyweight_{std::move(flyweight)},
       size_{size},
       image_{createImage()},
@@ -37,6 +156,14 @@ namespace imp {
       vk::CommandBuffer cmd,
       Scene const &scene,
       TransmittanceLut const &transmittanceLut) {
+    cmd.bindPipeline(
+        vk::PipelineBindPoint::eCompute, flyweight_->getPipeline());
+    cmd.bindDescriptorSets(
+        vk::PipelineBindPoint::eCompute,
+        flyweight_->getPipelineLayout(),
+        0,
+        {transmittanceLut.getTextureDescriptorSet(), getImageDescriptorSet()},
+        {});
     auto pushConstants = std::array<char, 96>{};
     auto pushConstantPtr = &pushConstants[0];
     auto push = [&](auto const &object) {
@@ -60,23 +187,33 @@ namespace imp {
     push(atmosphere.getOzoneHeightCenter());
     push(atmosphere.getOzoneHeightRange());
     push(camera.getTransform().getTranslation()[1]);
-    auto groupCountX = size_[0] / 8u;
-    auto groupCountY = size_[1] / 8u;
-    cmd.bindPipeline(
-        vk::PipelineBindPoint::eCompute, flyweight_->getPipeline());
-    cmd.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute,
-        flyweight_->getPipelineLayout(),
-        0,
-        {transmittanceLut.getTextureDescriptorSet(), getImageDescriptorSet()},
-        {});
     cmd.pushConstants(
         flyweight_->getPipelineLayout(),
         vk::ShaderStageFlagBits::eCompute,
         0,
         static_cast<std::uint32_t>(pushConstants.size()),
         pushConstants.data());
-    cmd.dispatch(groupCountX, groupCountY, 1u);
+    auto barrier = vk::ImageMemoryBarrier{};
+    barrier.srcAccessMask = {};
+    barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
+    barrier.oldLayout = vk::ImageLayout::eUndefined;
+    barrier.newLayout = vk::ImageLayout::eGeneral;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = image_.get();
+    barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    cmd.pipelineBarrier(
+        vk::PipelineStageFlagBits::eTopOfPipe,
+        vk::PipelineStageFlagBits::eComputeShader,
+        {},
+        {},
+        {},
+        barrier);
+    cmd.dispatch(size_[0] / 8u, size_[1] / 8u, 1u);
   }
 
   GpuImage SkyViewLut::createImage() {

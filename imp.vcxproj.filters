@@ -132,12 +132,6 @@
     <ClInclude Include="src\core\GpuDescriptorSetLayoutCache.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\TransmittanceLutFlyweight.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\SkyViewLutFlyweight.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\GpuSamplerCache.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
@@ -209,14 +203,8 @@
     <ClCompile Include="src\core\GpuDescriptorSetLayoutCache.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\TransmittanceLutFlyweight.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\GpuSamplerCache.cpp">
       <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\SkyViewLutFlyweight.cpp">
-      <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\FrameFlyweight.cpp">
       <Filter>Source Files\graphics</Filter>

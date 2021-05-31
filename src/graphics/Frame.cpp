@@ -100,19 +100,6 @@ namespace imp {
   }
 
   void Frame::computeSkyViewLut(Scene const &scene) {
-    auto cameraHeight = scene.getCamera()->getTransform().getTranslation()[1];
-    commandBuffer_->pipelineBarrier(
-        vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eComputeShader,
-        {},
-        {},
-        {},
-        {createLayoutTransition(
-            {},
-            vk::AccessFlagBits::eShaderWrite,
-            vk::ImageLayout::eUndefined,
-            vk::ImageLayout::eGeneral,
-            skyViewLut_.getImage())});
     skyViewLut_.compute(*commandBuffer_, scene, transmittanceLut_);
     commandBuffer_->pipelineBarrier(
         vk::PipelineStageFlagBits::eComputeShader,

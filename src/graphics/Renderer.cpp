@@ -10,8 +10,7 @@ namespace imp {
   }
 
   Renderer::Renderer(RendererCreateInfo const &createInfo):
-      window_{createInfo.window},
-      frames_{createFrames()} {}
+      window_{createInfo.window}, frames_{createFrames()} {}
 
   Renderer::~Renderer() {
     window_->getContext()->getDevice().waitIdle();
@@ -26,9 +25,9 @@ namespace imp {
   std::vector<Frame> Renderer::createFrames() {
     auto frameFlyweightCreateInfo = FrameFlyweightCreateInfo{};
     frameFlyweightCreateInfo.transmittanceLutFlyweight =
-        std::make_shared<TransmittanceLutFlyweight>(*window_->getContext());
+        std::make_shared<TransmittanceLut::Flyweight>(*window_->getContext());
     frameFlyweightCreateInfo.skyViewLutFlyweight =
-        std::make_shared<SkyViewLutFlyweight>(*window_->getContext());
+        std::make_shared<SkyViewLut::Flyweight>(*window_->getContext());
     auto frameFlyweight =
         std::make_shared<FrameFlyweight>(*window_, frameFlyweightCreateInfo);
     auto frames = std::vector<Frame>{};

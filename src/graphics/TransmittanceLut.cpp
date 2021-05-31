@@ -1,8 +1,127 @@
 #include "TransmittanceLut.h"
 
+#include <fstream>
+#include <vector>
+
+#include "../core/GpuContext.h"
+#include "Scene.h"
+
 namespace imp {
+  TransmittanceLut::Flyweight::Flyweight(GpuContext &context):
+      context_{&context},
+      imageDescriptorSetLayout_{createImageDescriptorSetLayout()},
+      textureDescriptorSetLayout_{createTextureDescriptorSetLayout()},
+      pipelineLayout_{createPipelineLayout()},
+      pipeline_{createPipeline()},
+      sampler_{createSampler()} {}
+
+  GpuContext &TransmittanceLut::Flyweight::getContext() const noexcept {
+    return *context_;
+  }
+
+  vk::DescriptorSetLayout
+  TransmittanceLut::Flyweight::getImageDescriptorSetLayout() const noexcept {
+    return imageDescriptorSetLayout_;
+  }
+
+  vk::DescriptorSetLayout
+  TransmittanceLut::Flyweight::getTextureDescriptorSetLayout() const noexcept {
+    return textureDescriptorSetLayout_;
+  }
+
+  vk::PipelineLayout
+  TransmittanceLut::Flyweight::getPipelineLayout() const noexcept {
+    return *pipelineLayout_;
+  }
+
+  vk::Pipeline TransmittanceLut::Flyweight::getPipeline() const noexcept {
+    return *pipeline_;
+  }
+
+  vk::Sampler TransmittanceLut::Flyweight::getSampler() const noexcept {
+    return sampler_;
+  }
+
+  vk::DescriptorSetLayout
+  TransmittanceLut::Flyweight::createImageDescriptorSetLayout() {
+    auto binding = GpuDescriptorSetLayoutBinding{};
+    binding.descriptorType = vk::DescriptorType::eStorageImage;
+    binding.descriptorCount = 1;
+    binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
+    createInfo.bindingCount = 1;
+    createInfo.bindings = &binding;
+    return context_->createDescriptorSetLayout(createInfo);
+  }
+
+  vk::DescriptorSetLayout
+  TransmittanceLut::Flyweight::createTextureDescriptorSetLayout() {
+    auto binding = GpuDescriptorSetLayoutBinding{};
+    binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    binding.descriptorCount = 1;
+    binding.stageFlags =
+        vk::ShaderStageFlagBits::eCompute | vk::ShaderStageFlagBits::eFragment;
+    auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
+    createInfo.bindingCount = 1;
+    createInfo.bindings = &binding;
+    return context_->createDescriptorSetLayout(createInfo);
+  }
+
+  vk::UniquePipelineLayout TransmittanceLut::Flyweight::createPipelineLayout() {
+    auto pushConstantRange = vk::PushConstantRange{};
+    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = 52;
+    auto createInfo = vk::PipelineLayoutCreateInfo{};
+    createInfo.setLayoutCount = 1;
+    createInfo.pSetLayouts = &imageDescriptorSetLayout_;
+    createInfo.pushConstantRangeCount = 1;
+    createInfo.pPushConstantRanges = &pushConstantRange;
+    return context_->getDevice().createPipelineLayoutUnique(createInfo);
+  }
+
+  vk::UniquePipeline TransmittanceLut::Flyweight::createPipeline() {
+    auto code = std::vector<char>{};
+    auto in = std::ifstream{};
+    in.exceptions(std::ios::badbit | std::ios::failbit);
+    in.open("./res/Transmittance.spv", std::ios::binary);
+    in.seekg(0, std::ios::end);
+    auto codeSize = static_cast<std::size_t>(in.tellg());
+    if (codeSize % 4 != 0) {
+      throw std::runtime_error{"invalid shader module"};
+    }
+    code.resize(codeSize);
+    in.seekg(0, std::ios::beg);
+    in.read(code.data(), code.size());
+    auto moduleCreateInfo = vk::ShaderModuleCreateInfo{};
+    moduleCreateInfo.codeSize = code.size();
+    moduleCreateInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+    auto module =
+        context_->getDevice().createShaderModuleUnique(moduleCreateInfo);
+    auto pipelineCreateInfo = vk::ComputePipelineCreateInfo{};
+    pipelineCreateInfo.stage.stage = vk::ShaderStageFlagBits::eCompute;
+    pipelineCreateInfo.stage.module = *module;
+    pipelineCreateInfo.stage.pName = "main";
+    pipelineCreateInfo.layout = *pipelineLayout_;
+    pipelineCreateInfo.basePipelineIndex = -1;
+    return context_->getDevice()
+        .createComputePipelineUnique({}, pipelineCreateInfo)
+        .value;
+  }
+
+  vk::Sampler TransmittanceLut::Flyweight::createSampler() {
+    auto createInfo = GpuSamplerCreateInfo{};
+    createInfo.magFilter = vk::Filter::eLinear;
+    createInfo.minFilter = vk::Filter::eLinear;
+    createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
+    createInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+    createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+    createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
+    return context_->createSampler(createInfo);
+  }
+
   TransmittanceLut::TransmittanceLut(
-      std::shared_ptr<TransmittanceLutFlyweight const> flyweight,
+      std::shared_ptr<Flyweight const> flyweight,
       Vector2u const &size):
       flyweight_{std::move(flyweight)},
       size_{size},
@@ -64,6 +183,30 @@ namespace imp {
       ozoneExtinction_ = atmosphere.getOzoneAborption();
       ozoneHeightCenter_ = atmosphere.getOzoneHeightCenter();
       ozoneHeightRange_ = atmosphere.getOzoneHeightRange();
+      cmd.bindPipeline(
+          vk::PipelineBindPoint::eCompute, flyweight_->getPipeline());
+      cmd.bindDescriptorSets(
+          vk::PipelineBindPoint::eCompute,
+          flyweight_->getPipelineLayout(),
+          0,
+          {getImageDescriptorSet()},
+          {});
+      auto pushConstants = std::array<char, 52>{};
+      std::memcpy(&pushConstants[0], &rayleighExtinction_, 12);
+      std::memcpy(&pushConstants[12], &rayleighScaleHeight_, 4);
+      std::memcpy(&pushConstants[16], &ozoneExtinction_, 12);
+      std::memcpy(&pushConstants[28], &ozoneHeightCenter_, 4);
+      std::memcpy(&pushConstants[32], &ozoneHeightRange_, 4);
+      std::memcpy(&pushConstants[36], &mieExtinction_, 4);
+      std::memcpy(&pushConstants[40], &mieScaleHeight_, 4);
+      std::memcpy(&pushConstants[44], &planetRadius_, 4);
+      std::memcpy(&pushConstants[48], &atmosphereRadius_, 4);
+      cmd.pushConstants(
+          flyweight_->getPipelineLayout(),
+          vk::ShaderStageFlagBits::eCompute,
+          0,
+          static_cast<std::uint32_t>(pushConstants.size()),
+          pushConstants.data());
       auto barrier = vk::ImageMemoryBarrier{};
       barrier.srcAccessMask = {};
       barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
@@ -83,32 +226,7 @@ namespace imp {
           {},
           {},
           {},
-          barrier,
-          {});
-      auto pushConstants = std::array<char, 52>{};
-      std::memcpy(&pushConstants[0], &rayleighExtinction_, 12);
-      std::memcpy(&pushConstants[12], &rayleighScaleHeight_, 4);
-      std::memcpy(&pushConstants[16], &ozoneExtinction_, 12);
-      std::memcpy(&pushConstants[28], &ozoneHeightCenter_, 4);
-      std::memcpy(&pushConstants[32], &ozoneHeightRange_, 4);
-      std::memcpy(&pushConstants[36], &mieExtinction_, 4);
-      std::memcpy(&pushConstants[40], &mieScaleHeight_, 4);
-      std::memcpy(&pushConstants[44], &planetRadius_, 4);
-      std::memcpy(&pushConstants[48], &atmosphereRadius_, 4);
-      cmd.bindPipeline(
-          vk::PipelineBindPoint::eCompute, flyweight_->getPipeline());
-      cmd.bindDescriptorSets(
-          vk::PipelineBindPoint::eCompute,
-          flyweight_->getPipelineLayout(),
-          0,
-          {getImageDescriptorSet()},
-          {});
-      cmd.pushConstants(
-          flyweight_->getPipelineLayout(),
-          vk::ShaderStageFlagBits::eCompute,
-          0,
-          static_cast<std::uint32_t>(pushConstants.size()),
-          pushConstants.data());
+          barrier);
       cmd.dispatch(size_[0] / 8u, size_[1] / 8u, 1u);
       return true;
     } else {

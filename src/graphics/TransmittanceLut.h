@@ -1,15 +1,42 @@
 #pragma once
 
+#include <memory>
+
 #include "../core/GpuImage.h"
-#include "Scene.h"
-#include "TransmittanceLutFlyweight.h"
+#include "../math/Vector.h"
 
 namespace imp {
+  class Scene;
   class TransmittanceLut {
   public:
+    class Flyweight {
+    public:
+      explicit Flyweight(GpuContext &context);
+
+      GpuContext &getContext() const noexcept;
+      vk::DescriptorSetLayout getImageDescriptorSetLayout() const noexcept;
+      vk::DescriptorSetLayout getTextureDescriptorSetLayout() const noexcept;
+      vk::PipelineLayout getPipelineLayout() const noexcept;
+      vk::Pipeline getPipeline() const noexcept;
+      vk::Sampler getSampler() const noexcept;
+
+    private:
+      GpuContext *context_;
+      vk::DescriptorSetLayout imageDescriptorSetLayout_;
+      vk::DescriptorSetLayout textureDescriptorSetLayout_;
+      vk::UniquePipelineLayout pipelineLayout_;
+      vk::UniquePipeline pipeline_;
+      vk::Sampler sampler_;
+
+      vk::DescriptorSetLayout createImageDescriptorSetLayout();
+      vk::DescriptorSetLayout createTextureDescriptorSetLayout();
+      vk::UniquePipelineLayout createPipelineLayout();
+      vk::UniquePipeline createPipeline();
+      vk::Sampler createSampler();
+    };
+
     TransmittanceLut(
-        std::shared_ptr<TransmittanceLutFlyweight const> flyweight,
-        Vector2u const &size);
+        std::shared_ptr<Flyweight const> flyweight, Vector2u const &size);
 
     Vector2u const &getSize() const noexcept;
     vk::Image getImage() const noexcept;
@@ -20,7 +47,7 @@ namespace imp {
     bool compute(vk::CommandBuffer cmd, Scene const &scene);
 
   private:
-    std::shared_ptr<TransmittanceLutFlyweight const> flyweight_;
+    std::shared_ptr<Flyweight const> flyweight_;
     Vector2u size_;
     GpuImage image_;
     vk::UniqueImageView imageView_;

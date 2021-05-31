@@ -2,13 +2,10 @@
 
 #include <memory>
 
-#include <vulkan/vulkan.hpp>
-
 #include "../core/GpuImage.h"
 #include "../math/Vector.h"
 
 namespace imp {
-  class GpuContext;
   class Scene;
   class TransmittanceLut;
   class AerialPerspectiveLut {
@@ -40,7 +37,7 @@ namespace imp {
     };
 
     AerialPerspectiveLut(
-        std::shared_ptr<Flyweight> flyweight, Vector3u const &size);
+        std::shared_ptr<Flyweight const> flyweight, Vector3u const &size);
 
     Vector3u const &getSize() const noexcept;
     vk::DescriptorSet getImageDescriptorSet() const noexcept;
@@ -52,7 +49,7 @@ namespace imp {
         TransmittanceLut const &transmittanceLut);
 
   private:
-    std::shared_ptr<Flyweight> flyweight_;
+    std::shared_ptr<Flyweight const> flyweight_;
     Vector3u size_;
     GpuImage image_;
     vk::UniqueImageView imageView_;

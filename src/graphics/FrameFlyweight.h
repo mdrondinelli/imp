@@ -5,13 +5,14 @@
 #include <vulkan/vulkan.hpp>
 
 #include "../core/Window.h"
-#include "SkyViewLutFlyweight.h"
-#include "TransmittanceLutFlyweight.h"
+#include "SkyViewLut.h"
+#include "TransmittanceLut.h"
 
 namespace imp {
   struct FrameFlyweightCreateInfo {
-    std::shared_ptr<TransmittanceLutFlyweight const> transmittanceLutFlyweight;
-    std::shared_ptr<SkyViewLutFlyweight const> skyViewLutFlyweight;
+    std::shared_ptr<TransmittanceLut::Flyweight const>
+        transmittanceLutFlyweight;
+    std::shared_ptr<SkyViewLut::Flyweight const> skyViewLutFlyweight;
   };
 
   class FrameFlyweight {
@@ -19,9 +20,9 @@ namespace imp {
     FrameFlyweight(Window &window, FrameFlyweightCreateInfo const &createInfo);
 
     Window *getWindow() const noexcept;
-    std::shared_ptr<TransmittanceLutFlyweight const>
+    std::shared_ptr<TransmittanceLut::Flyweight const>
     getTransmittanceLutFlyweight() const noexcept;
-    std::shared_ptr<SkyViewLutFlyweight const>
+    std::shared_ptr<SkyViewLut::Flyweight const>
     getSkyViewLutFlyweight() const noexcept;
     vk::RenderPass getRenderPass() const noexcept;
     vk::PipelineLayout getPipelineLayout() const noexcept;
@@ -29,8 +30,9 @@ namespace imp {
 
   private:
     Window *window_;
-    std::shared_ptr<TransmittanceLutFlyweight const> transmittanceLutFlyweight_;
-    std::shared_ptr<SkyViewLutFlyweight const> skyViewLutFlyweight_;
+    std::shared_ptr<TransmittanceLut::Flyweight const>
+        transmittanceLutFlyweight_;
+    std::shared_ptr<SkyViewLut::Flyweight const> skyViewLutFlyweight_;
     vk::UniqueRenderPass renderPass_;
     vk::UniquePipelineLayout pipelineLayout_;
     vk::UniquePipeline pipeline_;
