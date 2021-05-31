@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-
 #include "../core/GpuContext.h"
 
 namespace imp {

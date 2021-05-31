@@ -91,7 +91,7 @@ int main() {
     while (!window.shouldClose()) {
       imp::pollWindows();
       if (window.getFramebufferSize() != imp::Vector2u{}) {
-        auto angle = float(glfwGetTime()) * 0.0043633f * 4.0f - 0.15f;
+        auto angle = float(glfwGetTime()) * 0.0043633f * 2.0f - 0.15f;
         //auto angle = imp::toRadians(45.0f);
         sun->setDirection(
             imp::Vector3f{0.0f, imp::sin(angle), -imp::cos(angle)});

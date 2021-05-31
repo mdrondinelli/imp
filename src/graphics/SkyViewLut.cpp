@@ -37,11 +37,29 @@ namespace imp {
       vk::CommandBuffer cmd,
       Scene const &scene,
       TransmittanceLut const &transmittanceLut) {
-    auto cameraHeight = scene.getCamera()->getTransform().getTranslation()[1];
-    auto pushConstants = std::array<char, 36>{};
-    std::memcpy(&pushConstants[0], &scene.getSunLight()->getIrradiance(), 12);
-    std::memcpy(&pushConstants[16], &scene.getSunLight()->getDirection(), 12);
-    std::memcpy(&pushConstants[32], &cameraHeight, 4);
+    auto pushConstants = std::array<char, 96>{};
+    auto pushConstantPtr = &pushConstants[0];
+    auto push = [&](auto const &object) {
+      std::memcpy(pushConstantPtr, &object, sizeof(object));
+      pushConstantPtr += sizeof(object);
+    };
+    auto &camera = *scene.getCamera();
+    auto &atmosphere = *scene.getAtmosphere();
+    auto &sun = *scene.getSunLight();
+    push(atmosphere.getRayleighScattering());
+    push(atmosphere.getMieScattering());
+    push(atmosphere.getOzoneAborption());
+    push(atmosphere.getMieAbsorption());
+    push(sun.getIrradiance());
+    push(atmosphere.getPlanetRadius());
+    push(sun.getDirection());
+    push(atmosphere.getAtmosphereRadius());
+    push(atmosphere.getRayleighScaleHeight());
+    push(atmosphere.getMieScaleHeight());
+    push(atmosphere.getMieG());
+    push(atmosphere.getOzoneHeightCenter());
+    push(atmosphere.getOzoneHeightRange());
+    push(camera.getTransform().getTranslation()[1]);
     auto groupCountX = size_[0] / 8u;
     auto groupCountY = size_[1] / 8u;
     cmd.bindPipeline(

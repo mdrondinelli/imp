@@ -3,7 +3,7 @@
 #include "Constants.glsl"
 #include "Numeric.glsl"
 
-const float R_GROUND = 4360e3f;
+const float R_GROUND = 6360e3f;
 
 in VertexData {
   layout(location = 0) vec3 v;
@@ -88,7 +88,7 @@ vec3 skyView(vec3 v) {
 
 void main() {
   vec3 v = normalize(inData.v);
-  vec3 inRadiance = rayPlanet(cameraPosition, v) ? vec3(0.0f) : skyView(v);
+  vec3 inRadiance = rayPlanet(cameraPosition, v) ? vec3(0.5f) : skyView(v);
   vec3 linearColor = tonemap(inRadiance / 8.0f);
   vec3 srgbColor = gammaCorrect(linearColor);
   uvec3 seed = uvec3(gl_FragCoord.xy, frame);

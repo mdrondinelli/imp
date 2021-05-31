@@ -17,7 +17,7 @@ namespace imp {
     vk::DescriptorSet getImageDescriptorSet() const noexcept;
     vk::DescriptorSet getTextureDescriptorSet() const noexcept;
 
-    void compute(vk::CommandBuffer cmd, Scene const &scene);
+    bool compute(vk::CommandBuffer cmd, Scene const &scene);
 
   private:
     std::shared_ptr<TransmittanceLutFlyweight const> flyweight_;

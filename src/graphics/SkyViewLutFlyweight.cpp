@@ -68,7 +68,7 @@ namespace imp {
     auto pushConstantRange = vk::PushConstantRange{};
     pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
     pushConstantRange.offset = 0;
-    pushConstantRange.size = 36;
+    pushConstantRange.size = 96;
     auto createInfo = vk::PipelineLayoutCreateInfo{};
     createInfo.setLayoutCount = static_cast<std::uint32_t>(setLayouts.size());
     createInfo.pSetLayouts = setLayouts.data();

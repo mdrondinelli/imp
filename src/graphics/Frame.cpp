@@ -82,32 +82,21 @@ namespace imp {
   } // namespace
 
   void Frame::computeTransmittanceLut(Scene const &scene) {
-    commandBuffer_->pipelineBarrier(
-        vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eComputeShader,
-        {},
-        {},
-        {},
-        {createLayoutTransition(
-            {},
-            vk::AccessFlagBits::eShaderWrite,
-            vk::ImageLayout::eUndefined,
-            vk::ImageLayout::eGeneral,
-            transmittanceLut_.getImage())});
-    transmittanceLut_.compute(*commandBuffer_, scene);
-    commandBuffer_->pipelineBarrier(
-        vk::PipelineStageFlagBits::eComputeShader,
-        vk::PipelineStageFlagBits::eComputeShader |
-            vk::PipelineStageFlagBits::eFragmentShader,
-        {},
-        {},
-        {},
-        {createLayoutTransition(
-            vk::AccessFlagBits::eShaderWrite,
-            vk::AccessFlagBits::eShaderRead,
-            vk::ImageLayout::eGeneral,
-            vk::ImageLayout::eShaderReadOnlyOptimal,
-            transmittanceLut_.getImage())});
+    if (transmittanceLut_.compute(*commandBuffer_, scene)) {
+      commandBuffer_->pipelineBarrier(
+          vk::PipelineStageFlagBits::eComputeShader,
+          vk::PipelineStageFlagBits::eComputeShader |
+              vk::PipelineStageFlagBits::eFragmentShader,
+          {},
+          {},
+          {},
+          {createLayoutTransition(
+              vk::AccessFlagBits::eShaderWrite,
+              vk::AccessFlagBits::eShaderRead,
+              vk::ImageLayout::eGeneral,
+              vk::ImageLayout::eShaderReadOnlyOptimal,
+              transmittanceLut_.getImage())});
+    }
   }
 
   void Frame::computeSkyViewLut(Scene const &scene) {

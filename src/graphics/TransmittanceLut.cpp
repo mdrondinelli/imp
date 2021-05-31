@@ -42,8 +42,7 @@ namespace imp {
     return descriptorSets_[1];
   }
 
-  void TransmittanceLut::compute(
-      vk::CommandBuffer cmd, Scene const &scene) {
+  bool TransmittanceLut::compute(vk::CommandBuffer cmd, Scene const &scene) {
     auto &atmosphere = *scene.getAtmosphere();
     if (planetRadius_ != atmosphere.getPlanetRadius() ||
         atmosphereRadius_ != atmosphere.getAtmosphereRadius() ||
@@ -65,14 +64,37 @@ namespace imp {
       ozoneExtinction_ = atmosphere.getOzoneAborption();
       ozoneHeightCenter_ = atmosphere.getOzoneHeightCenter();
       ozoneHeightRange_ = atmosphere.getOzoneHeightRange();
-      auto pushConstants = std::array<char, 36>{};
+      auto barrier = vk::ImageMemoryBarrier{};
+      barrier.srcAccessMask = {};
+      barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
+      barrier.oldLayout = vk::ImageLayout::eUndefined;
+      barrier.newLayout = vk::ImageLayout::eGeneral;
+      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.image = image_.get();
+      barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+      barrier.subresourceRange.baseMipLevel = 0;
+      barrier.subresourceRange.levelCount = 1;
+      barrier.subresourceRange.baseArrayLayer = 0;
+      barrier.subresourceRange.layerCount = 1;
+      cmd.pipelineBarrier(
+          vk::PipelineStageFlagBits::eTopOfPipe,
+          vk::PipelineStageFlagBits::eComputeShader,
+          {},
+          {},
+          {},
+          barrier,
+          {});
+      auto pushConstants = std::array<char, 52>{};
       std::memcpy(&pushConstants[0], &rayleighExtinction_, 12);
-      std::memcpy(&pushConstants[12], &mieExtinction_, 4);
+      std::memcpy(&pushConstants[12], &rayleighScaleHeight_, 4);
       std::memcpy(&pushConstants[16], &ozoneExtinction_, 12);
-      std::memcpy(&pushConstants[28], &planetRadius_, 4);
-      std::memcpy(&pushConstants[32], &atmosphereRadius_, 4);
-      auto groupCountX = size_[0] / 8u;
-      auto groupCountY = size_[1] / 8u;
+      std::memcpy(&pushConstants[28], &ozoneHeightCenter_, 4);
+      std::memcpy(&pushConstants[32], &ozoneHeightRange_, 4);
+      std::memcpy(&pushConstants[36], &mieExtinction_, 4);
+      std::memcpy(&pushConstants[40], &mieScaleHeight_, 4);
+      std::memcpy(&pushConstants[44], &planetRadius_, 4);
+      std::memcpy(&pushConstants[48], &atmosphereRadius_, 4);
       cmd.bindPipeline(
           vk::PipelineBindPoint::eCompute, flyweight_->getPipeline());
       cmd.bindDescriptorSets(
@@ -87,7 +109,10 @@ namespace imp {
           0,
           static_cast<std::uint32_t>(pushConstants.size()),
           pushConstants.data());
-      cmd.dispatch(groupCountX, groupCountY, 1u);
+      cmd.dispatch(size_[0] / 8u, size_[1] / 8u, 1u);
+      return true;
+    } else {
+      return false;
     }
   }
 

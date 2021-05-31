@@ -2,11 +2,7 @@
 
 #include "Constants.glsl"
 
-const float R_GROUND = 6360e3f;
-const float R_TOP = 6460e3f;
-const vec3 RAYLEIGH_SCATTERING = vec3(5.802e-6f, 13.558e-6f, 33.1e-6f);
-const float MIE_SCATTERING = 3.996e-6f;
-const float STEPS = 20.0f;
+const float STEPS = 10.0f;
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
@@ -14,20 +10,46 @@ layout(set = 0, binding = 0) uniform sampler2D transmittanceLut;
 layout(set = 1, binding = 0, rgba16f) restrict writeonly uniform image2D skyViewLut;
 
 layout(push_constant) uniform PushConstants {
+  // 0
+  vec3 rayleighScattering;
+  // 12
+  float mieScattering;
+  // 16
+  vec3 ozoneAbsorption;
+  // 28
+  float mieAbsorption;
+  // 32
   vec3 lightIrradiance;
+  // 44
+  float planetRadius;
+  // 48
   vec3 lightDirection;
+  // 60
+  float atmosphereRadius;
+  // 64
+  float rayleighScaleHeight;
+  // 76
+  float mieScaleHeight;
+  // 80
+  float mieG;
+  // 84
+  float ozoneHeightCenter;
+  // 88
+  float ozoneHeightRange;
+  // 92
   float cameraHeight;
+  // 96
 };
 
 bool rayPlanet(vec3 o, vec3 d) {
-  const float R2 = R_GROUND * R_GROUND;
-  vec3 f = o + vec3(0.0f, R_GROUND, 0.0f);
+  float planetRadius2 = planetRadius * planetRadius;
+  vec3 f = o + vec3(0.0f, planetRadius, 0.0f);
   float b = -dot(f, d);
-  float discriminant = R2 - dot(f + b * d, f + b * d);
+  float discriminant = planetRadius2 - dot(f + b * d, f + b * d);
   if (discriminant < 0.0f) {
     return false;
   }
-  float c = dot(f, f) - R2;
+  float c = dot(f, f) - planetRadius2;
   float q = b + sign(b) * sqrt(discriminant);
   float t0 = c / q;
   float t1 = q;
@@ -35,14 +57,14 @@ bool rayPlanet(vec3 o, vec3 d) {
 }
 
 bool rayAtmosphere(vec3 o, vec3 d, out float t0, out float t1) {
-  const float R2 = R_TOP * R_TOP;
-  vec3 f = o + vec3(0.0f, R_GROUND, 0.0f);
+  float atmosphereRadius2 = atmosphereRadius * atmosphereRadius;
+  vec3 f = o + vec3(0.0f, planetRadius, 0.0f);
   float b = -dot(f, d);
-  float discriminant = R2 - dot(f + b * d, f + b * d);
+  float discriminant = atmosphereRadius2 - dot(f + b * d, f + b * d);
   if (discriminant < 0.0f) {
     return false;
   }
-  float c = dot(f, f) - R2;
+  float c = dot(f, f) - atmosphereRadius2;
   float q = b + sign(b) * sqrt(discriminant);
   float t0_ = c / q;
   float t1_ = q;
@@ -59,13 +81,19 @@ bool rayAtmosphere(vec3 o, vec3 d, out float t0, out float t1) {
 }
 
 float densityR(float h) {
-  const float H0 = 8000.0f;
-  return exp(-h / H0);
+  return exp(-h / rayleighScaleHeight);
 }
 
 float densityM(float h) {
-  const float H0 = 1200.0f;
-  return exp(-h / H0);
+  return exp(-h / mieScaleHeight);
+}
+
+float densityO(float h) {
+  return max(0.0f, 1.0f - abs(h - ozoneHeightCenter) / (0.5f * ozoneHeightRange));
+}
+
+vec3 densityVec(float h) {
+  return vec3(exp(vec2(-h) / vec2(rayleighScaleHeight, mieScaleHeight)), densityO(h));
 }
 
 float phaseR(float mu) {
@@ -82,18 +110,18 @@ float phaseM(float mu) {
   return numer / denom;
 }
 
-vec3 transmittanceRay(vec3 o, vec3 d) {
-  const float RG2 = R_GROUND * R_GROUND;
-  const float RT2 = R_TOP * R_TOP;
-  const float H2 = RT2 - RG2;
-  const float H = sqrt(H2);
-  o.y += R_GROUND;
+vec3 lookUpTransmittanceRay(vec3 o, vec3 d) {
+  float planetRadius2 = planetRadius * planetRadius;
+  float atmosphereRadius2 = atmosphereRadius * atmosphereRadius;
+  float H2 = atmosphereRadius2 - planetRadius2;
+  float H = sqrt(H2);
+  o.y += planetRadius;
   float r2 = dot(o, o);
   float r = sqrt(r2);
-  float rho2 = r2 - RG2;
+  float rho2 = r2 - planetRadius2;
   float rho = sqrt(rho2);
   float mu = dot(o / r, d);
-  float muH = -sqrt(1.0f - RG2 / r2);
+  float muH = -sqrt(1.0f - planetRadius2 / r2);
   vec2 params;
   params.x = rho / H;
   params.y = sign(mu - muH) * sqrt(abs(mu - muH) / (1.0f - sign(mu - muH) * muH)) * 0.5f + 0.5f;
@@ -113,24 +141,30 @@ vec3 skyView(float longitude, float mu) {
     vec3 dp = (pb - pa) / STEPS;
     float ds = (t1 - t0) / STEPS;
     float mu = dot(v, lightDirection);
-    vec3 constantsR = RAYLEIGH_SCATTERING * phaseR(mu) * lightIrradiance * ds;
-    vec3 constantsM = MIE_SCATTERING * phaseM(mu) * lightIrradiance * ds;
+    mat3 opticalDepthMatrix = mat3(rayleighScattering, vec3(mieScattering + mieAbsorption), ozoneAbsorption);
+    vec3 product = vec3(1.0f);
+    vec3 constantsR = rayleighScattering * phaseR(mu) * lightIrradiance * ds;
+    vec3 constantsM = mieScattering * phaseM(mu) * lightIrradiance * ds;
     vec3 sumR = vec3(0.0f);
     vec3 sumM = vec3(0.0f);
-    vec3 transmittancePaPb = transmittanceRay(pa, v);
-    float ha = length(pa + vec3(0.0f, R_GROUND, 0.0f)) - R_GROUND;
-    vec3 transmittanceA = transmittanceRay(pa, lightDirection);
+    float ha = length(pa + vec3(0.0f, planetRadius, 0.0f)) - planetRadius;
+    vec3 opticalDepthLhs = opticalDepthMatrix * densityVec(ha);
+    vec3 transmittanceA = lookUpTransmittanceRay(pa, lightDirection);
     sumR += 0.5f * densityR(ha) * transmittanceA;
     sumM += 0.5f * densityM(ha) * transmittanceA;
     for (float i = 1.0f; i < STEPS; ++i) {
       vec3 p = pa + i * dp;
-      float h = length(p + vec3(0.0f, R_GROUND, 0.0f)) - R_GROUND;
-      vec3 transmittance = transmittancePaPb / transmittanceRay(p, v) * transmittanceRay(p, lightDirection);
+      float h = length(p + vec3(0.0f, planetRadius, 0.0f)) - planetRadius;
+      vec3 opticalDepthRhs = opticalDepthMatrix * densityVec(h);
+      product *= exp(-0.5f * (opticalDepthLhs + opticalDepthRhs) * ds);
+      opticalDepthLhs = opticalDepthRhs;
+      vec3 transmittance = product * lookUpTransmittanceRay(p, lightDirection);
       sumR += densityR(h) * transmittance;
       sumM += densityM(h) * transmittance;
     }
-    float hb = R_TOP - R_GROUND;
-    vec3 transmittanceB = transmittancePaPb * transmittanceRay(pb, lightDirection);
+    float hb = atmosphereRadius - planetRadius;
+    vec3 opicalDepthRhs = opticalDepthMatrix * densityVec(hb);
+    vec3 transmittanceB = product * lookUpTransmittanceRay(pb, lightDirection);
     sumR += 0.5f * densityR(hb) * transmittanceB;
     sumM += 0.5f * densityM(hb) * transmittanceB;
     return constantsR * sumR + constantsM * sumM;
@@ -140,14 +174,13 @@ vec3 skyView(float longitude, float mu) {
 }
 
 void main() {
-  const float RG2 = R_GROUND * R_GROUND;
   vec2 paramsNumer = vec2(gl_GlobalInvocationID.xy);
   vec2 paramsDenom = vec2(gl_NumWorkGroups.xy * gl_WorkGroupSize.xy) - 1.0f;
   vec2 params = paramsNumer / paramsDenom;
   params = 2.0f * params - 1.0f;
   float longitude = PI * params.x;
-  float r = R_GROUND + cameraHeight;
+  float r = planetRadius + cameraHeight;
   float r2 = r * r;
-  float mu = mix(-sqrt(1.0f - RG2 / r2), sign(params.y), params.y * params.y);
+  float mu = mix(-sqrt(1.0f - (planetRadius * planetRadius) / r2), sign(params.y), params.y * params.y);
   imageStore(skyViewLut, ivec2(gl_GlobalInvocationID.xy), vec4(skyView(longitude, mu), 0.0f));
 }

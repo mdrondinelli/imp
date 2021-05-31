@@ -180,6 +180,7 @@
     <ClInclude Include="src\core\WorkerThread.h" />
     <ClInclude Include="src\core\Window.h" />
     <ClInclude Include="src\engine\Client.h" />
+    <ClInclude Include="src\graphics\AerialPerspectiveLut.h" />
     <ClInclude Include="src\graphics\Atmosphere.h" />
     <ClInclude Include="src\graphics\Camera.h" />
     <ClInclude Include="src\graphics\DirectionalLight.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="src\core\WorkerThread.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\engine\Client.cpp" />
+    <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp" />
     <ClCompile Include="src\graphics\Atmosphere.cpp" />
     <ClCompile Include="src\graphics\Camera.cpp" />
     <ClCompile Include="src\graphics\DirectionalLight.cpp" />
