@@ -20,6 +20,9 @@ namespace imp {
 
   private:
     Window *window_;
+    TransmittanceLut::Flyweight transmittanceLutFlyweight_;
+    SkyViewLut::Flyweight skyViewLutFlyweight_;
+    Frame::Flyweight frameFlyweight_;
     std::vector<Frame> frames_;
     size_t frame_;
 

@@ -7,16 +7,16 @@
 #include "TransmittanceLut.h"
 
 namespace imp {
-  SkyViewLut::Flyweight::Flyweight(GpuContext &context):
-      context_{&context},
+  SkyViewLut::Flyweight::Flyweight(GpuContext *context):
+      context_{context},
       imageDescriptorSetLayout_{createImageDescriptorSetLayout()},
       textureDescriptorSetLayout_{createTextureDescriptorSetLayout()},
       pipelineLayout_{createPipelineLayout()},
       pipeline_{createPipeline()},
       sampler_{createSampler()} {}
 
-  GpuContext &SkyViewLut::Flyweight::getContext() const noexcept {
-    return *context_;
+  GpuContext *SkyViewLut::Flyweight::getContext() const noexcept {
+    return context_;
   }
 
   vk::DescriptorSetLayout
@@ -122,8 +122,8 @@ namespace imp {
   }
 
   SkyViewLut::SkyViewLut(
-      std::shared_ptr<Flyweight const> flyweight, Vector2u const &size):
-      flyweight_{std::move(flyweight)},
+      Flyweight const *flyweight, Vector2u const &size):
+      flyweight_{flyweight},
       size_{size},
       image_{createImage()},
       imageView_{createImageView()},
@@ -232,7 +232,7 @@ namespace imp {
     createInfo.image.sharingMode = vk::SharingMode::eExclusive;
     createInfo.image.initialLayout = vk::ImageLayout::eUndefined;
     createInfo.allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-    return GpuImage{flyweight_->getContext(), createInfo};
+    return GpuImage{*flyweight_->getContext(), createInfo};
   }
 
   vk::UniqueImageView SkyViewLut::createImageView() {
@@ -249,7 +249,7 @@ namespace imp {
     viewInfo.subresourceRange.levelCount = 1;
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
-    return flyweight_->getContext().getDevice().createImageViewUnique(viewInfo);
+    return flyweight_->getContext()->getDevice().createImageViewUnique(viewInfo);
   }
 
   vk::UniqueDescriptorPool SkyViewLut::createDescriptorPool() {
@@ -260,7 +260,7 @@ namespace imp {
     createInfo.maxSets = 2;
     createInfo.poolSizeCount = static_cast<std::uint32_t>(poolSizes.size());
     createInfo.pPoolSizes = poolSizes.data();
-    return flyweight_->getContext().getDevice().createDescriptorPoolUnique(
+    return flyweight_->getContext()->getDevice().createDescriptorPoolUnique(
         createInfo);
   }
 
@@ -273,7 +273,7 @@ namespace imp {
     allocateInfo.descriptorSetCount =
         static_cast<std::uint32_t>(setLayouts.size());
     allocateInfo.pSetLayouts = setLayouts.data();
-    return flyweight_->getContext().getDevice().allocateDescriptorSets(
+    return flyweight_->getContext()->getDevice().allocateDescriptorSets(
         allocateInfo);
   }
 
@@ -299,7 +299,7 @@ namespace imp {
     textureWrite.descriptorCount = 1;
     textureWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     textureWrite.pImageInfo = &textureImageInfo;
-    flyweight_->getContext().getDevice().updateDescriptorSets(
+    flyweight_->getContext()->getDevice().updateDescriptorSets(
         {imageWrite, textureWrite}, {});
   }
 } // namespace imp

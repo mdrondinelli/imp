@@ -10,7 +10,14 @@ namespace imp {
   }
 
   Renderer::Renderer(RendererCreateInfo const &createInfo):
-      window_{createInfo.window}, frames_{createFrames()} {}
+      window_{createInfo.window},
+      transmittanceLutFlyweight_{createInfo.window->getContext()},
+      skyViewLutFlyweight_{createInfo.window->getContext()},
+      frameFlyweight_{
+          createInfo.window,
+          &transmittanceLutFlyweight_,
+          &skyViewLutFlyweight_},
+      frames_{createFrames()} {}
 
   Renderer::~Renderer() {
     window_->getContext()->getDevice().waitIdle();
@@ -23,16 +30,9 @@ namespace imp {
   }
 
   std::vector<Frame> Renderer::createFrames() {
-    auto frameFlyweightCreateInfo = FrameFlyweightCreateInfo{};
-    frameFlyweightCreateInfo.transmittanceLutFlyweight =
-        std::make_shared<TransmittanceLut::Flyweight>(*window_->getContext());
-    frameFlyweightCreateInfo.skyViewLutFlyweight =
-        std::make_shared<SkyViewLut::Flyweight>(*window_->getContext());
-    auto frameFlyweight =
-        std::make_shared<FrameFlyweight>(*window_, frameFlyweightCreateInfo);
     auto frames = std::vector<Frame>{};
     for (auto i = 0u; i < FRAME_CONCURRENCY; ++i) {
-      frames.emplace_back(frameFlyweight, FrameCreateInfo{});
+      frames.emplace_back(&frameFlyweight_);
     }
     return frames;
   }

@@ -185,7 +185,6 @@
     <ClInclude Include="src\graphics\Camera.h" />
     <ClInclude Include="src\graphics\DirectionalLight.h" />
     <ClInclude Include="src\graphics\Frame.h" />
-    <ClInclude Include="src\graphics\FrameFlyweight.h" />
     <ClInclude Include="src\graphics\TransmittanceLut.h" />
     <ClInclude Include="src\graphics\Renderer.h" />
     <ClInclude Include="src\graphics\Scene.h" />
@@ -217,7 +216,6 @@
     <ClCompile Include="src\graphics\Camera.cpp" />
     <ClCompile Include="src\graphics\DirectionalLight.cpp" />
     <ClCompile Include="src\graphics\Frame.cpp" />
-    <ClCompile Include="src\graphics\FrameFlyweight.cpp" />
     <ClCompile Include="src\graphics\TransmittanceLut.cpp" />
     <ClCompile Include="src\graphics\Renderer.cpp" />
     <ClCompile Include="src\graphics\Scene.cpp" />

@@ -11,9 +11,9 @@ namespace imp {
   public:
     class Flyweight {
     public:
-      explicit Flyweight(GpuContext &context);
+      explicit Flyweight(GpuContext *context);
 
-      GpuContext &getContext() const noexcept;
+      GpuContext *getContext() const noexcept;
       vk::DescriptorSetLayout getImageDescriptorSetLayout() const noexcept;
       vk::DescriptorSetLayout getTextureDescriptorSetLayout() const noexcept;
       vk::PipelineLayout getPipelineLayout() const noexcept;
@@ -36,7 +36,7 @@ namespace imp {
     };
 
     TransmittanceLut(
-        std::shared_ptr<Flyweight const> flyweight, Vector2u const &size);
+        Flyweight const *flyweight, Vector2u const &size);
 
     Vector2u const &getSize() const noexcept;
     vk::Image getImage() const noexcept;
@@ -47,7 +47,7 @@ namespace imp {
     bool compute(vk::CommandBuffer cmd, Scene const &scene);
 
   private:
-    std::shared_ptr<Flyweight const> flyweight_;
+    Flyweight const *flyweight_;
     Vector2u size_;
     GpuImage image_;
     vk::UniqueImageView imageView_;
