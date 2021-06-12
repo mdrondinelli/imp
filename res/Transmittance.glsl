@@ -6,29 +6,21 @@ const float STEPS = 40.0f;
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
-layout(set = 0, binding = 0, rgba16) restrict writeonly uniform image2D transmittanceLut;
-
-layout(push_constant) uniform PushConstants {
-  // 0
-  vec3 rayleighExtinction;
-  // 12
+layout(set = 0, binding = 0) uniform Atmosphere {
+  vec3 rayleighScattering;
   float rayleighScaleHeight;
-  // 16
-  vec3 ozoneExtinction;
-  // 28
-  float ozoneHeightCenter;
-  // 32
-  float ozoneHeightRange;
-  // 36
-  float mieExtinction;
-  // 40
+  float mieScattering;
+  float mieAbsorption;
   float mieScaleHeight;
-  // 44
+  float mieG;
+  vec3 ozoneAbsorption;
+  float ozoneLayerHeight;
+  float ozoneLayerThickness;
   float planetRadius;
-  // 48
   float atmosphereRadius;
-  // 52
 };
+
+layout(set = 0, binding = 1, rgba16) restrict writeonly uniform image2D transmittanceLut;
 
 float rayAtmosphere(vec2 o, vec2 d) {
   float atmosphereRadius2 = atmosphereRadius * atmosphereRadius;
@@ -51,7 +43,7 @@ float densityM(float h) {
 }
 
 float densityO(float h) {
-  return max(0.0f, 1.0f - abs(h - ozoneHeightCenter) / (0.5f * ozoneHeightRange));
+  return max(0.0f, 1.0f - abs(h - ozoneLayerHeight) / (0.5f * ozoneLayerThickness));
 }
 
 vec3 transmittance(float ha, float mu) {
@@ -61,9 +53,9 @@ vec3 transmittance(float ha, float mu) {
   vec2 pb = pa + t * v;
   vec2 dp = (pb - pa) / STEPS;
   float ds = t / STEPS;
-  vec3 constantsR = rayleighExtinction * ds;
-  float constantsM = mieExtinction * ds;
-  vec3 constantsO = ozoneExtinction * ds;
+  vec3 constantsR = rayleighScattering * ds;
+  float constantsM = (mieScattering + mieAbsorption) * ds;
+  vec3 constantsO = ozoneAbsorption * ds;
   vec3 sumR = vec3(0.0f);
   float sumM = 0.0f;
   vec3 sumO = vec3(0.0f);

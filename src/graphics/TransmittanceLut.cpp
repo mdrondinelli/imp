@@ -4,13 +4,14 @@
 #include <vector>
 
 #include "../core/GpuContext.h"
+#include "AtmosphereBuffer.h"
 #include "Scene.h"
 
 namespace imp {
   TransmittanceLut::Flyweight::Flyweight(GpuContext *context):
       context_{context},
-      imageDescriptorSetLayout_{createImageDescriptorSetLayout()},
-      textureDescriptorSetLayout_{createTextureDescriptorSetLayout()},
+      computeDescriptorSetLayout_{createComputeDescriptorSetLayout()},
+      renderDescriptorSetLayout_{createRenderDescriptorSetLayout()},
       pipelineLayout_{createPipelineLayout()},
       pipeline_{createPipeline()},
       sampler_{createSampler()} {}
@@ -20,13 +21,13 @@ namespace imp {
   }
 
   vk::DescriptorSetLayout
-  TransmittanceLut::Flyweight::getImageDescriptorSetLayout() const noexcept {
-    return imageDescriptorSetLayout_;
+  TransmittanceLut::Flyweight::getComputeDescriptorSetLayout() const noexcept {
+    return computeDescriptorSetLayout_;
   }
 
   vk::DescriptorSetLayout
-  TransmittanceLut::Flyweight::getTextureDescriptorSetLayout() const noexcept {
-    return textureDescriptorSetLayout_;
+  TransmittanceLut::Flyweight::getRenderDescriptorSetLayout() const noexcept {
+    return renderDescriptorSetLayout_;
   }
 
   vk::PipelineLayout
@@ -43,19 +44,24 @@ namespace imp {
   }
 
   vk::DescriptorSetLayout
-  TransmittanceLut::Flyweight::createImageDescriptorSetLayout() {
-    auto binding = GpuDescriptorSetLayoutBinding{};
-    binding.descriptorType = vk::DescriptorType::eStorageImage;
-    binding.descriptorCount = 1;
-    binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+  TransmittanceLut::Flyweight::createComputeDescriptorSetLayout() {
+    auto bufferBinding = GpuDescriptorSetLayoutBinding{};
+    bufferBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+    bufferBinding.descriptorCount = 1;
+    bufferBinding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    auto imageBinding = GpuDescriptorSetLayoutBinding{};
+    imageBinding.descriptorType = vk::DescriptorType::eStorageImage;
+    imageBinding.descriptorCount = 1;
+    imageBinding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    auto bindings = std::array{bufferBinding, imageBinding};
     auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
-    createInfo.bindingCount = 1;
-    createInfo.bindings = &binding;
+    createInfo.bindingCount = static_cast<std::uint32_t>(bindings.size());
+    createInfo.bindings = bindings.data();
     return context_->createDescriptorSetLayout(createInfo);
   }
 
   vk::DescriptorSetLayout
-  TransmittanceLut::Flyweight::createTextureDescriptorSetLayout() {
+  TransmittanceLut::Flyweight::createRenderDescriptorSetLayout() {
     auto binding = GpuDescriptorSetLayoutBinding{};
     binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     binding.descriptorCount = 1;
@@ -68,15 +74,9 @@ namespace imp {
   }
 
   vk::UniquePipelineLayout TransmittanceLut::Flyweight::createPipelineLayout() {
-    auto pushConstantRange = vk::PushConstantRange{};
-    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
-    pushConstantRange.offset = 0;
-    pushConstantRange.size = 52;
     auto createInfo = vk::PipelineLayoutCreateInfo{};
     createInfo.setLayoutCount = 1;
-    createInfo.pSetLayouts = &imageDescriptorSetLayout_;
-    createInfo.pushConstantRangeCount = 1;
-    createInfo.pPushConstantRanges = &pushConstantRange;
+    createInfo.pSetLayouts = &computeDescriptorSetLayout_;
     return context_->getDevice().createPipelineLayoutUnique(createInfo);
   }
 
@@ -122,8 +122,10 @@ namespace imp {
 
   TransmittanceLut::TransmittanceLut(
       Flyweight const *flyweight,
+      AtmosphereBuffer const *buffer,
       Vector2u const &size):
       flyweight_{flyweight},
+      buffer_{buffer},
       size_{size},
       image_{createImage()},
       imageView_{createImageView()},
@@ -131,14 +133,23 @@ namespace imp {
       descriptorSets_{allocateDescriptorSets()},
       planetRadius_{0.0f},
       atmosphereRadius_{0.0f},
-      rayleighExtinction_{0.0f},
+      rayleighScattering_{0.0f},
       rayleighScaleHeight_{0.0f},
       mieExtinction_{0.0f},
       mieScaleHeight_{0.0f},
-      ozoneExtinction_{0.0f},
-      ozoneHeightCenter_{0.0f},
-      ozoneHeightRange_{0.0f} {
+      ozoneAbsorption_{0.0f},
+      ozoneLayerHeight_{0.0f},
+      ozoneLayerThickness_{0.0f} {
     updateDescriptorSets();
+  }
+
+  TransmittanceLut::Flyweight const *
+  TransmittanceLut::getFlyweight() const noexcept {
+    return flyweight_;
+  }
+
+  AtmosphereBuffer const *TransmittanceLut::getBuffer() const noexcept {
+    return buffer_;
   }
 
   Vector2u const &TransmittanceLut::getSize() const noexcept {
@@ -153,11 +164,11 @@ namespace imp {
     return *imageView_;
   }
 
-  vk::DescriptorSet TransmittanceLut::getImageDescriptorSet() const noexcept {
+  vk::DescriptorSet TransmittanceLut::getComputeDescriptorSet() const noexcept {
     return descriptorSets_[0];
   }
 
-  vk::DescriptorSet TransmittanceLut::getTextureDescriptorSet() const noexcept {
+  vk::DescriptorSet TransmittanceLut::getRenderDescriptorSet() const noexcept {
     return descriptorSets_[1];
   }
 
@@ -165,48 +176,32 @@ namespace imp {
     auto &atmosphere = *scene.getAtmosphere();
     if (planetRadius_ != atmosphere.getPlanetRadius() ||
         atmosphereRadius_ != atmosphere.getAtmosphereRadius() ||
-        rayleighExtinction_ != atmosphere.getRayleighScattering() ||
+        rayleighScattering_ != atmosphere.getRayleighScattering() ||
         rayleighScaleHeight_ != atmosphere.getRayleighScaleHeight() ||
         mieExtinction_ !=
             atmosphere.getMieScattering() + atmosphere.getMieAbsorption() ||
         mieScaleHeight_ != atmosphere.getMieScaleHeight() ||
-        ozoneExtinction_ != atmosphere.getOzoneAborption() ||
-        ozoneHeightCenter_ != atmosphere.getOzoneHeightCenter() ||
-        ozoneHeightRange_ != atmosphere.getOzoneHeightRange()) {
+        ozoneAbsorption_ != atmosphere.getOzoneAbsorption() ||
+        ozoneLayerHeight_ != atmosphere.getOzoneLayerHeight() ||
+        ozoneLayerThickness_ != atmosphere.getOzoneLayerThickness()) {
       planetRadius_ = atmosphere.getPlanetRadius();
       atmosphereRadius_ = atmosphere.getAtmosphereRadius();
-      rayleighExtinction_ = atmosphere.getRayleighScattering();
+      rayleighScattering_ = atmosphere.getRayleighScattering();
       rayleighScaleHeight_ = atmosphere.getRayleighScaleHeight();
       mieExtinction_ =
           atmosphere.getMieScattering() + atmosphere.getMieAbsorption();
       mieScaleHeight_ = atmosphere.getMieScaleHeight();
-      ozoneExtinction_ = atmosphere.getOzoneAborption();
-      ozoneHeightCenter_ = atmosphere.getOzoneHeightCenter();
-      ozoneHeightRange_ = atmosphere.getOzoneHeightRange();
+      ozoneAbsorption_ = atmosphere.getOzoneAbsorption();
+      ozoneLayerHeight_ = atmosphere.getOzoneLayerHeight();
+      ozoneLayerThickness_ = atmosphere.getOzoneLayerThickness();
       cmd.bindPipeline(
           vk::PipelineBindPoint::eCompute, flyweight_->getPipeline());
       cmd.bindDescriptorSets(
           vk::PipelineBindPoint::eCompute,
           flyweight_->getPipelineLayout(),
           0,
-          {getImageDescriptorSet()},
+          {getComputeDescriptorSet()},
           {});
-      auto pushConstants = std::array<char, 52>{};
-      std::memcpy(&pushConstants[0], &rayleighExtinction_, 12);
-      std::memcpy(&pushConstants[12], &rayleighScaleHeight_, 4);
-      std::memcpy(&pushConstants[16], &ozoneExtinction_, 12);
-      std::memcpy(&pushConstants[28], &ozoneHeightCenter_, 4);
-      std::memcpy(&pushConstants[32], &ozoneHeightRange_, 4);
-      std::memcpy(&pushConstants[36], &mieExtinction_, 4);
-      std::memcpy(&pushConstants[40], &mieScaleHeight_, 4);
-      std::memcpy(&pushConstants[44], &planetRadius_, 4);
-      std::memcpy(&pushConstants[48], &atmosphereRadius_, 4);
-      cmd.pushConstants(
-          flyweight_->getPipelineLayout(),
-          vk::ShaderStageFlagBits::eCompute,
-          0,
-          static_cast<std::uint32_t>(pushConstants.size()),
-          pushConstants.data());
       auto barrier = vk::ImageMemoryBarrier{};
       barrier.srcAccessMask = {};
       barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
@@ -273,6 +268,7 @@ namespace imp {
 
   vk::UniqueDescriptorPool TransmittanceLut::createDescriptorPool() {
     auto poolSizes = std::vector<vk::DescriptorPoolSize>{
+        {vk::DescriptorType::eUniformBuffer, 1},
         {vk::DescriptorType::eStorageImage, 1},
         {vk::DescriptorType::eCombinedImageSampler, 1}};
     auto createInfo = vk::DescriptorPoolCreateInfo{};
@@ -285,8 +281,8 @@ namespace imp {
 
   std::vector<vk::DescriptorSet> TransmittanceLut::allocateDescriptorSets() {
     auto setLayouts = std::array{
-        flyweight_->getImageDescriptorSetLayout(),
-        flyweight_->getTextureDescriptorSetLayout()};
+        flyweight_->getComputeDescriptorSetLayout(),
+        flyweight_->getRenderDescriptorSetLayout()};
     auto allocateInfo = vk::DescriptorSetAllocateInfo{};
     allocateInfo.descriptorPool = *descriptorPool_;
     allocateInfo.descriptorSetCount =
@@ -297,28 +293,39 @@ namespace imp {
   }
 
   void TransmittanceLut::updateDescriptorSets() {
-    auto imageImageInfo = vk::DescriptorImageInfo{};
-    imageImageInfo.imageView = *imageView_;
-    imageImageInfo.imageLayout = vk::ImageLayout::eGeneral;
-    auto imageWrite = vk::WriteDescriptorSet{};
-    imageWrite.dstSet = getImageDescriptorSet();
-    imageWrite.dstBinding = 0;
-    imageWrite.dstArrayElement = 0;
-    imageWrite.descriptorCount = 1;
-    imageWrite.descriptorType = vk::DescriptorType::eStorageImage;
-    imageWrite.pImageInfo = &imageImageInfo;
-    auto textureImageInfo = vk::DescriptorImageInfo{};
-    textureImageInfo.sampler = flyweight_->getSampler();
-    textureImageInfo.imageView = *imageView_;
-    textureImageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    auto textureWrite = vk::WriteDescriptorSet{};
-    textureWrite.dstSet = getTextureDescriptorSet();
-    textureWrite.dstBinding = 0;
-    textureWrite.dstArrayElement = 0;
-    textureWrite.descriptorCount = 1;
-    textureWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    textureWrite.pImageInfo = &textureImageInfo;
+    auto bufferInfo = vk::DescriptorBufferInfo{};
+    bufferInfo.buffer = buffer_->get();
+    bufferInfo.offset = 0;
+    bufferInfo.range = VK_WHOLE_SIZE;
+    auto bufferWrite = vk::WriteDescriptorSet{};
+    bufferWrite.dstSet = getComputeDescriptorSet();
+    bufferWrite.dstBinding = 0;
+    bufferWrite.dstArrayElement = 0;
+    bufferWrite.descriptorCount = 1;
+    bufferWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+    bufferWrite.pBufferInfo = &bufferInfo;
+    auto transmittanceInfo = vk::DescriptorImageInfo{};
+    transmittanceInfo.imageView = *imageView_;
+    transmittanceInfo.imageLayout = vk::ImageLayout::eGeneral;
+    auto transmittanceWrite = vk::WriteDescriptorSet{};
+    transmittanceWrite.dstSet = getComputeDescriptorSet();
+    transmittanceWrite.dstBinding = 1;
+    transmittanceWrite.dstArrayElement = 0;
+    transmittanceWrite.descriptorCount = 1;
+    transmittanceWrite.descriptorType = vk::DescriptorType::eStorageImage;
+    transmittanceWrite.pImageInfo = &transmittanceInfo;
+    auto renderInfo = vk::DescriptorImageInfo{};
+    renderInfo.sampler = flyweight_->getSampler();
+    renderInfo.imageView = *imageView_;
+    renderInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto renderWrite = vk::WriteDescriptorSet{};
+    renderWrite.dstSet = getRenderDescriptorSet();
+    renderWrite.dstBinding = 0;
+    renderWrite.dstArrayElement = 0;
+    renderWrite.descriptorCount = 1;
+    renderWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    renderWrite.pImageInfo = &renderInfo;
     flyweight_->getContext()->getDevice().updateDescriptorSets(
-        {imageWrite, textureWrite}, {});
+        {bufferWrite, transmittanceWrite, renderWrite}, {});
   }
 } // namespace imp

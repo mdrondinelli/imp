@@ -52,11 +52,13 @@ int main() {
     gpuContextCreateInfo.presentation = true;
     auto gpuContext = imp::GpuContext{gpuContextCreateInfo};
     // Atmosphere
-    auto atmosphereCreateInfo = imp::AtmosphereCreateInfo{};
-    auto atmosphere = std::make_shared<imp::Atmosphere>(atmosphereCreateInfo);
+    auto atmosphere = std::make_shared<imp::Atmosphere>();
+    //atmosphere->setRayleighScattering(0.0f);
+    //atmosphere->setMieScattering(atmosphere->getMieScattering() * 5.0f);
+    //atmosphere->setMieAbsorption(atmosphere->getMieAbsorption() * 5.0f);
     // Camera
     auto cameraCreateInfo = imp::CameraCreateInfo{};
-    cameraCreateInfo.transform.translate(imp::Vector3f{0.0f, 1000.0f, 0.0f});
+    cameraCreateInfo.transform.translate(imp::Vector3f{0.0f, 2.0f, 0.0f});
     cameraCreateInfo.transform.rotateGlobal(imp::rotationQuaternion(
         imp::toRadians(0.0f), imp::Vector3f{1.0f, 0.0f, 0.0f}));
     auto camera = std::make_shared<imp::Camera>(cameraCreateInfo);

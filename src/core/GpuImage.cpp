@@ -4,7 +4,7 @@
 
 namespace imp {
   GpuImage::GpuImage(GpuContext &context, GpuImageCreateInfo const &createInfo):
-      allocator_{context.getAllocator()}, image_{}, allocation_{} {
+      allocator_{context.getAllocator()} {
     if (vmaCreateImage(
             allocator_,
             reinterpret_cast<VkImageCreateInfo const *>(&createInfo.image),
@@ -17,32 +17,28 @@ namespace imp {
   }
 
   GpuImage::~GpuImage() {
-    if (allocator_) {
+    if (image_) {
       vmaDestroyImage(allocator_, image_, allocation_);
     }
   }
 
   GpuImage::GpuImage(GpuImage &&rhs) noexcept:
-      allocator_{rhs.allocator_},
       image_{rhs.image_},
-      allocation_{rhs.allocation_} {
-    rhs.allocator_ = nullptr;
+      allocation_{rhs.allocation_},
+      allocator_{rhs.allocator_} {
+    rhs.image_ = nullptr;
   }
 
   GpuImage &GpuImage::operator=(GpuImage &&rhs) noexcept {
     if (&rhs != this) {
-      if (allocator_) {
+      if (image_) {
         vmaDestroyImage(allocator_, image_, allocation_);
       }
-      allocator_ = rhs.allocator_;
       image_ = rhs.image_;
       allocation_ = rhs.allocation_;
-      rhs.allocator_ = nullptr;
+      allocator_ = rhs.allocator_;
+      rhs.image_ = nullptr;
     }
     return *this;
-  }
-
-  vk::Image GpuImage::get() const noexcept {
-    return image_;
   }
 } // namespace imp

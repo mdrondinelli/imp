@@ -2,43 +2,31 @@
 
 #include "Constants.glsl"
 
-const float STEPS = 10.0f;
+const float STEPS = 20.0f;
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
-layout(set = 0, binding = 0) uniform sampler2D transmittanceLut;
-layout(set = 1, binding = 0, rgba16f) restrict writeonly uniform image2D skyViewLut;
+layout(set = 0, binding = 0) uniform Atmosphere {
+  vec3 rayleighScattering;
+  float rayleighScaleHeight;
+  float mieScattering;
+  float mieAbsorption;
+  float mieScaleHeight;
+  float mieG;
+  vec3 ozoneAbsorption;
+  float ozoneLayerHeight;
+  float ozoneLayerThickness;
+  float planetRadius;
+  float atmosphereRadius;
+};
+
+layout(set = 0, binding = 1) uniform sampler2D transmittanceLut;
+layout(set = 0, binding = 2, rgba16f) restrict writeonly uniform image2D skyViewLut;
 
 layout(push_constant) uniform PushConstants {
-  // 0
-  vec3 rayleighScattering;
-  // 12
-  float mieScattering;
-  // 16
-  vec3 ozoneAbsorption;
-  // 28
-  float mieAbsorption;
-  // 32
   vec3 lightIrradiance;
-  // 44
-  float planetRadius;
-  // 48
   vec3 lightDirection;
-  // 60
-  float atmosphereRadius;
-  // 64
-  float rayleighScaleHeight;
-  // 76
-  float mieScaleHeight;
-  // 80
-  float mieG;
-  // 84
-  float ozoneHeightCenter;
-  // 88
-  float ozoneHeightRange;
-  // 92
   float cameraHeight;
-  // 96
 };
 
 bool rayPlanet(vec3 o, vec3 d) {
@@ -89,7 +77,7 @@ float densityM(float h) {
 }
 
 float densityO(float h) {
-  return max(0.0f, 1.0f - abs(h - ozoneHeightCenter) / (0.5f * ozoneHeightRange));
+  return max(0.0f, 1.0f - abs(h - ozoneLayerHeight) / (0.5f * ozoneLayerThickness));
 }
 
 vec3 densityVec(float h) {
@@ -103,10 +91,9 @@ float phaseR(float mu) {
 }
 
 float phaseM(float mu) {
-  const float G = 0.8f;
-  const float G2 = G * G;
-  float numer = 3.0f * (1.0f - G2) * (1.0f + mu * mu);
-  float denom = 8.0f * PI * (2.0f + G2) + pow(1.0f + G2 - 2.0f * G * mu, 1.5f);
+  float mieG2 = mieG * mieG;
+  float numer = 3.0 * (1.0 - mieG2) * (1.0 + mu * mu);
+  float denom = 8.0 * PI * (2.0 + mieG2) * pow(1.0 + mieG2 - 2.0 * mieG * mu, 1.5);
   return numer / denom;
 }
 

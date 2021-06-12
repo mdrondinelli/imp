@@ -182,6 +182,7 @@
     <ClInclude Include="src\engine\Client.h" />
     <ClInclude Include="src\graphics\AerialPerspectiveLut.h" />
     <ClInclude Include="src\graphics\Atmosphere.h" />
+    <ClInclude Include="src\graphics\AtmosphereBuffer.h" />
     <ClInclude Include="src\graphics\Camera.h" />
     <ClInclude Include="src\graphics\DirectionalLight.h" />
     <ClInclude Include="src\graphics\Frame.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="src\engine\Client.cpp" />
     <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp" />
     <ClCompile Include="src\graphics\Atmosphere.cpp" />
+    <ClCompile Include="src\graphics\AtmosphereBuffer.cpp" />
     <ClCompile Include="src\graphics\Camera.cpp" />
     <ClCompile Include="src\graphics\DirectionalLight.cpp" />
     <ClCompile Include="src\graphics\Frame.cpp" />

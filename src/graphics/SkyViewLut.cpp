@@ -3,14 +3,15 @@
 #include <fstream>
 #include <vector>
 
+#include "AtmosphereBuffer.h"
 #include "Scene.h"
 #include "TransmittanceLut.h"
 
 namespace imp {
   SkyViewLut::Flyweight::Flyweight(GpuContext *context):
       context_{context},
-      imageDescriptorSetLayout_{createImageDescriptorSetLayout()},
-      textureDescriptorSetLayout_{createTextureDescriptorSetLayout()},
+      computeDescriptorSetLayout_{createComputeDescriptorSetLayout()},
+      renderDescriptorSetLayout_{createRenderDescriptorSetLayout()},
       pipelineLayout_{createPipelineLayout()},
       pipeline_{createPipeline()},
       sampler_{createSampler()} {}
@@ -20,13 +21,13 @@ namespace imp {
   }
 
   vk::DescriptorSetLayout
-  SkyViewLut::Flyweight::getImageDescriptorSetLayout() const noexcept {
-    return imageDescriptorSetLayout_;
+  SkyViewLut::Flyweight::getComputeDescriptorSetLayout() const noexcept {
+    return computeDescriptorSetLayout_;
   }
 
   vk::DescriptorSetLayout
-  SkyViewLut::Flyweight::getTextureDescriptorSetLayout() const noexcept {
-    return textureDescriptorSetLayout_;
+  SkyViewLut::Flyweight::getRenderDescriptorSetLayout() const noexcept {
+    return renderDescriptorSetLayout_;
   }
 
   vk::PipelineLayout SkyViewLut::Flyweight::getPipelineLayout() const noexcept {
@@ -42,19 +43,30 @@ namespace imp {
   }
 
   vk::DescriptorSetLayout
-  SkyViewLut::Flyweight::createImageDescriptorSetLayout() {
-    auto binding = GpuDescriptorSetLayoutBinding{};
-    binding.descriptorType = vk::DescriptorType::eStorageImage;
-    binding.descriptorCount = 1;
-    binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+  SkyViewLut::Flyweight::createComputeDescriptorSetLayout() {
+    auto bufferBinding = GpuDescriptorSetLayoutBinding{};
+    bufferBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+    bufferBinding.descriptorCount = 1;
+    bufferBinding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    auto transmittanceTextureBinding = GpuDescriptorSetLayoutBinding{};
+    transmittanceTextureBinding.descriptorType =
+        vk::DescriptorType::eCombinedImageSampler;
+    transmittanceTextureBinding.descriptorCount = 1;
+    transmittanceTextureBinding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    auto skyViewImageBinding = GpuDescriptorSetLayoutBinding{};
+    skyViewImageBinding.descriptorType = vk::DescriptorType::eStorageImage;
+    skyViewImageBinding.descriptorCount = 1;
+    skyViewImageBinding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    auto bindings = std::array{
+        bufferBinding, transmittanceTextureBinding, skyViewImageBinding};
     auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
-    createInfo.bindingCount = 1;
-    createInfo.bindings = &binding;
+    createInfo.bindingCount = static_cast<std::uint32_t>(bindings.size());
+    createInfo.bindings = bindings.data();
     return context_->createDescriptorSetLayout(createInfo);
   }
 
   vk::DescriptorSetLayout
-  SkyViewLut::Flyweight::createTextureDescriptorSetLayout() {
+  SkyViewLut::Flyweight::createRenderDescriptorSetLayout() {
     auto binding = GpuDescriptorSetLayoutBinding{};
     binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     binding.descriptorCount = 1;
@@ -67,15 +79,13 @@ namespace imp {
   }
 
   vk::UniquePipelineLayout SkyViewLut::Flyweight::createPipelineLayout() {
-    auto setLayouts =
-        std::array{textureDescriptorSetLayout_, imageDescriptorSetLayout_};
     auto pushConstantRange = vk::PushConstantRange{};
     pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
     pushConstantRange.offset = 0;
-    pushConstantRange.size = 96;
+    pushConstantRange.size = 32;
     auto createInfo = vk::PipelineLayoutCreateInfo{};
-    createInfo.setLayoutCount = static_cast<std::uint32_t>(setLayouts.size());
-    createInfo.pSetLayouts = setLayouts.data();
+    createInfo.setLayoutCount = 1;
+    createInfo.pSetLayouts = &computeDescriptorSetLayout_;
     createInfo.pushConstantRangeCount = 1;
     createInfo.pPushConstantRanges = &pushConstantRange;
     return context_->getDevice().createPipelineLayoutUnique(createInfo);
@@ -122,14 +132,30 @@ namespace imp {
   }
 
   SkyViewLut::SkyViewLut(
-      Flyweight const *flyweight, Vector2u const &size):
+      Flyweight const *flyweight,
+      TransmittanceLut const *transmittanceLut,
+      Vector2u const &size):
       flyweight_{flyweight},
+      buffer_{transmittanceLut->getBuffer()},
+      transmittanceLut_{transmittanceLut},
       size_{size},
       image_{createImage()},
       imageView_{createImageView()},
       descriptorPool_{createDescriptorPool()},
       descriptorSets_{allocateDescriptorSets()} {
     updateDescriptorSets();
+  }
+
+  SkyViewLut::Flyweight const *SkyViewLut::getFlyweight() const noexcept {
+    return flyweight_;
+  }
+
+  AtmosphereBuffer const *SkyViewLut::getBuffer() const noexcept {
+    return buffer_;
+  }
+
+  TransmittanceLut const *SkyViewLut::getTransmittanceLut() const noexcept {
+    return transmittanceLut_;
   }
 
   Vector2u const &SkyViewLut::getSize() const noexcept {
@@ -144,49 +170,31 @@ namespace imp {
     return imageView_.get();
   }
 
-  vk::DescriptorSet SkyViewLut::getImageDescriptorSet() const noexcept {
+  vk::DescriptorSet SkyViewLut::getComputeDescriptorSet() const noexcept {
     return descriptorSets_[0];
   }
 
-  vk::DescriptorSet SkyViewLut::getTextureDescriptorSet() const noexcept {
+  vk::DescriptorSet SkyViewLut::getRenderDescriptorSet() const noexcept {
     return descriptorSets_[1];
   }
 
   void SkyViewLut::compute(
       vk::CommandBuffer cmd,
-      Scene const &scene,
-      TransmittanceLut const &transmittanceLut) {
+      DirectionalLight const &sun,
+      Camera const &camera) {
     cmd.bindPipeline(
         vk::PipelineBindPoint::eCompute, flyweight_->getPipeline());
     cmd.bindDescriptorSets(
         vk::PipelineBindPoint::eCompute,
         flyweight_->getPipelineLayout(),
         0,
-        {transmittanceLut.getTextureDescriptorSet(), getImageDescriptorSet()},
+        {getComputeDescriptorSet()},
         {});
-    auto pushConstants = std::array<char, 96>{};
-    auto pushConstantPtr = &pushConstants[0];
-    auto push = [&](auto const &object) {
-      std::memcpy(pushConstantPtr, &object, sizeof(object));
-      pushConstantPtr += sizeof(object);
-    };
-    auto &camera = *scene.getCamera();
-    auto &atmosphere = *scene.getAtmosphere();
-    auto &sun = *scene.getSunLight();
-    push(atmosphere.getRayleighScattering());
-    push(atmosphere.getMieScattering());
-    push(atmosphere.getOzoneAborption());
-    push(atmosphere.getMieAbsorption());
-    push(sun.getIrradiance());
-    push(atmosphere.getPlanetRadius());
-    push(sun.getDirection());
-    push(atmosphere.getAtmosphereRadius());
-    push(atmosphere.getRayleighScaleHeight());
-    push(atmosphere.getMieScaleHeight());
-    push(atmosphere.getMieG());
-    push(atmosphere.getOzoneHeightCenter());
-    push(atmosphere.getOzoneHeightRange());
-    push(camera.getTransform().getTranslation()[1]);
+    auto pushConstants = std::array<char, 32>{};
+    std::memcpy(&pushConstants[0], &sun.getIrradiance(), 12);
+    std::memcpy(&pushConstants[16], &sun.getDirection(), 12);
+    std::memcpy(
+        &pushConstants[28], &camera.getTransform().getTranslation()[1], 4);
     cmd.pushConstants(
         flyweight_->getPipelineLayout(),
         vk::ShaderStageFlagBits::eCompute,
@@ -249,7 +257,8 @@ namespace imp {
     viewInfo.subresourceRange.levelCount = 1;
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
-    return flyweight_->getContext()->getDevice().createImageViewUnique(viewInfo);
+    return flyweight_->getContext()->getDevice().createImageViewUnique(
+        viewInfo);
   }
 
   vk::UniqueDescriptorPool SkyViewLut::createDescriptorPool() {
@@ -266,8 +275,8 @@ namespace imp {
 
   std::vector<vk::DescriptorSet> SkyViewLut::allocateDescriptorSets() {
     auto setLayouts = std::array{
-        flyweight_->getImageDescriptorSetLayout(),
-        flyweight_->getTextureDescriptorSetLayout()};
+        flyweight_->getComputeDescriptorSetLayout(),
+        flyweight_->getRenderDescriptorSetLayout()};
     auto allocateInfo = vk::DescriptorSetAllocateInfo{};
     allocateInfo.descriptorPool = *descriptorPool_;
     allocateInfo.descriptorSetCount =
@@ -278,28 +287,51 @@ namespace imp {
   }
 
   void SkyViewLut::updateDescriptorSets() {
-    auto imageImageInfo = vk::DescriptorImageInfo{};
-    imageImageInfo.imageView = *imageView_;
-    imageImageInfo.imageLayout = vk::ImageLayout::eGeneral;
-    auto imageWrite = vk::WriteDescriptorSet{};
-    imageWrite.dstSet = getImageDescriptorSet();
-    imageWrite.dstBinding = 0;
-    imageWrite.dstArrayElement = 0;
-    imageWrite.descriptorCount = 1;
-    imageWrite.descriptorType = vk::DescriptorType::eStorageImage;
-    imageWrite.pImageInfo = &imageImageInfo;
-    auto textureImageInfo = vk::DescriptorImageInfo{};
-    textureImageInfo.sampler = flyweight_->getSampler();
-    textureImageInfo.imageView = *imageView_;
-    textureImageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    auto textureWrite = vk::WriteDescriptorSet{};
-    textureWrite.dstSet = getTextureDescriptorSet();
-    textureWrite.dstBinding = 0;
-    textureWrite.dstArrayElement = 0;
-    textureWrite.descriptorCount = 1;
-    textureWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    textureWrite.pImageInfo = &textureImageInfo;
+    auto bufferInfo = vk::DescriptorBufferInfo{};
+    bufferInfo.buffer = buffer_->get();
+    bufferInfo.offset = 0;
+    bufferInfo.range = VK_WHOLE_SIZE;
+    auto bufferWrite = vk::WriteDescriptorSet{};
+    bufferWrite.dstSet = getComputeDescriptorSet();
+    bufferWrite.dstBinding = 0;
+    bufferWrite.dstArrayElement = 0;
+    bufferWrite.descriptorCount = 1;
+    bufferWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+    bufferWrite.pBufferInfo = &bufferInfo;
+    auto transmittanceInfo = vk::DescriptorImageInfo{};
+    transmittanceInfo.sampler = transmittanceLut_->getFlyweight()->getSampler();
+    transmittanceInfo.imageView = transmittanceLut_->getImageView();
+    transmittanceInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto transmittanceWrite = vk::WriteDescriptorSet{};
+    transmittanceWrite.dstSet = getComputeDescriptorSet();
+    transmittanceWrite.dstBinding = 1;
+    transmittanceWrite.dstArrayElement = 0;
+    transmittanceWrite.descriptorCount = 1;
+    transmittanceWrite.descriptorType =
+        vk::DescriptorType::eCombinedImageSampler;
+    transmittanceWrite.pImageInfo = &transmittanceInfo;
+    auto skyViewInfo = vk::DescriptorImageInfo{};
+    skyViewInfo.imageView = *imageView_;
+    skyViewInfo.imageLayout = vk::ImageLayout::eGeneral;
+    auto skyViewWrite = vk::WriteDescriptorSet{};
+    skyViewWrite.dstSet = getComputeDescriptorSet();
+    skyViewWrite.dstBinding = 2;
+    skyViewWrite.dstArrayElement = 0;
+    skyViewWrite.descriptorCount = 1;
+    skyViewWrite.descriptorType = vk::DescriptorType::eStorageImage;
+    skyViewWrite.pImageInfo = &skyViewInfo;
+    auto renderInfo = vk::DescriptorImageInfo{};
+    renderInfo.sampler = flyweight_->getSampler();
+    renderInfo.imageView = *imageView_;
+    renderInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto renderWrite = vk::WriteDescriptorSet{};
+    renderWrite.dstSet = getRenderDescriptorSet();
+    renderWrite.dstBinding = 0;
+    renderWrite.dstArrayElement = 0;
+    renderWrite.descriptorCount = 1;
+    renderWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    renderWrite.pImageInfo = &renderInfo;
     flyweight_->getContext()->getDevice().updateDescriptorSets(
-        {imageWrite, textureWrite}, {});
+        {bufferWrite, transmittanceWrite, skyViewWrite, renderWrite}, {});
   }
 } // namespace imp

@@ -20,12 +20,14 @@ namespace imp {
     GpuImage(GpuImage &&rhs) noexcept;
     GpuImage &operator=(GpuImage &&rhs) noexcept;
 
-    vk::Image get() const noexcept;
+    vk::Image get() const noexcept {
+      return image_;
+    }
 
   private:
-    VmaAllocator allocator_;
     vk::Image image_;
     VmaAllocation allocation_;
+    VmaAllocator allocator_;
   };
 
   template<typename H>

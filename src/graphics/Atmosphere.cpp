@@ -1,18 +1,31 @@
 #include "Atmosphere.h"
 
+#include "../core/GpuContext.h"
+
 namespace imp {
-  Atmosphere::Atmosphere(AtmosphereCreateInfo const &createInfo) noexcept:
-      planetRadius_{createInfo.planetRadius},
-      atmosphereRadius_{createInfo.atmosphereRadius},
-      rayleighScattering_{createInfo.rayleighScattering},
-      rayleighScaleHeight_{createInfo.rayleighScaleHeight},
-      mieScattering_{createInfo.mieScattering},
-      mieAbsorption_{createInfo.mieAbsorption},
-      mieG_{createInfo.mieG},
-      mieScaleHeight_{createInfo.mieScaleHeight},
-      ozoneAbsorption_{createInfo.ozoneAbsorption},
-      ozoneHeightCenter_{createInfo.ozoneHeightCenter},
-      ozoneHeightRange_{createInfo.ozoneHeightRange} {}
+  Atmosphere::Atmosphere(
+      float planetRadius,
+      float atmosphereRadius,
+      Vector3f const &rayleighScattering,
+      float rayleighScaleHeight,
+      float mieScattering,
+      float mieAbsorption,
+      float mieScaleHeight,
+      float mieG,
+      Vector3f const &ozoneAbsorption,
+      float ozoneLayerHeight,
+      float ozoneLayerThickness) noexcept:
+      planetRadius_{planetRadius},
+      atmosphereRadius_{atmosphereRadius},
+      rayleighScattering_{rayleighScattering},
+      rayleighScaleHeight_{rayleighScaleHeight},
+      mieScattering_{mieScattering},
+      mieAbsorption_{mieAbsorption},
+      mieScaleHeight_{mieScaleHeight},
+      mieG_{mieG},
+      ozoneAbsorption_{ozoneAbsorption},
+      ozoneLayerHeight_{ozoneLayerHeight},
+      ozoneLayerThickness_{ozoneLayerThickness} {}
 
   float Atmosphere::getPlanetRadius() const noexcept {
     return planetRadius_;
@@ -38,24 +51,24 @@ namespace imp {
     return mieAbsorption_;
   }
 
-  float Atmosphere::getMieG() const noexcept {
-    return mieG_;
-  }
-
   float Atmosphere::getMieScaleHeight() const noexcept {
     return mieScaleHeight_;
   }
 
-  Vector3f const &Atmosphere::getOzoneAborption() const noexcept {
+  float Atmosphere::getMieG() const noexcept {
+    return mieG_;
+  }
+
+  Vector3f const &Atmosphere::getOzoneAbsorption() const noexcept {
     return ozoneAbsorption_;
   }
 
-  float Atmosphere::getOzoneHeightCenter() const noexcept {
-    return ozoneHeightCenter_;
+  float Atmosphere::getOzoneLayerHeight() const noexcept {
+    return ozoneLayerHeight_;
   }
 
-  float Atmosphere::getOzoneHeightRange() const noexcept {
-    return ozoneHeightRange_;
+  float Atmosphere::getOzoneLayerThickness() const noexcept {
+    return ozoneLayerThickness_;
   }
 
   void Atmosphere::setPlanetRadius(float planetRadius) noexcept {
@@ -96,11 +109,11 @@ namespace imp {
     ozoneAbsorption_ = ozoneAbsorption;
   }
 
-  void Atmosphere::setOzoneHeightCenter(float ozoneHeightCenter) noexcept {
-    ozoneHeightCenter_ = ozoneHeightCenter;
+  void Atmosphere::setOzoneLayerHeight(float ozoneLayerHeight) noexcept {
+    ozoneLayerHeight_ = ozoneLayerHeight;
   }
 
-  void Atmosphere::setOzoneHeightRange(float ozoneHeightRange) noexcept {
-    ozoneHeightRange_ = ozoneHeightRange;
+  void Atmosphere::setOzoneLayerThickness(float ozoneLayerThickness) noexcept {
+    ozoneLayerThickness_ = ozoneLayerThickness;
   }
 } // namespace imp

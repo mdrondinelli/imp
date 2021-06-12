@@ -1,8 +1,6 @@
 #pragma once
 
-//#include "../core/Window.h"
-//#include "FrameFlyweight.h"
-//#include "Scene.h"
+#include "AtmosphereBuffer.h"
 #include "SkyViewLut.h"
 #include "TransmittanceLut.h"
 
@@ -42,7 +40,7 @@ namespace imp {
     Frame(
         Flyweight const *flyweight,
         Vector2u const &transmittanceLutSize = {256, 64},
-        Vector2u const &skyViewLutSize = {128, 64});
+        Vector2u const &skyViewLutSize = {128, 128});
 
     void render(Scene const &scene, std::uint32_t seed);
 
@@ -53,6 +51,7 @@ namespace imp {
     vk::UniqueFence queueSubmissionFence_;
     vk::UniqueCommandPool commandPool_;
     vk::UniqueCommandBuffer commandBuffer_;
+    AtmosphereBuffer atmosphereBuffer_;
     TransmittanceLut transmittanceLut_;
     SkyViewLut skyViewLut_;
 
@@ -63,5 +62,6 @@ namespace imp {
 
     vk::UniqueCommandPool createCommandPool();
     vk::UniqueCommandBuffer allocateCommandBuffer();
+    GpuBuffer createAtmosphereBuffer();
   };
 } // namespace imp

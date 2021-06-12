@@ -69,8 +69,8 @@ namespace imp {
 
   vk::UniquePipelineLayout Frame::Flyweight::createPipelineLayout() {
     auto setLayouts = std::array{
-        transmittanceLutFlyweight_->getTextureDescriptorSetLayout(),
-        skyViewLutFlyweight_->getTextureDescriptorSetLayout()};
+        transmittanceLutFlyweight_->getRenderDescriptorSetLayout(),
+        skyViewLutFlyweight_->getRenderDescriptorSetLayout()};
     auto pushConstantRange = vk::PushConstantRange{};
     pushConstantRange.stageFlags =
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
@@ -186,11 +186,18 @@ namespace imp {
               {vk::FenceCreateFlagBits::eSignaled})},
       commandPool_{createCommandPool()},
       commandBuffer_{allocateCommandBuffer()},
+      atmosphereBuffer_{flyweight_->getWindow()->getContext()->getAllocator()},
       transmittanceLut_{
-          flyweight_->getTransmittanceLutFlyweight(), transmittanceLutSize},
-      skyViewLut_{flyweight_->getSkyViewLutFlyweight(), skyViewLutSize} {}
+          flyweight_->getTransmittanceLutFlyweight(),
+          &atmosphereBuffer_,
+          transmittanceLutSize},
+      skyViewLut_{
+          flyweight_->getSkyViewLutFlyweight(),
+          &transmittanceLut_,
+          skyViewLutSize} {}
 
   void Frame::render(Scene const &scene, std::uint32_t seed) {
+    atmosphereBuffer_.update(*scene.getAtmosphere());
     auto &window = *flyweight_->getWindow();
     auto &context = *window.getContext();
     auto framebuffer =
@@ -265,7 +272,7 @@ namespace imp {
   }
 
   void Frame::computeSkyViewLut(Scene const &scene) {
-    skyViewLut_.compute(*commandBuffer_, scene, transmittanceLut_);
+    skyViewLut_.compute(*commandBuffer_, *scene.getSunLight(), *scene.getCamera());
     commandBuffer_->pipelineBarrier(
         vk::PipelineStageFlagBits::eComputeShader,
         vk::PipelineStageFlagBits::eFragmentShader,
@@ -334,8 +341,8 @@ namespace imp {
         vk::PipelineBindPoint::eGraphics,
         flyweight_->getPipelineLayout(),
         0,
-        {transmittanceLut_.getTextureDescriptorSet(),
-         skyViewLut_.getTextureDescriptorSet()},
+        {transmittanceLut_.getRenderDescriptorSet(),
+         skyViewLut_.getRenderDescriptorSet()},
         {});
     commandBuffer_->pushConstants(
         flyweight_->getPipelineLayout(),
@@ -363,5 +370,18 @@ namespace imp {
     allocateInfo.commandBufferCount = 1;
     return std::move(
         context.getDevice().allocateCommandBuffersUnique(allocateInfo)[0]);
+  }
+
+  GpuBuffer Frame::createAtmosphereBuffer() {
+    auto buffer = vk::BufferCreateInfo{};
+    buffer.size = 68;
+    buffer.usage = vk::BufferUsageFlagBits::eUniformBuffer;
+    auto allocation = VmaAllocationCreateInfo{};
+    allocation.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    allocation.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+    return {
+        flyweight_->getWindow()->getContext()->getAllocator(),
+        buffer,
+        allocation};
   }
 } // namespace imp
