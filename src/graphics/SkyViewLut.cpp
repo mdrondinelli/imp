@@ -5,7 +5,7 @@
 #include <fstream>
 #include <vector>
 
-#include "../core/GpuContext.h"
+#include "../system/GpuContext.h"
 #include "AtmosphereBuffer.h"
 #include "Camera.h"
 #include "Scene.h"

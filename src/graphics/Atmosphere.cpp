@@ -1,7 +1,5 @@
 #include "Atmosphere.h"
 
-#include "../core/GpuContext.h"
-
 namespace imp {
   Atmosphere::Atmosphere(
       Spectrum const &rayleighScattering,

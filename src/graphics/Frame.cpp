@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include "../core/Display.h"
+#include "../system/Display.h"
 #include "Camera.h"
 #include "Scene.h"
 

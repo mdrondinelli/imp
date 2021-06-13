@@ -13,32 +13,23 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\math">
-      <UniqueIdentifier>{1dc8ecf5-9798-49c6-9487-35416a36a453}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\physics">
-      <UniqueIdentifier>{5a3194bc-4136-4baf-9bc6-7a2b82925774}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\physics">
-      <UniqueIdentifier>{78d0c872-21c9-4f80-9bd6-e946aecae1ed}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\graphics">
       <UniqueIdentifier>{d9670e66-8e31-4525-9875-7a196a73f09c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\graphics">
       <UniqueIdentifier>{6f370779-95dd-4915-b793-2890171193a9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\core">
+    <Filter Include="Header Files\system">
       <UniqueIdentifier>{68f9508b-692d-4a3f-a944-61aecf093757}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\core">
+    <Filter Include="Source Files\system">
       <UniqueIdentifier>{f74440ab-058e-4214-b766-546c8deec4c2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\engine">
-      <UniqueIdentifier>{55ff9391-0413-4b68-b3a4-4c635054b9d7}</UniqueIdentifier>
+    <Filter Include="Header Files\gui">
+      <UniqueIdentifier>{eb1a131e-ce25-4c05-8842-97505cdf5330}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\engine">
-      <UniqueIdentifier>{66c169a3-efb8-4b52-979c-f68d33a78b83}</UniqueIdentifier>
+    <Filter Include="Source Files\gui">
+      <UniqueIdentifier>{75e5d55b-1707-4aea-aa83-5242f63b6b44}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -48,50 +39,11 @@
     <ClInclude Include="src\graphics\Atmosphere.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\GpuContext.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\Renderer.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\vk_mem_alloc.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\GpuBuffer.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\GpuImage.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\Scene.h">
       <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\StaticMesh.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\StaticVertex.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\StaticMeshLoader.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\ResourceLoader.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\ResourceCache.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\WorkerThread.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\ResourceState.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\StaticMeshCache.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\Client.h">
-      <Filter>Header Files\engine</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Camera.h">
       <Filter>Header Files\graphics</Filter>
@@ -105,12 +57,6 @@
     <ClInclude Include="src\graphics\Frame.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\GpuDescriptorSetLayoutCache.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\GpuSamplerCache.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\AerialPerspectiveLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
@@ -120,8 +66,38 @@
     <ClInclude Include="src\graphics\Spectrum.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Display.h">
-      <Filter>Header Files\core</Filter>
+    <ClInclude Include="src\system\Display.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\GpuBuffer.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\GpuContext.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\GpuDescriptorSetLayoutCache.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\GpuImage.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\GpuSamplerCache.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\ResourceCache.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\ResourceLoader.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\ResourceState.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\vk_mem_alloc.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\WorkerThread.h">
+      <Filter>Header Files\system</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -134,32 +110,8 @@
     <ClCompile Include="src\graphics\Atmosphere.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\GpuContext.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\vk_mem_alloc.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\GpuBuffer.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\GpuImage.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\Renderer.cpp">
       <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\StaticMesh.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\WorkerThread.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\StaticMeshLoader.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Client.cpp">
-      <Filter>Source Files\engine</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\Camera.cpp">
       <Filter>Source Files\graphics</Filter>
@@ -176,12 +128,6 @@
     <ClCompile Include="src\graphics\Frame.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\GpuDescriptorSetLayoutCache.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\GpuSamplerCache.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
@@ -191,8 +137,29 @@
     <ClCompile Include="src\graphics\Spectrum.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\Display.cpp">
-      <Filter>Source Files\core</Filter>
+    <ClCompile Include="src\system\WorkerThread.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\vk_mem_alloc.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\GpuSamplerCache.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\GpuImage.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\GpuDescriptorSetLayoutCache.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\GpuContext.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\GpuBuffer.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\Display.cpp">
+      <Filter>Source Files\system</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

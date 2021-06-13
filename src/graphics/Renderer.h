@@ -9,7 +9,7 @@ namespace imp {
 
   class Renderer {
   public:
-    Renderer(Display *display);
+    explicit Renderer(Display *display);
     ~Renderer();
 
     void render(Scene const &scene, Camera const &camera);

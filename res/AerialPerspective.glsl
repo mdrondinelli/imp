@@ -16,6 +16,7 @@ layout(set = 0, binding = 0) uniform Atmosphere {
   float mieG;
   vec3 ozoneAbsorption;
   float ozoneLayerHeight;
+  float ozoneLayerThickness;
   float planetRadius;
   float atmosphereRadius;
 };
@@ -38,15 +39,15 @@ vec2 rayAtmosphere(vec3 o, vec3 d) {
 }
 
 float densityR(float h) {
-  return min(1.0, exp(h * rayleighHeightFactor));
+  return min(1.0, exp(h * rayleighScaleHeight));
 }
 
 float densityM(float h) {
-  return min(1.0, exp(h * mieHeightFactor));
+  return min(1.0, exp(h * mieScaleHeight));
 }
 
 float densityO(float h) {
-  return max(0.0f, 1.0f - abs(h * ozoneHeightScale + ozoneHeightOffset));
+  return max(0.0f, 1.0f - 2.0f * abs(h - ozoneLayerHeight) / ozoneLayerThickness);
 }
 
 vec3 densityRmo(float h) {
@@ -84,3 +85,6 @@ vec3 lookUpTransmittanceRay(vec3 o, vec3 d) {
   return texture(transmittanceLut, params).xyz;
 }
 
+void main() {
+
+}

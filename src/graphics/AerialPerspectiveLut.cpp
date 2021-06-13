@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 
-#include "../core/GpuContext.h"
+#include "../system/GpuContext.h"
 #include "Scene.h"
 
 namespace imp {

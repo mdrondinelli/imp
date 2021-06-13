@@ -5,7 +5,7 @@
 namespace imp {
   class Atmosphere {
   public:
-    Atmosphere(
+    explicit Atmosphere(
         Spectrum const &rayleighScattering =
             {5.802e-6f, 13.558e-6f, 33.1e-6f},
         float rayleighScaleHeight = 8000.0f,

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/GpuImage.h"
+#include "../system/GpuImage.h"
 
 namespace imp {
   class AtmosphereBuffer;

@@ -5,7 +5,7 @@
 namespace imp {
   class DirectionalLight {
   public:
-    DirectionalLight(
+    explicit DirectionalLight(
         Spectrum const &irradiance,
         Eigen::Vector3f const &direction) noexcept;
 

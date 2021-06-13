@@ -1,6 +1,6 @@
 #include "Renderer.h"
 
-#include "../core/Display.h"
+#include "../system/Display.h"
 
 namespace imp {
   namespace {

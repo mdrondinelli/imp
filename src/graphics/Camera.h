@@ -5,7 +5,7 @@
 namespace imp {
   class Camera {
   public:
-    Camera(
+    explicit Camera(
         Eigen::Vector3f const &position = Eigen::Vector3f::Zero(),
         Eigen::Quaternionf const &orientation = Eigen::Quaternionf::Identity(),
         float tanHalfFovX = 1.0f,

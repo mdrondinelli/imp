@@ -2,11 +2,12 @@
 
 #include <memory>
 
-#include "../core/GpuImage.h"
+#include "../system/GpuImage.h"
 
 namespace imp {
   class Scene;
   class TransmittanceLut;
+
   class AerialPerspectiveLut {
   public:
     class Flyweight {
@@ -35,7 +36,7 @@ namespace imp {
       vk::Sampler createSampler();
     };
 
-    AerialPerspectiveLut(
+    explicit AerialPerspectiveLut(
         std::shared_ptr<Flyweight const> flyweight,
         unsigned width,
         unsigned height,

@@ -38,7 +38,7 @@ namespace imp {
       vk::UniquePipeline createPipeline();
     };
 
-    Frame(
+    explicit Frame(
         Flyweight const *flyweight,
         unsigned transmittanceLutWidth,
         unsigned transmittanceLutHeight,

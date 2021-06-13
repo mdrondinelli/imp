@@ -167,18 +167,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\core\Display.h" />
-    <ClInclude Include="src\core\GpuBuffer.h" />
-    <ClInclude Include="src\core\GpuDescriptorSetLayoutCache.h" />
-    <ClInclude Include="src\core\GpuImage.h" />
-    <ClInclude Include="src\core\GpuContext.h" />
-    <ClInclude Include="src\core\GpuSamplerCache.h" />
-    <ClInclude Include="src\core\ResourceCache.h" />
-    <ClInclude Include="src\core\ResourceLoader.h" />
-    <ClInclude Include="src\core\ResourceState.h" />
-    <ClInclude Include="src\core\vk_mem_alloc.h" />
-    <ClInclude Include="src\core\WorkerThread.h" />
-    <ClInclude Include="src\engine\Client.h" />
     <ClInclude Include="src\graphics\AerialPerspectiveLut.h" />
     <ClInclude Include="src\graphics\Atmosphere.h" />
     <ClInclude Include="src\graphics\AtmosphereBuffer.h" />
@@ -190,21 +178,19 @@
     <ClInclude Include="src\graphics\Renderer.h" />
     <ClInclude Include="src\graphics\Scene.h" />
     <ClInclude Include="src\graphics\SkyViewLut.h" />
-    <ClInclude Include="src\graphics\StaticMesh.h" />
-    <ClInclude Include="src\graphics\StaticMeshCache.h" />
-    <ClInclude Include="src\graphics\StaticMeshLoader.h" />
-    <ClInclude Include="src\graphics\StaticVertex.h" />
+    <ClInclude Include="src\system\Display.h" />
+    <ClInclude Include="src\system\GpuBuffer.h" />
+    <ClInclude Include="src\system\GpuContext.h" />
+    <ClInclude Include="src\system\GpuDescriptorSetLayoutCache.h" />
+    <ClInclude Include="src\system\GpuImage.h" />
+    <ClInclude Include="src\system\GpuSamplerCache.h" />
+    <ClInclude Include="src\system\ResourceCache.h" />
+    <ClInclude Include="src\system\ResourceLoader.h" />
+    <ClInclude Include="src\system\ResourceState.h" />
+    <ClInclude Include="src\system\vk_mem_alloc.h" />
+    <ClInclude Include="src\system\WorkerThread.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\core\Display.cpp" />
-    <ClCompile Include="src\core\GpuBuffer.cpp" />
-    <ClCompile Include="src\core\GpuDescriptorSetLayoutCache.cpp" />
-    <ClCompile Include="src\core\GpuImage.cpp" />
-    <ClCompile Include="src\core\GpuContext.cpp" />
-    <ClCompile Include="src\core\GpuSamplerCache.cpp" />
-    <ClCompile Include="src\core\vk_mem_alloc.cpp" />
-    <ClCompile Include="src\core\WorkerThread.cpp" />
-    <ClCompile Include="src\engine\Client.cpp" />
     <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp" />
     <ClCompile Include="src\graphics\Atmosphere.cpp" />
     <ClCompile Include="src\graphics\AtmosphereBuffer.cpp" />
@@ -216,9 +202,15 @@
     <ClCompile Include="src\graphics\Renderer.cpp" />
     <ClCompile Include="src\graphics\Scene.cpp" />
     <ClCompile Include="src\graphics\SkyViewLut.cpp" />
-    <ClCompile Include="src\graphics\StaticMesh.cpp" />
-    <ClCompile Include="src\graphics\StaticMeshLoader.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\system\Display.cpp" />
+    <ClCompile Include="src\system\GpuBuffer.cpp" />
+    <ClCompile Include="src\system\GpuContext.cpp" />
+    <ClCompile Include="src\system\GpuDescriptorSetLayoutCache.cpp" />
+    <ClCompile Include="src\system\GpuImage.cpp" />
+    <ClCompile Include="src\system\GpuSamplerCache.cpp" />
+    <ClCompile Include="src\system\vk_mem_alloc.cpp" />
+    <ClCompile Include="src\system\WorkerThread.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

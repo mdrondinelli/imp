@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/GpuBuffer.h"
+#include "../system/GpuBuffer.h"
 
 namespace imp {
   class Atmosphere;
@@ -8,13 +8,13 @@ namespace imp {
   class AtmosphereBuffer {
   public:
     explicit AtmosphereBuffer(VmaAllocator allocator);
-    
+
     vk::Buffer get() const noexcept;
-    
+
     void update(Atmosphere const &atmosphere) noexcept;
 
   private:
     GpuBuffer buffer_;
     GpuBuffer createBuffer(VmaAllocator allocator);
   };
-}
+} // namespace imp
