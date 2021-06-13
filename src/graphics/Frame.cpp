@@ -2,24 +2,24 @@
 
 #include <fstream>
 
-#include "../core/Window.h"
+#include "../core/Display.h"
 #include "Camera.h"
 #include "Scene.h"
 
 namespace imp {
   Frame::Flyweight::Flyweight(
-      Window *window,
+      Display *display,
       TransmittanceLut::Flyweight const *transmittanceLutFlyweight,
       SkyViewLut::Flyweight const *skyViewLutFlyweight):
-      window_{window},
+      display_{display},
       transmittanceLutFlyweight_{transmittanceLutFlyweight},
       skyViewLutFlyweight_{skyViewLutFlyweight},
       renderPass_{createRenderPass()},
       pipelineLayout_{createPipelineLayout()},
       pipeline_{createPipeline()} {}
 
-  Window *Frame::Flyweight::getWindow() const noexcept {
-    return window_;
+  Display *Frame::Flyweight::getDisplay() const noexcept {
+    return display_;
   }
 
   TransmittanceLut::Flyweight const *
@@ -46,7 +46,7 @@ namespace imp {
 
   vk::UniqueRenderPass Frame::Flyweight::createRenderPass() {
     auto attachment = vk::AttachmentDescription{};
-    attachment.format = window_->getSurfaceFormat().format;
+    attachment.format = display_->getSurfaceFormat().format;
     attachment.samples = vk::SampleCountFlagBits::e1;
     attachment.loadOp = vk::AttachmentLoadOp::eClear;
     attachment.storeOp = vk::AttachmentStoreOp::eStore;
@@ -64,7 +64,7 @@ namespace imp {
     createInfo.pAttachments = &attachment;
     createInfo.subpassCount = 1;
     createInfo.pSubpasses = &subpass;
-    return window_->getContext()->getDevice().createRenderPassUnique(
+    return display_->getContext()->getDevice().createRenderPassUnique(
         createInfo);
   }
 
@@ -82,12 +82,12 @@ namespace imp {
     createInfo.pSetLayouts = setLayouts.data();
     createInfo.pushConstantRangeCount = 1;
     createInfo.pPushConstantRanges = &pushConstantRange;
-    return window_->getContext()->getDevice().createPipelineLayoutUnique(
+    return display_->getContext()->getDevice().createPipelineLayoutUnique(
         createInfo);
   }
 
   vk::UniquePipeline Frame::Flyweight::createPipeline() {
-    auto context = window_->getContext();
+    auto context = display_->getContext();
     auto createShaderModule = [=](char const *path) {
       auto code = std::vector<char>{};
       auto in = std::ifstream{};
@@ -176,20 +176,20 @@ namespace imp {
       unsigned skyViewLutWidth,
       unsigned skyViewLutHeight):
       flyweight_{flyweight},
-      imageAcquisitionSemaphore_{flyweight_->getWindow()
+      imageAcquisitionSemaphore_{flyweight_->getDisplay()
                                      ->getContext()
                                      ->getDevice()
                                      .createSemaphoreUnique({})},
-      queueSubmissionSemaphore_{flyweight_->getWindow()
+      queueSubmissionSemaphore_{flyweight_->getDisplay()
                                     ->getContext()
                                     ->getDevice()
                                     .createSemaphoreUnique({})},
       queueSubmissionFence_{
-          flyweight_->getWindow()->getContext()->getDevice().createFenceUnique(
+          flyweight_->getDisplay()->getContext()->getDevice().createFenceUnique(
               {vk::FenceCreateFlagBits::eSignaled})},
       commandPool_{createCommandPool()},
       commandBuffer_{allocateCommandBuffer()},
-      atmosphereBuffer_{flyweight_->getWindow()->getContext()->getAllocator()},
+      atmosphereBuffer_{flyweight_->getDisplay()->getContext()->getAllocator()},
       transmittanceLut_{
           flyweight_->getTransmittanceLutFlyweight(),
           &atmosphereBuffer_,
@@ -204,7 +204,7 @@ namespace imp {
   void
   Frame::render(Scene const &scene, Camera const &camera, std::uint32_t seed) {
     atmosphereBuffer_.update(*scene.getAtmosphere());
-    auto &window = *flyweight_->getWindow();
+    auto &window = *flyweight_->getDisplay();
     auto &context = *window.getContext();
     auto framebuffer =
         window.acquireFramebuffer(*imageAcquisitionSemaphore_, {});
@@ -296,7 +296,7 @@ namespace imp {
 
   void Frame::renderAtmosphere(
       Camera const &camera, std::uint32_t seed, vk::Framebuffer framebuffer) {
-    auto &window = *flyweight_->getWindow();
+    auto &window = *flyweight_->getDisplay();
     auto clearValue = vk::ClearValue{};
     clearValue.color.float32 = std::array{0.0f, 0.0f, 0.0f, 0.0f};
     auto renderPassBegin = vk::RenderPassBeginInfo{};
@@ -360,7 +360,7 @@ namespace imp {
   }
 
   vk::UniqueCommandPool Frame::createCommandPool() {
-    auto &context = *flyweight_->getWindow()->getContext();
+    auto &context = *flyweight_->getDisplay()->getContext();
     auto createInfo = vk::CommandPoolCreateInfo{};
     createInfo.flags = vk::CommandPoolCreateFlagBits::eTransient;
     createInfo.queueFamilyIndex = context.getGraphicsFamily();
@@ -368,7 +368,7 @@ namespace imp {
   }
 
   vk::UniqueCommandBuffer Frame::allocateCommandBuffer() {
-    auto &context = *flyweight_->getWindow()->getContext();
+    auto &context = *flyweight_->getDisplay()->getContext();
     auto allocateInfo = vk::CommandBufferAllocateInfo{};
     allocateInfo.commandPool = *commandPool_;
     allocateInfo.level = vk::CommandBufferLevel::ePrimary;
@@ -385,7 +385,7 @@ namespace imp {
     allocation.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
     allocation.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
     return {
-        flyweight_->getWindow()->getContext()->getAllocator(),
+        flyweight_->getDisplay()->getContext()->getAllocator(),
         buffer,
         allocation};
   }

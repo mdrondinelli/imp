@@ -7,46 +7,30 @@ const float STEPS = 10.0f;
 
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
-layout(set = 0, binding = 0) uniform sampler2D transmittanceLut;
-layout(set = 1, binding = 0, rgba16f) restrict writeonly uniform image3D aerialPerspectiveLut;
+layout(set = 0, binding = 0) uniform Atmosphere {
+  vec3 rayleighScattering;
+  float rayleighScaleHeight;
+  float mieScattering;
+  float mieAbsorption;
+  float mieScaleHeight;
+  float mieG;
+  vec3 ozoneAbsorption;
+  float ozoneLayerHeight;
+  float planetRadius;
+  float atmosphereRadius;
+};
+
+layout(set = 0, binding = 1) uniform Camera {
+  vec3 frustumCorners[8];
+  float cameraHeight;
+};
+
+layout(set = 0, binding = 2) uniform sampler2D transmittanceLut;
+layout(set = 0, binding = 3, rgba16f) restrict writeonly uniform image3D aerialPerspectiveLut;
 
 layout(push_constant) uniform PushConstants {
-  // 0
-  vec3 rayleighScattering;
-  // 12
-  float mieScattering;
-  // 16
-  vec3 ozoneAbsorption;
-  // 28
-  float mieAbsorption;
-  // 32
   vec3 lightIrradiance;
-  // 44
-  float planetRadius;
-  // 48
   vec3 lightDirection;
-  // 60
-  float atmosphereRadius;
-  // 64
-  float rayleighHeightFactor;
-  // 76
-  float mieHeightFactor;
-  // 80
-  float mieG;
-  // 84
-  float ozoneHeightFactor;
-  // 88
-  float ozoneHeightOffset;
-  // 92
-  float frustumWidth;
-  // 96
-  float frustumHeight;
-  // 100
-  float frustumNear;
-  // 104
-  float frustumFar;
-  // 108
-  float 
 };
 
 vec2 rayAtmosphere(vec3 o, vec3 d) {

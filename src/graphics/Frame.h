@@ -6,18 +6,18 @@
 
 namespace imp {
   class Scene;
-  class Window;
+  class Display;
 
   class Frame {
   public:
     class Flyweight {
     public:
       Flyweight(
-          Window *window,
+          Display *display,
           TransmittanceLut::Flyweight const *transmittanceLutFlyweight,
           SkyViewLut::Flyweight const *skyViewLutFlyweight);
 
-      Window *getWindow() const noexcept;
+      Display *getDisplay() const noexcept;
       TransmittanceLut::Flyweight const *
       getTransmittanceLutFlyweight() const noexcept;
       SkyViewLut::Flyweight const *getSkyViewLutFlyweight() const noexcept;
@@ -26,7 +26,7 @@ namespace imp {
       vk::Pipeline getPipeline() const noexcept;
 
     private:
-      Window *window_;
+      Display *display_;
       TransmittanceLut::Flyweight const *transmittanceLutFlyweight_;
       SkyViewLut::Flyweight const *skyViewLutFlyweight_;
       vk::UniqueRenderPass renderPass_;

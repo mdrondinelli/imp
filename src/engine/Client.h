@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../core/Display.h"
 #include "../core/GpuContext.h"
-#include "../core/Window.h"
 #include "../core/WorkerThread.h"
 #include "../graphics/Renderer.h"
 #include "../graphics/StaticMeshCache.h"
@@ -18,7 +18,7 @@ namespace imp {
     WorkerThread loadingThread_;
     StaticMeshLoader staticMeshLoader_;
     StaticMeshCache staticMeshCache_;
-    Window window_;
+    Display display_;
     Renderer renderer_;
   };
 } // namespace imp

@@ -5,17 +5,17 @@
 namespace imp {
   class Camera;
   class Scene;
-  class Window;
+  class Display;
 
   class Renderer {
   public:
-    Renderer(Window *window);
+    Renderer(Display *display);
     ~Renderer();
 
     void render(Scene const &scene, Camera const &camera);
 
   private:
-    Window *window_;
+    Display *display_;
     TransmittanceLut::Flyweight transmittanceLutFlyweight_;
     SkyViewLut::Flyweight skyViewLutFlyweight_;
     Frame::Flyweight frameFlyweight_;

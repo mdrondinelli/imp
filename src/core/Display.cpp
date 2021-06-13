@@ -1,20 +1,20 @@
-#include "Window.h"
+#include "Display.h"
 
 #include <iostream>
 #include <stdexcept>
 
 namespace imp {
-  void initWindows() {
+  void Display::init() {
     if (!glfwInit())
       throw std::runtime_error{"Failed to initialize glfw."};
     std::atexit(glfwTerminate);
   }
 
-  void pollWindows() {
+  void Display::poll() {
     glfwPollEvents();
   }
 
-  Window::Window(
+  Display::Display(
       GpuContext *context,
       unsigned width,
       unsigned height,
@@ -36,12 +36,12 @@ namespace imp {
     createSwapchain();
   }
 
-  Window::~Window() {
+  Display::~Display() {
     destroySwapchain();
     glfwDestroyWindow(window_);
   }
 
-  GLFWwindow *Window::createWindow(
+  GLFWwindow *Display::createWindow(
       unsigned width, unsigned height, char const *title, bool fullscreen) {
     glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -56,7 +56,7 @@ namespace imp {
     return window;
   }
 
-  vk::UniqueSurfaceKHR Window::createSurface() {
+  vk::UniqueSurfaceKHR Display::createSurface() {
     auto instance = context_->getInstance();
     auto surface = VkSurfaceKHR{};
     if (glfwCreateWindowSurface(instance, window_, nullptr, &surface)) {
@@ -65,7 +65,7 @@ namespace imp {
     return vk::UniqueSurfaceKHR{surface, instance};
   }
 
-  vk::SurfaceFormatKHR Window::selectSurfaceFormat() {
+  vk::SurfaceFormatKHR Display::selectSurfaceFormat() {
     auto physical_device = context_->getPhysicalDevice();
     auto formats = physical_device.getSurfaceFormatsKHR(*surface_);
     auto format = formats[0];
@@ -78,7 +78,7 @@ namespace imp {
     return format;
   }
 
-  vk::PresentModeKHR Window::selectPresentMode() {
+  vk::PresentModeKHR Display::selectPresentMode() {
     auto physical_device = context_->getPhysicalDevice();
     auto present_modes = physical_device.getSurfacePresentModesKHR(*surface_);
     auto present_mode = present_modes[0];
@@ -103,7 +103,7 @@ namespace imp {
     return present_mode;
   }
 
-  vk::UniqueRenderPass Window::createRenderPass() {
+  vk::UniqueRenderPass Display::createRenderPass() {
     auto color_attachment = vk::AttachmentDescription{};
     color_attachment.format = surfaceFormat_.format;
     color_attachment.samples = vk::SampleCountFlagBits::e1;
@@ -126,7 +126,7 @@ namespace imp {
     return context_->getDevice().createRenderPassUnique(create_info);
   }
 
-  void Window::createSwapchain() {
+  void Display::createSwapchain() {
     auto physical_device = context_->getPhysicalDevice();
     auto device = context_->getDevice();
     auto capabilities = physical_device.getSurfaceCapabilitiesKHR(*surface_);
@@ -201,7 +201,7 @@ namespace imp {
     }
   }
 
-  void Window::destroySwapchain() {
+  void Display::destroySwapchain() {
     context_->getDevice().waitIdle();
     swapchainFramebuffers_.clear();
     swapchainImageViews_.clear();
@@ -209,52 +209,52 @@ namespace imp {
     swapchain_.reset();
   }
 
-  GpuContext *Window::getContext() const noexcept {
+  GpuContext *Display::getContext() const noexcept {
     return context_;
   }
 
-  vk::SurfaceFormatKHR const &Window::getSurfaceFormat() const noexcept {
+  vk::SurfaceFormatKHR const &Display::getSurfaceFormat() const noexcept {
     return surfaceFormat_;
   }
 
-  unsigned Window::getWindowWidth() const noexcept {
+  unsigned Display::getWindowWidth() const noexcept {
     int width;
     glfwGetWindowSize(window_, &width, nullptr);
     return static_cast<unsigned>(width);
   }
 
-  unsigned Window::getWindowHeight() const noexcept {
+  unsigned Display::getWindowHeight() const noexcept {
     int height;
     glfwGetWindowSize(window_, nullptr, &height);
     return static_cast<unsigned>(height);
   }
 
-  unsigned Window::getFramebufferWidth() const noexcept {
+  unsigned Display::getFramebufferWidth() const noexcept {
     int width;
     glfwGetFramebufferSize(window_, &width, nullptr);
     return static_cast<unsigned>(width);
   }
 
-  unsigned Window::getFramebufferHeight() const noexcept {
+  unsigned Display::getFramebufferHeight() const noexcept {
     int height;
     glfwGetFramebufferSize(window_, nullptr, &height);
     return static_cast<unsigned>(height);
   }
 
-  unsigned Window::getSwapchainWidth() const noexcept {
+  unsigned Display::getSwapchainWidth() const noexcept {
     return swapchainWidth_;
   }
 
-  unsigned Window::getSwapchainHeight() const noexcept {
+  unsigned Display::getSwapchainHeight() const noexcept {
     return swapchainHeight_;
   }
 
-  bool Window::shouldClose() const noexcept {
+  bool Display::shouldClose() const noexcept {
     return glfwWindowShouldClose(window_);
   }
 
   vk::Framebuffer
-  Window::acquireFramebuffer(vk::Semaphore semaphore, vk::Fence fence) {
+  Display::acquireFramebuffer(vk::Semaphore semaphore, vk::Fence fence) {
     try {
       auto index = context_->getDevice()
                        .acquireNextImageKHR(
@@ -271,7 +271,7 @@ namespace imp {
     }
   }
 
-  void Window::presentFramebuffer(
+  void Display::presentFramebuffer(
       uint32_t wait_semaphore_count,
       vk::Semaphore const *wait_semaphores,
       vk::Framebuffer framebuffer) {

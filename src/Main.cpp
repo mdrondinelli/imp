@@ -2,9 +2,9 @@
 #include <exception>
 #include <iostream>
 
+#include "core/Display.h"
 #include "core/GpuContext.h"
 #include "core/ResourceCache.h"
-#include "core/Window.h"
 #include "graphics/Camera.h"
 #include "graphics/Renderer.h"
 #include "graphics/Scene.h"
@@ -33,7 +33,7 @@ using DummyResourceCache = imp::ResourceCache<DummyResource, DummyResourceInfo>;
 int main() {
   using namespace std::chrono_literals;
 
-  imp::initWindows();
+  imp::Display::init();
   auto worker = imp::WorkerThread{};
   auto loader = DummyResourceLoader{};
 
@@ -51,11 +51,11 @@ int main() {
     auto bungus = cache.at("bungus");
     // GpuContext
     auto gpuContextCreateInfo = imp::GpuContextCreateInfo{};
-    gpuContextCreateInfo.validation = false;
+    gpuContextCreateInfo.validation = true;
     gpuContextCreateInfo.presentation = true;
     auto gpuContext = imp::GpuContext{gpuContextCreateInfo};
     // Window
-    auto window = imp::Window{&gpuContext, 1920, 1080, "imp", true};
+    auto window = imp::Display{&gpuContext, 1920, 1080, "imp", true};
     // Scene
     auto atmosphere = std::make_shared<imp::Atmosphere>();
     auto sun = std::make_shared<imp::DirectionalLight>(
@@ -71,7 +71,7 @@ int main() {
     auto frame_time = std::chrono::high_resolution_clock::now();
     auto frame_count = 0;
     while (!window.shouldClose()) {
-      imp::pollWindows();
+      imp::Display::poll();
       auto angle = float(glfwGetTime()) * 0.0043633f * 2.0f - 0.15f;
       sun->setDirection(
           Eigen::Vector3f{0.0f, std::sin(angle), -std::cos(angle)});

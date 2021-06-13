@@ -167,6 +167,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\Display.h" />
     <ClInclude Include="src\core\GpuBuffer.h" />
     <ClInclude Include="src\core\GpuDescriptorSetLayoutCache.h" />
     <ClInclude Include="src\core\GpuImage.h" />
@@ -177,7 +178,6 @@
     <ClInclude Include="src\core\ResourceState.h" />
     <ClInclude Include="src\core\vk_mem_alloc.h" />
     <ClInclude Include="src\core\WorkerThread.h" />
-    <ClInclude Include="src\core\Window.h" />
     <ClInclude Include="src\engine\Client.h" />
     <ClInclude Include="src\graphics\AerialPerspectiveLut.h" />
     <ClInclude Include="src\graphics\Atmosphere.h" />
@@ -196,6 +196,7 @@
     <ClInclude Include="src\graphics\StaticVertex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\Display.cpp" />
     <ClCompile Include="src\core\GpuBuffer.cpp" />
     <ClCompile Include="src\core\GpuDescriptorSetLayoutCache.cpp" />
     <ClCompile Include="src\core\GpuImage.cpp" />
@@ -203,7 +204,6 @@
     <ClCompile Include="src\core\GpuSamplerCache.cpp" />
     <ClCompile Include="src\core\vk_mem_alloc.cpp" />
     <ClCompile Include="src\core\WorkerThread.cpp" />
-    <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\engine\Client.cpp" />
     <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp" />
     <ClCompile Include="src\graphics\Atmosphere.cpp" />

@@ -1,24 +1,24 @@
 #include "Renderer.h"
 
-#include "../core/Window.h"
+#include "../core/Display.h"
 
 namespace imp {
   namespace {
     constexpr auto const FRAME_CONCURRENCY = 3u;
   }
 
-  Renderer::Renderer(Window *window):
-      window_{window},
-      transmittanceLutFlyweight_{window->getContext()},
-      skyViewLutFlyweight_{window->getContext()},
+  Renderer::Renderer(Display *display):
+      display_{display},
+      transmittanceLutFlyweight_{display->getContext()},
+      skyViewLutFlyweight_{display->getContext()},
       frameFlyweight_{
-          window,
+          display,
           &transmittanceLutFlyweight_,
           &skyViewLutFlyweight_},
       frames_{createFrames()} {}
 
   Renderer::~Renderer() {
-    window_->getContext()->getDevice().waitIdle();
+    display_->getContext()->getDevice().waitIdle();
   }
 
   void Renderer::render(Scene const &scene, Camera const &camera) {

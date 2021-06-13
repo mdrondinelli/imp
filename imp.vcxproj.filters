@@ -42,9 +42,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\core\Window.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\TransmittanceLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
@@ -123,13 +120,13 @@
     <ClInclude Include="src\graphics\Spectrum.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\Display.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\Window.cpp">
-      <Filter>Source Files\core</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\TransmittanceLut.cpp">
       <Filter>Source Files\graphics</Filter>
@@ -193,6 +190,9 @@
     </ClCompile>
     <ClCompile Include="src\graphics\Spectrum.cpp">
       <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Display.cpp">
+      <Filter>Source Files\core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

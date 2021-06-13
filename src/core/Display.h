@@ -7,18 +7,18 @@
 #include "GpuContext.h"
 
 namespace imp {
-  void initWindows();
-  void pollWindows();
-
-  class Window {
+  class Display {
   public:
-    Window(
+    static void init();
+    static void poll();
+
+    Display(
         GpuContext *context,
         unsigned width,
         unsigned height,
         char const *title,
         bool fullscreen);
-    ~Window();
+    ~Display();
 
     GpuContext *getContext() const noexcept;
     vk::SurfaceFormatKHR const &getSurfaceFormat() const noexcept;
