@@ -1,22 +1,18 @@
 #pragma once
 
-#include <filesystem>
-
-#include "../core/Window.h"
-#include "Scene.h"
 #include "Frame.h"
 
 namespace imp {
-  struct RendererCreateInfo {
-    Window *window;
-  };
+  class Camera;
+  class Scene;
+  class Window;
 
   class Renderer {
   public:
-    Renderer(RendererCreateInfo const &createInfo);
+    Renderer(Window *window);
     ~Renderer();
 
-    void render(Scene const &scene);
+    void render(Scene const &scene, Camera const &camera);
 
   private:
     Window *window_;

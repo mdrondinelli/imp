@@ -18,7 +18,7 @@ namespace imp {
     GpuBuffer &operator=(GpuBuffer &&rhs) noexcept;
 
     vk::Buffer get() const noexcept;
-    char *data() const noexcept;
+    char *mappedData() const noexcept;
     
     char *map();
     void unmap() noexcept;

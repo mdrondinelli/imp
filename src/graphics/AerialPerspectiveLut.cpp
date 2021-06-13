@@ -79,6 +79,7 @@ namespace imp {
     pushConstantRange.size = 104;
     auto createInfo = vk::PipelineLayoutCreateInfo{};
     createInfo.setLayoutCount = static_cast<std::uint32_t>(setLayouts.size());
+    return {};
   }
 
   vk::UniquePipeline AerialPerspectiveLut::Flyweight::createPipeline() {
@@ -123,14 +124,27 @@ namespace imp {
   }
 
   AerialPerspectiveLut::AerialPerspectiveLut(
-      std::shared_ptr<Flyweight const> flyweight, Vector3u const &size):
+      std::shared_ptr<Flyweight const> flyweight,
+      unsigned width,
+      unsigned height,
+      unsigned depth):
       flyweight_{std::move(flyweight)},
-      size_{size},
+      width_{width},
+      height_{height},
+      depth_{depth},
       image_{createImage()},
       imageView_{createImageView()} {}
 
-  Vector3u const &AerialPerspectiveLut::getSize() const noexcept {
-    return size_;
+  unsigned AerialPerspectiveLut::getWidth() const noexcept {
+    return width_;
+  }
+
+  unsigned AerialPerspectiveLut::getHeight() const noexcept {
+    return height_;
+  }
+
+  unsigned AerialPerspectiveLut::getDepth() const noexcept {
+    return depth_;
   }
 
   vk::DescriptorSet
@@ -152,9 +166,9 @@ namespace imp {
     auto createInfo = GpuImageCreateInfo{};
     createInfo.image.imageType = vk::ImageType::e3D;
     createInfo.image.format = vk::Format::eR16G16B16A16Sfloat;
-    createInfo.image.extent.width = size_[0];
-    createInfo.image.extent.height = size_[1];
-    createInfo.image.extent.depth = size_[2];
+    createInfo.image.extent.width = width_;
+    createInfo.image.extent.height = height_;
+    createInfo.image.extent.depth = depth_;
     createInfo.image.mipLevels = 1;
     createInfo.image.arrayLayers = 1;
     createInfo.image.samples = vk::SampleCountFlagBits::e1;

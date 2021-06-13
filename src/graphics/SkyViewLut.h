@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../core/GpuImage.h"
-#include "../math/Vector.h"
 
 namespace imp {
   class AtmosphereBuffer;
@@ -40,12 +39,14 @@ namespace imp {
     SkyViewLut(
         Flyweight const *flyweight,
         TransmittanceLut const *transmittanceLut,
-        Vector2u const &size);
+        unsigned width,
+        unsigned height);
 
     Flyweight const *getFlyweight() const noexcept;
     AtmosphereBuffer const *getBuffer() const noexcept;
     TransmittanceLut const *getTransmittanceLut() const noexcept;
-    Vector2u const &getSize() const noexcept;
+    unsigned getWidth() const noexcept;
+    unsigned getHeight() const noexcept;
     vk::Image getImage() const noexcept;
     vk::ImageView getImageView() const noexcept;
     vk::DescriptorSet getComputeDescriptorSet() const noexcept;
@@ -60,7 +61,8 @@ namespace imp {
     Flyweight const *flyweight_;
     AtmosphereBuffer const *buffer_;
     TransmittanceLut const *transmittanceLut_;
-    Vector2u size_;
+    unsigned width_;
+    unsigned height_;
     GpuImage image_;
     vk::UniqueImageView imageView_;
     vk::UniqueDescriptorPool descriptorPool_;

@@ -1,26 +1,22 @@
 #pragma once
 
-#include "../math/Vector.h"
+#include "Spectrum.h"
 
 namespace imp {
-  struct DirectionalLightCreateInfo {
-    Vector3f irradiance = {1.0f, 1.0f, 1.0f};
-    Vector3f direction = {0.0f, 1.0f, 0.0f};
-  };
-
   class DirectionalLight {
   public:
-    explicit DirectionalLight(
-        DirectionalLightCreateInfo const &createInfo) noexcept;
+    DirectionalLight(
+        Spectrum const &irradiance,
+        Eigen::Vector3f const &direction) noexcept;
 
-    Vector3f const &getIrradiance() const noexcept;
-    Vector3f const &getDirection() const noexcept;
+    Spectrum const &getIrradiance() const noexcept;
+    Eigen::Vector3f const &getDirection() const noexcept;
 
-    void setIrradiance(Vector3f const &irradiance) noexcept;
-    void setDirection(Vector3f const &direction) noexcept;
+    void setIrradiance(Spectrum const &irradiance) noexcept;
+    void setDirection(Eigen::Vector3f const &direction) noexcept;
 
   private:
-    Vector3f irradiance_;
-    Vector3f direction_;
+    Spectrum irradiance_;
+    Eigen::Vector3f direction_;
   };
 } // namespace imp

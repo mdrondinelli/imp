@@ -1,9 +1,13 @@
 #include "SkyViewLut.h"
 
+#include <cassert>
+
 #include <fstream>
 #include <vector>
 
+#include "../core/GpuContext.h"
 #include "AtmosphereBuffer.h"
+#include "Camera.h"
 #include "Scene.h"
 #include "TransmittanceLut.h"
 
@@ -134,15 +138,19 @@ namespace imp {
   SkyViewLut::SkyViewLut(
       Flyweight const *flyweight,
       TransmittanceLut const *transmittanceLut,
-      Vector2u const &size):
+      unsigned width,
+      unsigned height):
       flyweight_{flyweight},
       buffer_{transmittanceLut->getBuffer()},
       transmittanceLut_{transmittanceLut},
-      size_{size},
+      width_{width},
+      height_{height},
       image_{createImage()},
       imageView_{createImageView()},
       descriptorPool_{createDescriptorPool()},
       descriptorSets_{allocateDescriptorSets()} {
+    assert(width % 8 == 0);
+    assert(height % 8 == 0);
     updateDescriptorSets();
   }
 
@@ -158,8 +166,12 @@ namespace imp {
     return transmittanceLut_;
   }
 
-  Vector2u const &SkyViewLut::getSize() const noexcept {
-    return size_;
+  unsigned SkyViewLut::getWidth() const noexcept {
+    return width_;
+  }
+
+  unsigned SkyViewLut::getHeight() const noexcept {
+    return height_;
   }
 
   vk::Image SkyViewLut::getImage() const noexcept {
@@ -179,9 +191,7 @@ namespace imp {
   }
 
   void SkyViewLut::compute(
-      vk::CommandBuffer cmd,
-      DirectionalLight const &sun,
-      Camera const &camera) {
+      vk::CommandBuffer cmd, DirectionalLight const &sun, Camera const &cam) {
     cmd.bindPipeline(
         vk::PipelineBindPoint::eCompute, flyweight_->getPipeline());
     cmd.bindDescriptorSets(
@@ -190,11 +200,11 @@ namespace imp {
         0,
         {getComputeDescriptorSet()},
         {});
+    auto camHeight = cam.getPosition()(1);
     auto pushConstants = std::array<char, 32>{};
-    std::memcpy(&pushConstants[0], &sun.getIrradiance(), 12);
-    std::memcpy(&pushConstants[16], &sun.getDirection(), 12);
-    std::memcpy(
-        &pushConstants[28], &camera.getTransform().getTranslation()[1], 4);
+    std::memcpy(&pushConstants[0], sun.getIrradiance().data(), 12);
+    std::memcpy(&pushConstants[16], sun.getDirection().data(), 12);
+    std::memcpy(&pushConstants[28], &camHeight, 4);
     cmd.pushConstants(
         flyweight_->getPipelineLayout(),
         vk::ShaderStageFlagBits::eCompute,
@@ -221,15 +231,15 @@ namespace imp {
         {},
         {},
         barrier);
-    cmd.dispatch(size_[0] / 8u, size_[1] / 8u, 1u);
+    cmd.dispatch(width_ / 8u, height_ / 8u, 1u);
   }
 
   GpuImage SkyViewLut::createImage() {
     auto createInfo = GpuImageCreateInfo{};
     createInfo.image.imageType = vk::ImageType::e2D;
     createInfo.image.format = vk::Format::eR16G16B16A16Sfloat;
-    createInfo.image.extent.width = size_[0];
-    createInfo.image.extent.height = size_[1];
+    createInfo.image.extent.width = width_;
+    createInfo.image.extent.height = height_;
     createInfo.image.extent.depth = 1;
     createInfo.image.mipLevels = 1;
     createInfo.image.arrayLayers = 1;

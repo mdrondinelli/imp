@@ -2,22 +2,23 @@
 
 namespace imp {
   DirectionalLight::DirectionalLight(
-      DirectionalLightCreateInfo const &createInfo) noexcept:
-      irradiance_{createInfo.irradiance}, direction_{createInfo.direction} {}
+      Spectrum const &irradiance, Eigen::Vector3f const &direction) noexcept:
+      irradiance_{irradiance}, direction_{direction} {}
 
-  Vector3f const &DirectionalLight::getIrradiance() const noexcept {
+  Spectrum const &DirectionalLight::getIrradiance() const noexcept {
     return irradiance_;
   }
 
-  Vector3f const &DirectionalLight::getDirection() const noexcept {
+  Eigen::Vector3f const &DirectionalLight::getDirection() const noexcept {
     return direction_;
   }
 
-  void DirectionalLight::setIrradiance(Vector3f const &irradiance) noexcept {
+  void DirectionalLight::setIrradiance(Spectrum const &irradiance) noexcept {
     irradiance_ = irradiance;
   }
 
-  void DirectionalLight::setDirection(Vector3f const &direction) noexcept {
+  void
+  DirectionalLight::setDirection(Eigen::Vector3f const &direction) noexcept {
     direction_ = direction;
   }
 } // namespace imp

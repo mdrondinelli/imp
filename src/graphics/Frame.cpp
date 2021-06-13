@@ -3,7 +3,8 @@
 #include <fstream>
 
 #include "../core/Window.h"
-#include "../graphics/Scene.h"
+#include "Camera.h"
+#include "Scene.h"
 
 namespace imp {
   Frame::Flyweight::Flyweight(
@@ -170,8 +171,10 @@ namespace imp {
 
   Frame::Frame(
       Flyweight const *flyweight,
-      Vector2u const &transmittanceLutSize,
-      Vector2u const &skyViewLutSize):
+      unsigned transmittanceLutWidth,
+      unsigned transmittanceLutHeight,
+      unsigned skyViewLutWidth,
+      unsigned skyViewLutHeight):
       flyweight_{flyweight},
       imageAcquisitionSemaphore_{flyweight_->getWindow()
                                      ->getContext()
@@ -190,13 +193,16 @@ namespace imp {
       transmittanceLut_{
           flyweight_->getTransmittanceLutFlyweight(),
           &atmosphereBuffer_,
-          transmittanceLutSize},
+          transmittanceLutWidth,
+          transmittanceLutHeight},
       skyViewLut_{
           flyweight_->getSkyViewLutFlyweight(),
           &transmittanceLut_,
-          skyViewLutSize} {}
+          skyViewLutWidth,
+          skyViewLutHeight} {}
 
-  void Frame::render(Scene const &scene, std::uint32_t seed) {
+  void
+  Frame::render(Scene const &scene, Camera const &camera, std::uint32_t seed) {
     atmosphereBuffer_.update(*scene.getAtmosphere());
     auto &window = *flyweight_->getWindow();
     auto &context = *window.getContext();
@@ -221,9 +227,9 @@ namespace imp {
     context.getDevice().resetFences(*queueSubmissionFence_);
     context.getDevice().resetCommandPool(*commandPool_);
     commandBuffer_->begin(beginInfo);
-    computeTransmittanceLut(scene);
-    computeSkyViewLut(scene);
-    renderAtmosphere(scene, seed, framebuffer);
+    computeTransmittanceLut(*scene.getAtmosphere());
+    computeSkyViewLut(*scene.getSunLight(), camera);
+    renderAtmosphere(camera, seed, framebuffer);
     commandBuffer_->end();
     context.getGraphicsQueue().submit(submitInfo, *queueSubmissionFence_);
     window.presentFramebuffer(1, &*queueSubmissionSemaphore_, framebuffer);
@@ -253,8 +259,8 @@ namespace imp {
     }
   } // namespace
 
-  void Frame::computeTransmittanceLut(Scene const &scene) {
-    if (transmittanceLut_.compute(*commandBuffer_, scene)) {
+  void Frame::computeTransmittanceLut(Atmosphere const &atmosphere) {
+    if (transmittanceLut_.compute(*commandBuffer_, atmosphere)) {
       commandBuffer_->pipelineBarrier(
           vk::PipelineStageFlagBits::eComputeShader,
           vk::PipelineStageFlagBits::eComputeShader |
@@ -271,8 +277,9 @@ namespace imp {
     }
   }
 
-  void Frame::computeSkyViewLut(Scene const &scene) {
-    skyViewLut_.compute(*commandBuffer_, *scene.getSunLight(), *scene.getCamera());
+  void
+  Frame::computeSkyViewLut(DirectionalLight const &sun, Camera const &camera) {
+    skyViewLut_.compute(*commandBuffer_, sun, camera);
     commandBuffer_->pipelineBarrier(
         vk::PipelineStageFlagBits::eComputeShader,
         vk::PipelineStageFlagBits::eFragmentShader,
@@ -288,7 +295,7 @@ namespace imp {
   }
 
   void Frame::renderAtmosphere(
-      Scene const &scene, std::uint32_t seed, vk::Framebuffer framebuffer) {
+      Camera const &camera, std::uint32_t seed, vk::Framebuffer framebuffer) {
     auto &window = *flyweight_->getWindow();
     auto clearValue = vk::ClearValue{};
     clearValue.color.float32 = std::array{0.0f, 0.0f, 0.0f, 0.0f};
@@ -297,39 +304,37 @@ namespace imp {
     renderPassBegin.framebuffer = framebuffer;
     renderPassBegin.renderArea.offset.x = 0;
     renderPassBegin.renderArea.offset.y = 0;
-    renderPassBegin.renderArea.extent.width = window.getSwapchainSize()[0];
-    renderPassBegin.renderArea.extent.height = window.getSwapchainSize()[1];
+    renderPassBegin.renderArea.extent.width = window.getSwapchainWidth();
+    renderPassBegin.renderArea.extent.height = window.getSwapchainHeight();
     renderPassBegin.clearValueCount = 1;
     renderPassBegin.pClearValues = &clearValue;
     auto viewport = vk::Viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = window.getSwapchainSize()[0];
-    viewport.height = window.getSwapchainSize()[1];
+    viewport.width = window.getSwapchainWidth();
+    viewport.height = window.getSwapchainHeight();
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     auto scissor = vk::Rect2D{};
     scissor.offset.x = 0;
     scissor.offset.y = 0;
-    scissor.extent.width = window.getSwapchainSize()[0];
-    scissor.extent.height = window.getSwapchainSize()[1];
-    auto camera = scene.getCamera();
-    auto invProjection = inverse(camera->getProjectionMatrix());
-    auto invView = camera->getTransform().getMatrix();
+    scissor.extent.width = window.getSwapchainWidth();
+    scissor.extent.height = window.getSwapchainHeight();
+    auto invView = getViewMatrix(camera).inverse().eval();
+    auto invProjection = getProjectionMatrix(camera).inverse().eval();
     auto frustumCorners = std::array{
-        Vector4f{-1.0f, -1.0f, 1.0f, 1.0f},
-        Vector4f{1.0f, -1.0f, 1.0f, 1.0f},
-        Vector4f{-1.0f, 1.0f, 1.0f, 1.0f},
-        Vector4f{1.0f, 1.0f, 1.0f, 1.0f}};
+        Eigen::Vector4f{-1.0f, -1.0f, 1.0f, 1.0f},
+        Eigen::Vector4f{1.0f, -1.0f, 1.0f, 1.0f},
+        Eigen::Vector4f{-1.0f, 1.0f, 1.0f, 1.0f},
+        Eigen::Vector4f{1.0f, 1.0f, 1.0f, 1.0f}};
     for (auto &frustumCorner : frustumCorners) {
       frustumCorner = invProjection * frustumCorner;
       frustumCorner /= frustumCorner[3];
       frustumCorner = invView * frustumCorner;
     }
-    auto cameraPosition = camera->getTransform().getTranslation();
     auto pushConstants = std::array<char, 80>{};
     std::memcpy(pushConstants.data() + 0, &frustumCorners, 64);
-    std::memcpy(pushConstants.data() + 64, &cameraPosition, 12);
+    std::memcpy(pushConstants.data() + 64, &camera.getPosition(), 12);
     std::memcpy(pushConstants.data() + 76, &seed, 4);
     commandBuffer_->beginRenderPass(
         renderPassBegin, vk::SubpassContents::eInline);

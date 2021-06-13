@@ -5,6 +5,7 @@
 #include "TransmittanceLut.h"
 
 namespace imp {
+  class Scene;
   class Window;
 
   class Frame {
@@ -39,10 +40,12 @@ namespace imp {
 
     Frame(
         Flyweight const *flyweight,
-        Vector2u const &transmittanceLutSize = {256, 64},
-        Vector2u const &skyViewLutSize = {128, 128});
+        unsigned transmittanceLutWidth,
+        unsigned transmittanceLutHeight,
+        unsigned skyViewLutWidth,
+        unsigned skyViewLutHeight);
 
-    void render(Scene const &scene, std::uint32_t seed);
+    void render(Scene const &scene, Camera const &camera, std::uint32_t seed);
 
   private:
     Flyweight const *flyweight_;
@@ -55,10 +58,10 @@ namespace imp {
     TransmittanceLut transmittanceLut_;
     SkyViewLut skyViewLut_;
 
-    void computeTransmittanceLut(Scene const &scene);
-    void computeSkyViewLut(Scene const &scene);
+    void computeTransmittanceLut(Atmosphere const &atmosphere);
+    void computeSkyViewLut(DirectionalLight const &sun, Camera const &camera);
     void renderAtmosphere(
-        Scene const &scene, std::uint32_t seed, vk::Framebuffer framebuffer);
+        Camera const &camera, std::uint32_t seed, vk::Framebuffer framebuffer);
 
     vk::UniqueCommandPool createCommandPool();
     vk::UniqueCommandBuffer allocateCommandBuffer();

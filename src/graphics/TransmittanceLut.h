@@ -1,11 +1,11 @@
 #pragma once
 
 #include "../core/GpuImage.h"
-#include "../math/Vector.h"
+#include "Spectrum.h"
 
 namespace imp {
+  class Atmosphere;
   class AtmosphereBuffer;
-  class Scene;
 
   class TransmittanceLut {
   public:
@@ -38,36 +38,38 @@ namespace imp {
     TransmittanceLut(
         Flyweight const *flyweight,
         AtmosphereBuffer const *buffer,
-        Vector2u const &size);
+        unsigned width, unsigned height);
 
     Flyweight const *getFlyweight() const noexcept;
     AtmosphereBuffer const *getBuffer() const noexcept;
-    Vector2u const &getSize() const noexcept;
+    unsigned getWidth() const noexcept;
+    unsigned getHeight() const noexcept;
     vk::Image getImage() const noexcept;
     vk::ImageView getImageView() const noexcept;
     vk::DescriptorSet getComputeDescriptorSet() const noexcept;
     vk::DescriptorSet getRenderDescriptorSet() const noexcept;
 
-    bool compute(vk::CommandBuffer cmd, Scene const &scene);
+    bool compute(vk::CommandBuffer cmd, Atmosphere const &atmosphere);
 
   private:
     Flyweight const *flyweight_;
     AtmosphereBuffer const *buffer_;
-    Vector2u size_;
+    unsigned width_;
+    unsigned height_;
     GpuImage image_;
     vk::UniqueImageView imageView_;
     vk::UniqueDescriptorPool descriptorPool_;
     std::vector<vk::DescriptorSet> descriptorSets_;
 
-    float planetRadius_;
-    float atmosphereRadius_;
-    Vector3f rayleighScattering_;
+    Spectrum rayleighScattering_;
     float rayleighScaleHeight_;
     float mieExtinction_;
     float mieScaleHeight_;
-    Vector3f ozoneAbsorption_;
+    Spectrum ozoneAbsorption_;
     float ozoneLayerHeight_;
     float ozoneLayerThickness_;
+    float planetRadius_;
+    float atmosphereRadius_;
 
     GpuImage createImage();
     vk::UniqueImageView createImageView();

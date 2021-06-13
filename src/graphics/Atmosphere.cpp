@@ -4,19 +4,17 @@
 
 namespace imp {
   Atmosphere::Atmosphere(
-      float planetRadius,
-      float atmosphereRadius,
-      Vector3f const &rayleighScattering,
+      Spectrum const &rayleighScattering,
       float rayleighScaleHeight,
       float mieScattering,
       float mieAbsorption,
       float mieScaleHeight,
       float mieG,
-      Vector3f const &ozoneAbsorption,
+      Spectrum const &ozoneAbsorption,
       float ozoneLayerHeight,
-      float ozoneLayerThickness) noexcept:
-      planetRadius_{planetRadius},
-      atmosphereRadius_{atmosphereRadius},
+      float ozoneLayerThickness,
+      float planetRadius,
+      float atmosphereRadius) noexcept:
       rayleighScattering_{rayleighScattering},
       rayleighScaleHeight_{rayleighScaleHeight},
       mieScattering_{mieScattering},
@@ -25,17 +23,11 @@ namespace imp {
       mieG_{mieG},
       ozoneAbsorption_{ozoneAbsorption},
       ozoneLayerHeight_{ozoneLayerHeight},
-      ozoneLayerThickness_{ozoneLayerThickness} {}
+      ozoneLayerThickness_{ozoneLayerThickness},
+      planetRadius_{planetRadius},
+      atmosphereRadius_{atmosphereRadius} {}
 
-  float Atmosphere::getPlanetRadius() const noexcept {
-    return planetRadius_;
-  }
-
-  float Atmosphere::getAtmosphereRadius() const noexcept {
-    return atmosphereRadius_;
-  }
-
-  Vector3f const &Atmosphere::getRayleighScattering() const noexcept {
+  Spectrum const &Atmosphere::getRayleighScattering() const noexcept {
     return rayleighScattering_;
   }
 
@@ -59,7 +51,7 @@ namespace imp {
     return mieG_;
   }
 
-  Vector3f const &Atmosphere::getOzoneAbsorption() const noexcept {
+  Spectrum const &Atmosphere::getOzoneAbsorption() const noexcept {
     return ozoneAbsorption_;
   }
 
@@ -71,21 +63,20 @@ namespace imp {
     return ozoneLayerThickness_;
   }
 
-  void Atmosphere::setPlanetRadius(float planetRadius) noexcept {
-    planetRadius_ = planetRadius;
+  float Atmosphere::getPlanetRadius() const noexcept {
+    return planetRadius_;
   }
 
-  void Atmosphere::setAtmosphereRadius(float atmosphereRadius) noexcept {
-    atmosphereRadius_ = atmosphereRadius;
+  float Atmosphere::getAtmosphereRadius() const noexcept {
+    return atmosphereRadius_;
   }
 
-  void Atmosphere::setRayleighScattering(
-      Vector3f const &rayleighScattering) noexcept {
-    rayleighScattering_ = rayleighScattering;
+  void Atmosphere::setRayleighScattering(Spectrum const &scattering) noexcept {
+    rayleighScattering_ = scattering;
   }
 
-  void Atmosphere::setRayleighScaleHeight(float rayleighScaleHeight) noexcept {
-    rayleighScaleHeight_ = rayleighScaleHeight;
+  void Atmosphere::setRayleighScaleHeight(float scaleHeight) noexcept {
+    rayleighScaleHeight_ = scaleHeight;
   }
 
   void Atmosphere::setMieScattering(float mieScattering) noexcept {
@@ -96,24 +87,32 @@ namespace imp {
     mieAbsorption_ = mieAbsorption;
   }
 
-  void Atmosphere::setMieG(float mieG) noexcept {
-    mieG_ = mieG;
+  void Atmosphere::setMieScaleHeight(float scaleHeight) noexcept {
+    mieScaleHeight_ = scaleHeight;
   }
 
-  void Atmosphere::setMieScaleHeight(float mieScaleHeight) noexcept {
-    mieScaleHeight_ = mieScaleHeight;
+  void Atmosphere::setMieG(float g) noexcept {
+    mieG_ = g;
   }
 
   void
-  Atmosphere::setOzoneAbsorption(Vector3f const &ozoneAbsorption) noexcept {
-    ozoneAbsorption_ = ozoneAbsorption;
+  Atmosphere::setOzoneAbsorption(Spectrum const &absorption) noexcept {
+    ozoneAbsorption_ = absorption;
   }
 
-  void Atmosphere::setOzoneLayerHeight(float ozoneLayerHeight) noexcept {
-    ozoneLayerHeight_ = ozoneLayerHeight;
+  void Atmosphere::setOzoneLayerHeight(float height) noexcept {
+    ozoneLayerHeight_ = height;
   }
 
-  void Atmosphere::setOzoneLayerThickness(float ozoneLayerThickness) noexcept {
-    ozoneLayerThickness_ = ozoneLayerThickness;
+  void Atmosphere::setOzoneLayerThickness(float thickness) noexcept {
+    ozoneLayerThickness_ = thickness;
+  }
+
+  void Atmosphere::setPlanetRadius(float planetRadius) noexcept {
+    planetRadius_ = planetRadius;
+  }
+
+  void Atmosphere::setAtmosphereRadius(float atmosphereRadius) noexcept {
+    atmosphereRadius_ = atmosphereRadius;
   }
 } // namespace imp

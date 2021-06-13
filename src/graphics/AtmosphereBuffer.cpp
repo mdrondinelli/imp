@@ -13,7 +13,7 @@ namespace imp {
   }
 
   void AtmosphereBuffer::update(Atmosphere const &atmosphere) noexcept {
-    auto dst = buffer_.data();
+    auto dst = buffer_.mappedData();
     auto push = [&](auto const &object) {
       std::memcpy(dst, &object, sizeof(object));
       dst += sizeof(object);

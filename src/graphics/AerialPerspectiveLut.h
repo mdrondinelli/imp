@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "../core/GpuImage.h"
-#include "../math/Vector.h"
 
 namespace imp {
   class Scene;
@@ -37,9 +36,14 @@ namespace imp {
     };
 
     AerialPerspectiveLut(
-        std::shared_ptr<Flyweight const> flyweight, Vector3u const &size);
+        std::shared_ptr<Flyweight const> flyweight,
+        unsigned width,
+        unsigned height,
+        unsigned depth);
 
-    Vector3u const &getSize() const noexcept;
+    unsigned getWidth() const noexcept;
+    unsigned getHeight() const noexcept;
+    unsigned getDepth() const noexcept;
     vk::DescriptorSet getImageDescriptorSet() const noexcept;
     vk::DescriptorSet getTextureDescriptorSet() const noexcept;
 
@@ -50,7 +54,9 @@ namespace imp {
 
   private:
     std::shared_ptr<Flyweight const> flyweight_;
-    Vector3u size_;
+    unsigned width_;
+    unsigned height_;
+    unsigned depth_;
     GpuImage image_;
     vk::UniqueImageView imageView_;
     vk::UniqueDescriptorPool descriptorPool_;

@@ -1,18 +1,6 @@
 #include "Scene.h"
 
 namespace imp {
-  Scene::Scene(SceneCreateInfo const &createInfo) noexcept:
-      atmosphere_{createInfo.atmosphere},
-      sunLight_{createInfo.sunLight},
-      moonLight_{createInfo.moonLight},
-      camera_{createInfo.camera} {}
-
-  Scene::Scene(SceneCreateInfo &&createInfo) noexcept:
-      atmosphere_{std::move(createInfo.atmosphere)},
-      sunLight_{std::move(createInfo.sunLight)},
-      moonLight_{std::move(createInfo.moonLight)},
-      camera_{std::move(createInfo.camera)} {}
-
   std::shared_ptr<Atmosphere> Scene::getAtmosphere() const noexcept {
     return atmosphere_;
   }
@@ -25,7 +13,15 @@ namespace imp {
     return moonLight_;
   }
 
-  std::shared_ptr<Camera> Scene::getCamera() const noexcept {
-    return camera_;
+  void Scene::setAtmosphere(std::shared_ptr<Atmosphere> atmosphere) noexcept {
+    atmosphere_ = std::move(atmosphere);
+  }
+  
+  void Scene::setSunLight(std::shared_ptr<DirectionalLight> light) noexcept {
+    sunLight_ = std::move(light);
+  }
+  
+  void Scene::setMoonLight(std::shared_ptr<DirectionalLight> light) noexcept {
+    moonLight_ = std::move(light);
   }
 } // namespace imp

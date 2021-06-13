@@ -42,21 +42,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\math\Interval.h">
-      <Filter>Header Files\math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\math\Matrix.h">
-      <Filter>Header Files\math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\math\Quaternion.h">
-      <Filter>Header Files\math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\math\Scalar.h">
-      <Filter>Header Files\math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\math\Vector.h">
-      <Filter>Header Files\math</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\Window.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
@@ -90,9 +75,6 @@
     <ClInclude Include="src\graphics\StaticVertex.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\math\Constants.h">
-      <Filter>Header Files\math</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\StaticMeshLoader.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
@@ -117,9 +99,6 @@
     <ClInclude Include="src\graphics\Camera.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Transform.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\DirectionalLight.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
@@ -139,6 +118,9 @@
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\AtmosphereBuffer.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\Spectrum.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
   </ItemGroup>
@@ -188,9 +170,6 @@
     <ClCompile Include="src\graphics\Scene.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\Transform.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\DirectionalLight.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
@@ -210,6 +189,9 @@
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\AtmosphereBuffer.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\Spectrum.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
   </ItemGroup>

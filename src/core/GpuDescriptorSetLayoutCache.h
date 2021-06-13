@@ -1,6 +1,5 @@
 #pragma once
 
-#include <forward_list>
 #include <memory>
 #include <vector>
 

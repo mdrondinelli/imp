@@ -49,7 +49,7 @@ namespace imp {
     return buffer_;
   }
 
-  char *GpuBuffer::data() const noexcept {
+  char *GpuBuffer::mappedData() const noexcept {
     auto info = VmaAllocationInfo{};
     vmaGetAllocationInfo(allocator_, allocation_, &info);
     return static_cast<char *>(info.pMappedData);

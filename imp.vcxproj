@@ -175,7 +175,6 @@
     <ClInclude Include="src\core\ResourceCache.h" />
     <ClInclude Include="src\core\ResourceLoader.h" />
     <ClInclude Include="src\core\ResourceState.h" />
-    <ClInclude Include="src\core\Transform.h" />
     <ClInclude Include="src\core\vk_mem_alloc.h" />
     <ClInclude Include="src\core\WorkerThread.h" />
     <ClInclude Include="src\core\Window.h" />
@@ -186,6 +185,7 @@
     <ClInclude Include="src\graphics\Camera.h" />
     <ClInclude Include="src\graphics\DirectionalLight.h" />
     <ClInclude Include="src\graphics\Frame.h" />
+    <ClInclude Include="src\graphics\Spectrum.h" />
     <ClInclude Include="src\graphics\TransmittanceLut.h" />
     <ClInclude Include="src\graphics\Renderer.h" />
     <ClInclude Include="src\graphics\Scene.h" />
@@ -194,12 +194,6 @@
     <ClInclude Include="src\graphics\StaticMeshCache.h" />
     <ClInclude Include="src\graphics\StaticMeshLoader.h" />
     <ClInclude Include="src\graphics\StaticVertex.h" />
-    <ClInclude Include="src\math\Constants.h" />
-    <ClInclude Include="src\math\Interval.h" />
-    <ClInclude Include="src\math\Matrix.h" />
-    <ClInclude Include="src\math\Quaternion.h" />
-    <ClInclude Include="src\math\Scalar.h" />
-    <ClInclude Include="src\math\Vector.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\GpuBuffer.cpp" />
@@ -207,7 +201,6 @@
     <ClCompile Include="src\core\GpuImage.cpp" />
     <ClCompile Include="src\core\GpuContext.cpp" />
     <ClCompile Include="src\core\GpuSamplerCache.cpp" />
-    <ClCompile Include="src\core\Transform.cpp" />
     <ClCompile Include="src\core\vk_mem_alloc.cpp" />
     <ClCompile Include="src\core\WorkerThread.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
@@ -218,6 +211,7 @@
     <ClCompile Include="src\graphics\Camera.cpp" />
     <ClCompile Include="src\graphics\DirectionalLight.cpp" />
     <ClCompile Include="src\graphics\Frame.cpp" />
+    <ClCompile Include="src\graphics\Spectrum.cpp" />
     <ClCompile Include="src\graphics\TransmittanceLut.cpp" />
     <ClCompile Include="src\graphics\Renderer.cpp" />
     <ClCompile Include="src\graphics\Scene.cpp" />

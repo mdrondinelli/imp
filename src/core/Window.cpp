@@ -14,10 +14,14 @@ namespace imp {
     glfwPollEvents();
   }
 
-  Window::Window(WindowCreateInfo const &createInfo):
-      context_{createInfo.context},
-      window_{createWindow(
-          createInfo.size, createInfo.title, createInfo.fullscreen)},
+  Window::Window(
+      GpuContext *context,
+      unsigned width,
+      unsigned height,
+      char const *title,
+      bool fullscreen):
+      context_{context},
+      window_{createWindow(width, height, title, fullscreen)},
       surface_{createSurface()},
       surfaceFormat_{selectSurfaceFormat()},
       presentMode_{selectPresentMode()},
@@ -38,12 +42,12 @@ namespace imp {
   }
 
   GLFWwindow *Window::createWindow(
-      Vector2u const &size, char const *title, bool fullscreen) {
+      unsigned width, unsigned height, char const *title, bool fullscreen) {
     glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     auto window = glfwCreateWindow(
-        size[0],
-        size[1],
+        width,
+        height,
         title,
         fullscreen ? glfwGetPrimaryMonitor() : nullptr,
         nullptr);
@@ -128,72 +132,72 @@ namespace imp {
     auto capabilities = physical_device.getSurfaceCapabilitiesKHR(*surface_);
     if (capabilities.currentExtent.width !=
         std::numeric_limits<uint32_t>::max()) {
-      swapchainSize_[0] = capabilities.currentExtent.width;
-      swapchainSize_[1] = capabilities.currentExtent.height;
+      swapchainWidth_ = capabilities.currentExtent.width;
+      swapchainHeight_ = capabilities.currentExtent.height;
     } else {
-      auto lo = Vector2u{
+      swapchainWidth_ = std::clamp(
+          getFramebufferWidth(),
           capabilities.minImageExtent.width,
-          capabilities.minImageExtent.height};
-      auto hi = Vector2u{
-          capabilities.maxImageExtent.width,
-          capabilities.maxImageExtent.height};
-      swapchainSize_ = clamp(getFramebufferSize(), lo, hi);
+          capabilities.maxImageExtent.width);
+      swapchainHeight_ = std::clamp(
+          getFramebufferWidth(),
+          capabilities.minImageExtent.height,
+          capabilities.maxImageExtent.height);
     }
     auto queue_family_indices =
         std::array{context_->getGraphicsFamily(), context_->getPresentFamily()};
-    auto create_info = vk::SwapchainCreateInfoKHR{};
-    create_info.surface = *surface_;
-    create_info.minImageCount = capabilities.minImageCount + 1;
-    if (create_info.minImageCount > capabilities.maxImageCount &&
+    auto createInfo = vk::SwapchainCreateInfoKHR{};
+    createInfo.surface = *surface_;
+    createInfo.minImageCount = capabilities.minImageCount + 1;
+    if (createInfo.minImageCount > capabilities.maxImageCount &&
         capabilities.maxImageCount != 0) {
-      create_info.minImageCount = capabilities.maxImageCount;
+      createInfo.minImageCount = capabilities.maxImageCount;
     }
-    create_info.imageFormat = surfaceFormat_.format;
-    create_info.imageColorSpace = surfaceFormat_.colorSpace;
-    create_info.imageExtent.width = swapchainSize_[0];
-    create_info.imageExtent.height = swapchainSize_[1];
-    create_info.imageArrayLayers = 1;
-    create_info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+    createInfo.imageFormat = surfaceFormat_.format;
+    createInfo.imageColorSpace = surfaceFormat_.colorSpace;
+    createInfo.imageExtent.width = swapchainWidth_;
+    createInfo.imageExtent.height = swapchainHeight_;
+    createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
     if (queue_family_indices[0] != queue_family_indices[1]) {
-      create_info.imageSharingMode = vk::SharingMode::eConcurrent;
-      create_info.queueFamilyIndexCount =
+      createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
+      createInfo.queueFamilyIndexCount =
           static_cast<uint32_t>(queue_family_indices.size());
-      create_info.pQueueFamilyIndices = queue_family_indices.data();
+      createInfo.pQueueFamilyIndices = queue_family_indices.data();
     } else {
-      create_info.imageSharingMode = vk::SharingMode::eExclusive;
+      createInfo.imageSharingMode = vk::SharingMode::eExclusive;
     }
-    create_info.preTransform = capabilities.currentTransform;
-    create_info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-    create_info.presentMode = presentMode_;
-    create_info.clipped = true;
-    swapchain_ = device.createSwapchainKHRUnique(create_info);
+    createInfo.preTransform = capabilities.currentTransform;
+    createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+    createInfo.presentMode = presentMode_;
+    createInfo.clipped = true;
+    swapchain_ = device.createSwapchainKHRUnique(createInfo);
     swapchainImages_ = device.getSwapchainImagesKHR(*swapchain_);
     for (auto image : swapchainImages_) {
-      auto view_info = vk::ImageViewCreateInfo{};
-      view_info.image = image;
-      view_info.viewType = vk::ImageViewType::e2D;
-      view_info.format = surfaceFormat_.format;
-      view_info.components = vk::ComponentMapping{};
-      view_info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-      view_info.subresourceRange.baseMipLevel = 0;
-      view_info.subresourceRange.levelCount = 1;
-      view_info.subresourceRange.baseArrayLayer = 0;
-      view_info.subresourceRange.layerCount = 1;
+      auto createInfo = vk::ImageViewCreateInfo{};
+      createInfo.image = image;
+      createInfo.viewType = vk::ImageViewType::e2D;
+      createInfo.format = surfaceFormat_.format;
+      createInfo.components = vk::ComponentMapping{};
+      createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+      createInfo.subresourceRange.baseMipLevel = 0;
+      createInfo.subresourceRange.levelCount = 1;
+      createInfo.subresourceRange.baseArrayLayer = 0;
+      createInfo.subresourceRange.layerCount = 1;
       swapchainImageViews_.emplace_back(
-          device.createImageViewUnique(view_info));
+          device.createImageViewUnique(createInfo));
     }
-    for (auto &image_view : swapchainImageViews_) {
-      auto framebuffer_info = vk::FramebufferCreateInfo{};
-      framebuffer_info.renderPass = *renderPass_;
-      auto attachments = std::array{*image_view};
-      framebuffer_info.attachmentCount =
-          static_cast<uint32_t>(attachments.size());
-      framebuffer_info.pAttachments = attachments.data();
-      framebuffer_info.width = swapchainSize_[0];
-      framebuffer_info.height = swapchainSize_[1];
-      framebuffer_info.layers = 1;
+    for (auto &imageView : swapchainImageViews_) {
+      auto createInfo = vk::FramebufferCreateInfo{};
+      createInfo.renderPass = *renderPass_;
+      auto attachment = *imageView;
+      createInfo.attachmentCount = 1;
+      createInfo.pAttachments = &attachment;
+      createInfo.width = swapchainWidth_;
+      createInfo.height = swapchainHeight_;
+      createInfo.layers = 1;
       swapchainFramebuffers_.emplace_back(
-          device.createFramebufferUnique(framebuffer_info));
+          device.createFramebufferUnique(createInfo));
     }
   }
 
@@ -205,15 +209,7 @@ namespace imp {
     swapchain_.reset();
   }
 
-  /*vk::Format Window::getFormat() const noexcept {
-    return surfaceFormat_.format;
-  }
-
-  vk::ColorSpaceKHR Window::getColorSpace() const noexcept {
-    return surfaceFormat_.colorSpace;
-  }*/
-
-  GpuContext* Window::getContext() const noexcept {
+  GpuContext *Window::getContext() const noexcept {
     return context_;
   }
 
@@ -221,24 +217,36 @@ namespace imp {
     return surfaceFormat_;
   }
 
-  Vector2u Window::getWindowSize() const noexcept {
+  unsigned Window::getWindowWidth() const noexcept {
     int width;
-    int height;
-    glfwGetWindowSize(window_, &width, &height);
-    return {
-        static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height)};
+    glfwGetWindowSize(window_, &width, nullptr);
+    return static_cast<unsigned>(width);
   }
 
-  Vector2u Window::getFramebufferSize() const noexcept {
-    int width;
+  unsigned Window::getWindowHeight() const noexcept {
     int height;
-    glfwGetFramebufferSize(window_, &width, &height);
-    return {
-        static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height)};
+    glfwGetWindowSize(window_, nullptr, &height);
+    return static_cast<unsigned>(height);
   }
 
-  Vector2u const &Window::getSwapchainSize() const noexcept {
-    return swapchainSize_;
+  unsigned Window::getFramebufferWidth() const noexcept {
+    int width;
+    glfwGetFramebufferSize(window_, &width, nullptr);
+    return static_cast<unsigned>(width);
+  }
+
+  unsigned Window::getFramebufferHeight() const noexcept {
+    int height;
+    glfwGetFramebufferSize(window_, nullptr, &height);
+    return static_cast<unsigned>(height);
+  }
+
+  unsigned Window::getSwapchainWidth() const noexcept {
+    return swapchainWidth_;
+  }
+
+  unsigned Window::getSwapchainHeight() const noexcept {
+    return swapchainHeight_;
   }
 
   bool Window::shouldClose() const noexcept {

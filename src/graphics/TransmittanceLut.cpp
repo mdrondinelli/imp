@@ -123,10 +123,12 @@ namespace imp {
   TransmittanceLut::TransmittanceLut(
       Flyweight const *flyweight,
       AtmosphereBuffer const *buffer,
-      Vector2u const &size):
+      unsigned width,
+      unsigned height):
       flyweight_{flyweight},
       buffer_{buffer},
-      size_{size},
+      width_{width},
+      height_{height},
       image_{createImage()},
       imageView_{createImageView()},
       descriptorPool_{createDescriptorPool()},
@@ -152,8 +154,12 @@ namespace imp {
     return buffer_;
   }
 
-  Vector2u const &TransmittanceLut::getSize() const noexcept {
-    return size_;
+  unsigned TransmittanceLut::getWidth() const noexcept {
+    return width_;
+  }
+
+  unsigned TransmittanceLut::getHeight() const noexcept {
+    return height_;
   }
 
   vk::Image TransmittanceLut::getImage() const noexcept {
@@ -172,18 +178,18 @@ namespace imp {
     return descriptorSets_[1];
   }
 
-  bool TransmittanceLut::compute(vk::CommandBuffer cmd, Scene const &scene) {
-    auto &atmosphere = *scene.getAtmosphere();
-    if (planetRadius_ != atmosphere.getPlanetRadius() ||
-        atmosphereRadius_ != atmosphere.getAtmosphereRadius() ||
-        rayleighScattering_ != atmosphere.getRayleighScattering() ||
+  bool TransmittanceLut::compute(
+      vk::CommandBuffer cmd, Atmosphere const &atmosphere) {
+    if (rayleighScattering_ != atmosphere.getRayleighScattering() ||
         rayleighScaleHeight_ != atmosphere.getRayleighScaleHeight() ||
         mieExtinction_ !=
             atmosphere.getMieScattering() + atmosphere.getMieAbsorption() ||
         mieScaleHeight_ != atmosphere.getMieScaleHeight() ||
         ozoneAbsorption_ != atmosphere.getOzoneAbsorption() ||
         ozoneLayerHeight_ != atmosphere.getOzoneLayerHeight() ||
-        ozoneLayerThickness_ != atmosphere.getOzoneLayerThickness()) {
+        ozoneLayerThickness_ != atmosphere.getOzoneLayerThickness() ||
+        planetRadius_ != atmosphere.getPlanetRadius() ||
+        atmosphereRadius_ != atmosphere.getAtmosphereRadius()) {
       planetRadius_ = atmosphere.getPlanetRadius();
       atmosphereRadius_ = atmosphere.getAtmosphereRadius();
       rayleighScattering_ = atmosphere.getRayleighScattering();
@@ -222,7 +228,7 @@ namespace imp {
           {},
           {},
           barrier);
-      cmd.dispatch(size_[0] / 8u, size_[1] / 8u, 1u);
+      cmd.dispatch(width_ / 8u, height_ / 8u, 1u);
       return true;
     } else {
       return false;
@@ -233,8 +239,8 @@ namespace imp {
     auto createInfo = GpuImageCreateInfo{};
     createInfo.image.imageType = vk::ImageType::e2D;
     createInfo.image.format = vk::Format::eR16G16B16A16Unorm;
-    createInfo.image.extent.width = size_[0];
-    createInfo.image.extent.height = size_[1];
+    createInfo.image.extent.width = width_;
+    createInfo.image.extent.height = height_;
     createInfo.image.extent.depth = 1;
     createInfo.image.mipLevels = 1;
     createInfo.image.arrayLayers = 1;

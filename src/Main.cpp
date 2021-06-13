@@ -2,9 +2,12 @@
 #include <exception>
 #include <iostream>
 
+#include "core/GpuContext.h"
 #include "core/ResourceCache.h"
+#include "core/Window.h"
+#include "graphics/Camera.h"
 #include "graphics/Renderer.h"
-#include "math/Constants.h"
+#include "graphics/Scene.h"
 
 struct DummyResource {
   int wenis;
@@ -51,64 +54,41 @@ int main() {
     gpuContextCreateInfo.validation = false;
     gpuContextCreateInfo.presentation = true;
     auto gpuContext = imp::GpuContext{gpuContextCreateInfo};
-    // Atmosphere
-    auto atmosphere = std::make_shared<imp::Atmosphere>();
-    //atmosphere->setRayleighScattering(0.0f);
-    //atmosphere->setMieScattering(atmosphere->getMieScattering() * 5.0f);
-    //atmosphere->setMieAbsorption(atmosphere->getMieAbsorption() * 5.0f);
-    // Camera
-    auto cameraCreateInfo = imp::CameraCreateInfo{};
-    cameraCreateInfo.transform.translate(imp::Vector3f{0.0f, 2.0f, 0.0f});
-    cameraCreateInfo.transform.rotateGlobal(imp::rotationQuaternion(
-        imp::toRadians(0.0f), imp::Vector3f{1.0f, 0.0f, 0.0f}));
-    auto camera = std::make_shared<imp::Camera>(cameraCreateInfo);
-    // Sun
-    // wikipedia: radiance of the sun is 15.4 megawatts per meter squared per
-    // steradian. 42% of that is visible. I assume evenly divided into rgb.
-    auto sunCreateInfo = imp::DirectionalLightCreateInfo{};
-    sunCreateInfo.irradiance = imp::Vector3f{200.0f};
-    sunCreateInfo.direction = imp::normalize(imp::Vector3f{0.0f, -1.0f, 1.0f});
-    auto sun = std::make_shared<imp::DirectionalLight>(sunCreateInfo);
-    // Scene
-    auto sceneCreateInfo = imp::SceneCreateInfo{};
-    sceneCreateInfo.context = &gpuContext;
-    sceneCreateInfo.atmosphere = atmosphere;
-    sceneCreateInfo.sunLight = sun;
-    sceneCreateInfo.moonLight = nullptr;
-    sceneCreateInfo.camera = camera;
-    auto scene = imp::Scene{sceneCreateInfo};
     // Window
-    auto windowCreateInfo = imp::WindowCreateInfo{};
-    windowCreateInfo.context = &gpuContext;
-    windowCreateInfo.size = imp::Vector2u{1920u, 1080u};
-    windowCreateInfo.title = "I Love Laiba Sunrise Simulator Sunrise Oooweeeh";
-    windowCreateInfo.fullscreen = true;
-    auto window = imp::Window{windowCreateInfo};
+    auto window = imp::Window{&gpuContext, 1920, 1080, "imp", true};
+    // Scene
+    auto atmosphere = std::make_shared<imp::Atmosphere>();
+    auto sun = std::make_shared<imp::DirectionalLight>(
+        imp::Spectrum{200.0f}, Eigen::Vector3f{0.0f, -1.0f, 1.0f}.normalized());
+    auto scene = imp::Scene{};
+    scene.setAtmosphere(atmosphere);
+    scene.setSunLight(sun);
+    // Camera
+    auto camera =
+        std::make_shared<imp::Camera>(Eigen::Vector3f{0.0f, 2.0f, 0.0f});
     // Renderer
-    auto rendererCreateInfo = imp::RendererCreateInfo{};
-    rendererCreateInfo.window = &window;
-    auto renderer = imp::Renderer{rendererCreateInfo};
+    auto renderer = imp::Renderer{&window};
     auto frame_time = std::chrono::high_resolution_clock::now();
     auto frame_count = 0;
     while (!window.shouldClose()) {
       imp::pollWindows();
-      if (window.getFramebufferSize() != imp::Vector2u{}) {
-        auto angle = float(glfwGetTime()) * 0.0043633f * 2.0f - 0.15f;
-        //auto angle = imp::toRadians(45.0f);
-        sun->setDirection(
-            imp::Vector3f{0.0f, imp::sin(angle), -imp::cos(angle)});
-        auto aspect = float(window.getFramebufferSize()[0]) /
-                      float(window.getFramebufferSize()[1]);
+      auto angle = float(glfwGetTime()) * 0.0043633f * 2.0f - 0.15f;
+      sun->setDirection(
+          Eigen::Vector3f{0.0f, std::sin(angle), -std::cos(angle)});
+      if (window.getFramebufferWidth() != 0 &&
+          window.getFramebufferHeight() != 0) {
+        auto aspect = float(window.getFramebufferWidth()) /
+                      float(window.getFramebufferHeight());
         if (aspect >= 1.0f) {
-          camera->setTanHalfFovX(imp::tan(imp::toRadians(70.0f / 2.0f)));
+          camera->setTanHalfFovX(1.0f);
           camera->setTanHalfFovY(camera->getTanHalfFovX() / aspect);
         } else {
-          camera->setTanHalfFovY(imp::tan(imp::toRadians(70.0f / 2.0f)));
+          camera->setTanHalfFovY(1.0f);
           camera->setTanHalfFovX(camera->getTanHalfFovY() * aspect);
         }
-        renderer.render(scene);
+        renderer.render(scene, *camera);
+        ++frame_count;
       }
-      ++frame_count;
       if (std::chrono::high_resolution_clock::now() - frame_time > 1s) {
         std::cout << frame_count << " fps\n";
         frame_time = std::chrono::high_resolution_clock::now();
