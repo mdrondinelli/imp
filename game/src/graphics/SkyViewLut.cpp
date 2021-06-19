@@ -98,7 +98,7 @@ namespace imp {
   vk::UniquePipeline SkyViewLut::Flyweight::createPipeline() {
     auto ifs = std::ifstream{};
     ifs.exceptions(std::ios::badbit | std::ios::failbit);
-    ifs.open("./res/SkyView.spv", std::ios::binary);
+    ifs.open("./data/SkyView.spv", std::ios::binary);
     ifs.seekg(0, std::ios::end);
     auto code = std::vector<char>{};
     code.resize(ifs.tellg());

@@ -106,12 +106,12 @@ namespace imp {
       createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
       return context->getDevice().createShaderModuleUnique(createInfo);
     };
-    auto vertModule = createShaderModule("./res/AtmosphereVert.spv");
+    auto vertModule = createShaderModule("./data/AtmosphereVert.spv");
     auto vertStage = vk::PipelineShaderStageCreateInfo{};
     vertStage.stage = vk::ShaderStageFlagBits::eVertex;
     vertStage.module = *vertModule;
     vertStage.pName = "main";
-    auto fragModule = createShaderModule("./res/AtmosphereFrag.spv");
+    auto fragModule = createShaderModule("./data/AtmosphereFrag.spv");
     auto fragStage = vk::PipelineShaderStageCreateInfo{};
     fragStage.stage = vk::ShaderStageFlagBits::eFragment;
     fragStage.module = *fragModule;

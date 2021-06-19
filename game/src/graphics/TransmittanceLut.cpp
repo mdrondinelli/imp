@@ -84,7 +84,7 @@ namespace imp {
     auto code = std::vector<char>{};
     auto in = std::ifstream{};
     in.exceptions(std::ios::badbit | std::ios::failbit);
-    in.open("./res/Transmittance.spv", std::ios::binary);
+    in.open("./data/Transmittance.spv", std::ios::binary);
     in.seekg(0, std::ios::end);
     auto codeSize = static_cast<std::size_t>(in.tellg());
     if (codeSize % 4 != 0) {

@@ -14,35 +14,32 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Header Files\graphics">
-      <UniqueIdentifier>{d9670e66-8e31-4525-9875-7a196a73f09c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\graphics">
-      <UniqueIdentifier>{6f370779-95dd-4915-b793-2890171193a9}</UniqueIdentifier>
+      <UniqueIdentifier>{e7870396-b3c4-4b39-8434-8ec8aae3a7c6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\system">
-      <UniqueIdentifier>{68f9508b-692d-4a3f-a944-61aecf093757}</UniqueIdentifier>
+      <UniqueIdentifier>{3f46063a-e6e8-4ae0-8602-3a3cb19f5467}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui">
+      <UniqueIdentifier>{35fa61ec-8ccc-4e01-9269-446dacd0cdf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\graphics">
+      <UniqueIdentifier>{0fcaa4b2-a8e8-4381-b614-d7fa81f7340a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{9d0c5ae8-e4b5-473d-946c-abe16e93ace6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\system">
-      <UniqueIdentifier>{f74440ab-058e-4214-b766-546c8deec4c2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\gui">
-      <UniqueIdentifier>{eb1a131e-ce25-4c05-8842-97505cdf5330}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\gui">
-      <UniqueIdentifier>{75e5d55b-1707-4aea-aa83-5242f63b6b44}</UniqueIdentifier>
+      <UniqueIdentifier>{9cf5ee09-e9c0-4c31-92e3-87842cab729b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\graphics\TransmittanceLut.h">
+    <ClInclude Include="src\graphics\AerialPerspectiveLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Atmosphere.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\Renderer.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\Scene.h">
+    <ClInclude Include="src\graphics\AtmosphereBuffer.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Camera.h">
@@ -51,19 +48,25 @@
     <ClInclude Include="src\graphics\DirectionalLight.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\SkyViewLut.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\Frame.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\AerialPerspectiveLut.h">
+    <ClInclude Include="src\graphics\Renderer.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\AtmosphereBuffer.h">
+    <ClInclude Include="src\graphics\ScatteringLut.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\Scene.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\SkyViewLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Spectrum.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\TransmittanceLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\system\Display.h">
@@ -99,67 +102,91 @@
     <ClInclude Include="src\system\WorkerThread.h">
       <Filter>Header Files\system</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\BoxWidget.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\ColumnWidget.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\RowWidget.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\Widget.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\TransmittanceLut.cpp">
+    <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\Atmosphere.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\Renderer.cpp">
+    <ClCompile Include="src\graphics\AtmosphereBuffer.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\Camera.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\Scene.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\DirectionalLight.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\SkyViewLut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\Frame.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp">
+    <ClCompile Include="src\graphics\Renderer.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\AtmosphereBuffer.cpp">
+    <ClCompile Include="src\graphics\Scene.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\SkyViewLut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\Spectrum.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\system\WorkerThread.cpp">
-      <Filter>Source Files\system</Filter>
+    <ClCompile Include="src\graphics\TransmittanceLut.cpp">
+      <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\system\vk_mem_alloc.cpp">
-      <Filter>Source Files\system</Filter>
-    </ClCompile>
-    <ClCompile Include="src\system\GpuSamplerCache.cpp">
-      <Filter>Source Files\system</Filter>
-    </ClCompile>
-    <ClCompile Include="src\system\GpuImage.cpp">
-      <Filter>Source Files\system</Filter>
-    </ClCompile>
-    <ClCompile Include="src\system\GpuDescriptorSetLayoutCache.cpp">
-      <Filter>Source Files\system</Filter>
-    </ClCompile>
-    <ClCompile Include="src\system\GpuContext.cpp">
+    <ClCompile Include="src\system\Display.cpp">
       <Filter>Source Files\system</Filter>
     </ClCompile>
     <ClCompile Include="src\system\GpuBuffer.cpp">
       <Filter>Source Files\system</Filter>
     </ClCompile>
-    <ClCompile Include="src\system\Display.cpp">
+    <ClCompile Include="src\system\GpuContext.cpp">
       <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\GpuDescriptorSetLayoutCache.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\GpuImage.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\GpuSamplerCache.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\vk_mem_alloc.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\WorkerThread.cpp">
+      <Filter>Source Files\system</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\BoxWidget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\RowWidget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\Widget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\ColumnWidget.cpp">
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

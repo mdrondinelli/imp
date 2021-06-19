@@ -85,7 +85,7 @@ namespace imp {
   vk::UniquePipeline AerialPerspectiveLut::Flyweight::createPipeline() {
     auto ifs = std::ifstream{};
     ifs.exceptions(std::ios::badbit | std::ios::failbit);
-    ifs.open("./res/SkyView.spv", std::ios::binary);
+    ifs.open("./data/AerialPerspective.spv", std::ios::binary);
     ifs.seekg(0, std::ios::end);
     auto codeSize = static_cast<std::size_t>(ifs.tellg());
     if (codeSize % 4 != 0) {
