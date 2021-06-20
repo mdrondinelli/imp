@@ -36,21 +36,18 @@ TEST(RowWidgetTest, handlesRigidNoPreference) {
   EXPECT_EQ(row.getWidth(), 140);
   EXPECT_EQ(row.getHeight(), 80);
   // one
-  EXPECT_FALSE(one->getPreferredWidth().has_value());
-  ASSERT_TRUE(one->getPreferredHeight().has_value());
-  EXPECT_EQ(*one->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(one->getPreferredWidth(), 0);
+  EXPECT_EQ(one->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  EXPECT_FALSE(two->getPreferredWidth().has_value());
-  ASSERT_TRUE(two->getPreferredHeight().has_value());
-  EXPECT_EQ(*two->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(two->getPreferredWidth(), 0);
+  EXPECT_EQ(two->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(two->getTranslation()(0), 80);
   EXPECT_EQ(two->getTranslation()(1), 0);
   // three
-  EXPECT_FALSE(three->getPreferredWidth().has_value());
-  ASSERT_TRUE(three->getPreferredHeight().has_value());
-  EXPECT_EQ(*three->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(three->getPreferredWidth(), 0);
+  EXPECT_EQ(three->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(three->getTranslation()(0), 100);
   EXPECT_EQ(three->getTranslation()(1), 0);
 }
@@ -70,21 +67,18 @@ TEST(RowWidgetTest, handlesRigidSmallPreference) {
   EXPECT_EQ(row.getWidth(), 140);
   EXPECT_EQ(row.getHeight(), 80);
   // one
-  EXPECT_FALSE(one->getPreferredWidth().has_value());
-  ASSERT_TRUE(one->getPreferredHeight().has_value());
-  EXPECT_EQ(*one->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(one->getPreferredWidth(), 0);
+  EXPECT_EQ(one->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  EXPECT_FALSE(two->getPreferredWidth().has_value());
-  ASSERT_TRUE(two->getPreferredHeight().has_value());
-  EXPECT_EQ(*two->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(two->getPreferredWidth(), 0);
+  EXPECT_EQ(two->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(two->getTranslation()(0), 80);
   EXPECT_EQ(two->getTranslation()(1), 0);
   // three
-  EXPECT_FALSE(three->getPreferredWidth().has_value());
-  ASSERT_TRUE(three->getPreferredHeight().has_value());
-  EXPECT_EQ(*three->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(three->getPreferredWidth(), 0);
+  EXPECT_EQ(three->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(three->getTranslation()(0), 100);
   EXPECT_EQ(three->getTranslation()(1), 0);
 }
@@ -101,24 +95,21 @@ TEST(RowWidgetTest, handlesRigidLargePreference) {
   row.setPreferredHeight(200u);
   row.layout();
   // row
-  EXPECT_EQ(row.getWidth(), *row.getPreferredWidth());
-  EXPECT_EQ(row.getHeight(), *row.getPreferredHeight());
+  EXPECT_EQ(row.getWidth(), row.getPreferredWidth());
+  EXPECT_EQ(row.getHeight(), row.getPreferredHeight());
   // one
-  EXPECT_FALSE(one->getPreferredWidth().has_value());
-  ASSERT_TRUE(one->getPreferredHeight().has_value());
-  EXPECT_EQ(*one->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(one->getPreferredWidth(), 0);
+  EXPECT_EQ(one->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  EXPECT_FALSE(two->getPreferredWidth().has_value());
-  ASSERT_TRUE(two->getPreferredHeight().has_value());
-  EXPECT_EQ(*two->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(two->getPreferredWidth(), 0);
+  EXPECT_EQ(two->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(two->getTranslation()(0), 80);
   EXPECT_EQ(two->getTranslation()(1), 0);
   // three
-  EXPECT_FALSE(three->getPreferredWidth().has_value());
-  ASSERT_TRUE(three->getPreferredHeight().has_value());
-  EXPECT_EQ(*three->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(three->getPreferredWidth(), 0);
+  EXPECT_EQ(three->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(three->getTranslation()(0), 100);
   EXPECT_EQ(three->getTranslation()(1), 0);
 }
@@ -136,23 +127,18 @@ TEST(RowWidgetTest, handlesFlexibleNoPreference) {
   EXPECT_EQ(row.getWidth(), 260);
   EXPECT_EQ(row.getHeight(), 80);
   // one
-  ASSERT_TRUE(one->getPreferredWidth().has_value());
-  EXPECT_EQ(*one->getPreferredWidth(), 80);
-  ASSERT_TRUE(one->getPreferredHeight().has_value());
-  EXPECT_EQ(*one->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(one->getPreferredWidth(), 80);
+  EXPECT_EQ(one->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  EXPECT_FALSE(two->getPreferredWidth().has_value());
-  ASSERT_TRUE(two->getPreferredHeight().has_value());
-  EXPECT_EQ(*two->getPreferredHeight(), 80);
+  EXPECT_EQ(two->getPreferredWidth(), 0);
+  EXPECT_EQ(two->getPreferredHeight(), 80);
   EXPECT_EQ(two->getTranslation()(0), 80);
   EXPECT_EQ(two->getTranslation()(1), 0);
   // three
-  ASSERT_TRUE(three->getPreferredWidth().has_value());
-  EXPECT_EQ(*three->getPreferredWidth(), 160);
-  ASSERT_TRUE(three->getPreferredHeight().has_value());
-  EXPECT_EQ(*three->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(three->getPreferredWidth(), 160);
+  EXPECT_EQ(three->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(three->getTranslation()(0), 100);
   EXPECT_EQ(three->getTranslation()(1), 0);
 }
@@ -172,23 +158,18 @@ TEST(RowWidgetTest, handlesFlexibleSmallPreference) {
   EXPECT_EQ(row.getWidth(), 260);
   EXPECT_EQ(row.getHeight(), 80);
   // one
-  ASSERT_TRUE(one->getPreferredWidth().has_value());
-  EXPECT_EQ(*one->getPreferredWidth(), 80);
-  ASSERT_TRUE(one->getPreferredHeight().has_value());
-  EXPECT_EQ(*one->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(one->getPreferredWidth(), 80);
+  EXPECT_EQ(one->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  EXPECT_FALSE(two->getPreferredWidth().has_value());
-  ASSERT_TRUE(two->getPreferredHeight().has_value());
-  EXPECT_EQ(*two->getPreferredHeight(), 80);
+  EXPECT_EQ(two->getPreferredWidth(), 0);
+  EXPECT_EQ(two->getPreferredHeight(), 80);
   EXPECT_EQ(two->getTranslation()(0), 80);
   EXPECT_EQ(two->getTranslation()(1), 0);
   // three
-  ASSERT_TRUE(three->getPreferredWidth().has_value());
-  EXPECT_EQ(*three->getPreferredWidth(), 160);
-  ASSERT_TRUE(three->getPreferredHeight().has_value());
-  EXPECT_EQ(*three->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(three->getPreferredWidth(), 160);
+  EXPECT_EQ(three->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(three->getTranslation()(0), 100);
   EXPECT_EQ(three->getTranslation()(1), 0);
 }
@@ -205,26 +186,21 @@ TEST(RowWidgetTest, handlesFlexibleLargePreference) {
   row.setPreferredHeight(160u);
   row.layout();
   // row
-  EXPECT_EQ(row.getWidth(), *row.getPreferredWidth());
-  EXPECT_EQ(row.getHeight(), *row.getPreferredHeight());
+  EXPECT_EQ(row.getWidth(), row.getPreferredWidth());
+  EXPECT_EQ(row.getHeight(), row.getPreferredHeight());
   // one
-  ASSERT_TRUE(one->getPreferredWidth().has_value());
-  EXPECT_EQ(*one->getPreferredWidth(), 100);
-  ASSERT_TRUE(one->getPreferredHeight().has_value());
-  EXPECT_EQ(*one->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(one->getPreferredWidth(), 100);
+  EXPECT_EQ(one->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  EXPECT_FALSE(two->getPreferredWidth().has_value());
-  ASSERT_TRUE(two->getPreferredHeight().has_value());
-  EXPECT_EQ(*two->getPreferredHeight(), row.getHeight());
+  EXPECT_EQ(two->getPreferredWidth(), 0);
+  EXPECT_EQ(two->getPreferredHeight(), row.getHeight());
   EXPECT_EQ(two->getTranslation()(0), 100);
   EXPECT_EQ(two->getTranslation()(1), 0);
   // three
-  ASSERT_TRUE(three->getPreferredWidth().has_value());
-  EXPECT_EQ(*three->getPreferredWidth(), 200);
-  ASSERT_TRUE(three->getPreferredHeight().has_value());
-  EXPECT_EQ(*three->getPreferredHeight(), 160u);
+  EXPECT_EQ(three->getPreferredWidth(), 200);
+  EXPECT_EQ(three->getPreferredHeight(), 160u);
   EXPECT_EQ(three->getTranslation()(0), 120);
   EXPECT_EQ(three->getTranslation()(1), 0);
 }

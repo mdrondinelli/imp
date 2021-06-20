@@ -22,8 +22,8 @@ TEST(ContainerWidgetTest, handlesNoPreference) {
   container.layout();
   EXPECT_EQ(container.getWidth(), box->getWidth());
   EXPECT_EQ(container.getHeight(), box->getHeight());
-  EXPECT_FALSE(box->getPreferredWidth().has_value());
-  EXPECT_FALSE(box->getPreferredHeight().has_value());
+  EXPECT_EQ(box->getPreferredWidth(), 0);
+  EXPECT_EQ(box->getPreferredHeight(), 0);
   EXPECT_EQ(box->getTranslation()(0), 0);
   EXPECT_EQ(box->getTranslation()(1), 0);
   container.setHorizontalAlignment(imp::Alignment::CENTER);
@@ -31,8 +31,8 @@ TEST(ContainerWidgetTest, handlesNoPreference) {
   container.layout();
   EXPECT_EQ(container.getWidth(), box->getWidth());
   EXPECT_EQ(container.getHeight(), box->getHeight());
-  EXPECT_FALSE(box->getPreferredWidth().has_value());
-  EXPECT_FALSE(box->getPreferredHeight().has_value());
+  EXPECT_EQ(box->getPreferredWidth(), 0);
+  EXPECT_EQ(box->getPreferredHeight(), 0);
   EXPECT_EQ(box->getTranslation()(0), 0);
   EXPECT_EQ(box->getTranslation()(1), 0);
   container.setHorizontalAlignment(imp::Alignment::POSITIVE);
@@ -40,8 +40,8 @@ TEST(ContainerWidgetTest, handlesNoPreference) {
   container.layout();
   EXPECT_EQ(container.getWidth(), box->getWidth());
   EXPECT_EQ(container.getHeight(), box->getHeight());
-  EXPECT_FALSE(box->getPreferredWidth().has_value());
-  EXPECT_FALSE(box->getPreferredHeight().has_value());
+  EXPECT_EQ(box->getPreferredWidth(), 0);
+  EXPECT_EQ(box->getPreferredHeight(), 0);
   EXPECT_EQ(box->getTranslation()(0), 0);
   EXPECT_EQ(box->getTranslation()(1), 0);
 }
@@ -56,8 +56,8 @@ TEST(ContainerWidgetTest, handlesSmallPreference) {
   container.layout();
   EXPECT_EQ(container.getWidth(), box->getWidth());
   EXPECT_EQ(container.getHeight(), box->getHeight());
-  EXPECT_FALSE(box->getPreferredWidth().has_value());
-  EXPECT_FALSE(box->getPreferredHeight().has_value());
+  EXPECT_EQ(box->getPreferredWidth(), 0);
+  EXPECT_EQ(box->getPreferredHeight(), 0);
   EXPECT_EQ(box->getTranslation()(0), 0);
   EXPECT_EQ(box->getTranslation()(1), 0);
   container.setHorizontalAlignment(imp::Alignment::CENTER);
@@ -65,8 +65,8 @@ TEST(ContainerWidgetTest, handlesSmallPreference) {
   container.layout();
   EXPECT_EQ(container.getWidth(), box->getWidth());
   EXPECT_EQ(container.getHeight(), box->getHeight());
-  EXPECT_FALSE(box->getPreferredWidth().has_value());
-  EXPECT_FALSE(box->getPreferredHeight().has_value());
+  EXPECT_EQ(box->getPreferredWidth(), 0);
+  EXPECT_EQ(box->getPreferredHeight(), 0);
   EXPECT_EQ(box->getTranslation()(0), 0);
   EXPECT_EQ(box->getTranslation()(1), 0);
   container.setHorizontalAlignment(imp::Alignment::POSITIVE);
@@ -74,8 +74,8 @@ TEST(ContainerWidgetTest, handlesSmallPreference) {
   container.layout();
   EXPECT_EQ(container.getWidth(), box->getWidth());
   EXPECT_EQ(container.getHeight(), box->getHeight());
-  EXPECT_FALSE(box->getPreferredWidth().has_value());
-  EXPECT_FALSE(box->getPreferredHeight().has_value());
+  EXPECT_EQ(box->getPreferredWidth(), 0);
+  EXPECT_EQ(box->getPreferredHeight(), 0);
   EXPECT_EQ(box->getTranslation()(0), 0);
   EXPECT_EQ(box->getTranslation()(1), 0);
 }
@@ -88,28 +88,28 @@ TEST(ContainerWidgetTest, handlesLargePreference) {
   container.setHorizontalAlignment(imp::Alignment::NEGATIVE);
   container.setVerticalAlignment(imp::Alignment::NEGATIVE);
   container.layout();
-  EXPECT_EQ(container.getWidth(), *container.getPreferredWidth());
-  EXPECT_EQ(container.getHeight(), *container.getPreferredHeight());
-  EXPECT_FALSE(box->getPreferredWidth().has_value());
-  EXPECT_FALSE(box->getPreferredHeight().has_value());
+  EXPECT_EQ(container.getWidth(), container.getPreferredWidth());
+  EXPECT_EQ(container.getHeight(), container.getPreferredHeight());
+  EXPECT_EQ(box->getPreferredWidth(), 0);
+  EXPECT_EQ(box->getPreferredHeight(), 0);
   EXPECT_EQ(box->getTranslation()(0), 0);
   EXPECT_EQ(box->getTranslation()(1), 0);
   container.setHorizontalAlignment(imp::Alignment::CENTER);
   container.setVerticalAlignment(imp::Alignment::CENTER);
   container.layout();
-  EXPECT_EQ(container.getWidth(), *container.getPreferredWidth());
-  EXPECT_EQ(container.getHeight(), *container.getPreferredHeight());
-  EXPECT_FALSE(box->getPreferredWidth().has_value());
-  EXPECT_FALSE(box->getPreferredHeight().has_value());
+  EXPECT_EQ(container.getWidth(), container.getPreferredWidth());
+  EXPECT_EQ(container.getHeight(), container.getPreferredHeight());
+  EXPECT_EQ(box->getPreferredWidth(), 0);
+  EXPECT_EQ(box->getPreferredHeight(), 0);
   EXPECT_EQ(box->getTranslation()(0), 4);
   EXPECT_EQ(box->getTranslation()(1), 4);
   container.setHorizontalAlignment(imp::Alignment::POSITIVE);
   container.setVerticalAlignment(imp::Alignment::POSITIVE);
   container.layout();
-  EXPECT_EQ(container.getWidth(), *container.getPreferredWidth());
-  EXPECT_EQ(container.getHeight(), *container.getPreferredHeight());
-  EXPECT_FALSE(box->getPreferredWidth().has_value());
-  EXPECT_FALSE(box->getPreferredHeight().has_value());
+  EXPECT_EQ(container.getWidth(), container.getPreferredWidth());
+  EXPECT_EQ(container.getHeight(), container.getPreferredHeight());
+  EXPECT_EQ(box->getPreferredWidth(), 0);
+  EXPECT_EQ(box->getPreferredHeight(), 0);
   EXPECT_EQ(box->getTranslation()(0), 8);
   EXPECT_EQ(box->getTranslation()(1), 8);
 }

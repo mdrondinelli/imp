@@ -15,15 +15,13 @@ namespace imp {
 
   void ContainerWidget::layout() {
     if (content_) {
-      content_->setPreferredWidth(std::nullopt);
-      content_->setPreferredHeight(std::nullopt);
+      content_->setPreferredWidth(0u);
+      content_->setPreferredHeight(0u);
       content_->layout();
       auto translation = Eigen::Vector2i{0, 0};
       auto contentWidth = content_->getWidth();
       auto preferredWidth = getPreferredWidth();
-      auto width = preferredWidth
-                       ? std::max({contentWidth, *preferredWidth, minWidth_})
-                       : std::max(contentWidth, minWidth_);
+      auto width = std::max({contentWidth, preferredWidth, minWidth_});
       if (width > contentWidth) {
         switch (horizontalAlignment_) {
         case Alignment::NEGATIVE:
@@ -39,10 +37,7 @@ namespace imp {
       }
       auto contentHeight = content_->getHeight();
       auto preferredHeight = getPreferredHeight();
-      auto height =
-          preferredHeight
-              ? std::max({contentHeight, *preferredHeight, minHeight_})
-              : std::max(contentHeight, minHeight_);
+      auto height = std::max({contentHeight, preferredHeight, minHeight_});
       if (height > contentHeight) {
         switch (verticalAlignment_) {
         case Alignment::NEGATIVE:

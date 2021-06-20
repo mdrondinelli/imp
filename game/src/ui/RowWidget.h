@@ -34,6 +34,5 @@ namespace imp {
 
   private:
     std::vector<std::pair<std::shared_ptr<Widget>, float>> widgets_;
-    std::size_t flexibleWidgetCount_{0};
   };
 } // namespace imp

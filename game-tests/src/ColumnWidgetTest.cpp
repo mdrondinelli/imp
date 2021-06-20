@@ -36,21 +36,18 @@ TEST(ColumnWidgetTest, handlesRigidNoPreference) {
   EXPECT_EQ(col.getWidth(), 80);
   EXPECT_EQ(col.getHeight(), 140);
   // one
-  ASSERT_TRUE(one->getPreferredWidth().has_value());
-  EXPECT_EQ(*one->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(one->getPreferredHeight().has_value());
+  EXPECT_EQ(one->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(one->getPreferredHeight(), 0);
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  ASSERT_TRUE(two->getPreferredWidth().has_value());
-  EXPECT_EQ(*two->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(two->getPreferredHeight().has_value());
+  EXPECT_EQ(two->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(two->getPreferredHeight(), 0);
   EXPECT_EQ(two->getTranslation()(0), 0);
   EXPECT_EQ(two->getTranslation()(1), 20);
   // three
-  ASSERT_TRUE(three->getPreferredWidth().has_value());
-  EXPECT_EQ(*three->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(three->getPreferredHeight().has_value());
+  EXPECT_EQ(three->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(three->getPreferredHeight(), 0);
   EXPECT_EQ(three->getTranslation()(0), 0);
   EXPECT_EQ(three->getTranslation()(1), 100);
 }
@@ -70,21 +67,18 @@ TEST(ColumnWidgetTest, handlesRigidSmallPreference) {
   EXPECT_EQ(col.getWidth(), 80);
   EXPECT_EQ(col.getHeight(), 140);
   // one
-  ASSERT_TRUE(one->getPreferredWidth().has_value());
-  EXPECT_EQ(*one->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(one->getPreferredHeight().has_value());
+  EXPECT_EQ(one->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(one->getPreferredHeight(), 0);
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  ASSERT_TRUE(two->getPreferredWidth().has_value());
-  EXPECT_EQ(*two->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(two->getPreferredHeight().has_value());
+  EXPECT_EQ(two->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(two->getPreferredHeight(), 0);
   EXPECT_EQ(two->getTranslation()(0), 0);
   EXPECT_EQ(two->getTranslation()(1), 20);
   // three
-  ASSERT_TRUE(three->getPreferredWidth().has_value());
-  EXPECT_EQ(*three->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(three->getPreferredHeight().has_value());
+  EXPECT_EQ(three->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(three->getPreferredHeight(), 0);
   EXPECT_EQ(three->getTranslation()(0), 0);
   EXPECT_EQ(three->getTranslation()(1), 100);
 }
@@ -101,24 +95,21 @@ TEST(ColumnWidgetTest, handlesRigidLargePreference) {
   col.setPreferredHeight(200u);
   col.layout();
   // col
-  EXPECT_EQ(col.getWidth(), *col.getPreferredWidth());
-  EXPECT_EQ(col.getHeight(), *col.getPreferredHeight());
+  EXPECT_EQ(col.getWidth(), col.getPreferredWidth());
+  EXPECT_EQ(col.getHeight(), col.getPreferredHeight());
   // one
-  ASSERT_TRUE(one->getPreferredWidth().has_value());
-  EXPECT_EQ(*one->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(one->getPreferredHeight().has_value());
+  EXPECT_EQ(one->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(one->getPreferredHeight(), 0);
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  ASSERT_TRUE(two->getPreferredWidth().has_value());
-  EXPECT_EQ(*two->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(two->getPreferredHeight().has_value());
+  EXPECT_EQ(two->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(two->getPreferredHeight(), 0);
   EXPECT_EQ(two->getTranslation()(0), 0);
   EXPECT_EQ(two->getTranslation()(1), 20);
   // three
-  ASSERT_TRUE(three->getPreferredWidth().has_value());
-  EXPECT_EQ(*three->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(three->getPreferredHeight().has_value());
+  EXPECT_EQ(three->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(three->getPreferredHeight(), 0);
   EXPECT_EQ(three->getTranslation()(0), 0);
   EXPECT_EQ(three->getTranslation()(1), 100);
 }
@@ -136,23 +127,18 @@ TEST(ColumnWidgetTest, handlesFlexibleNoPreference) {
   EXPECT_EQ(col.getWidth(), 80);
   EXPECT_EQ(col.getHeight(), 140);
   // one
-  ASSERT_TRUE(one->getPreferredWidth().has_value());
-  EXPECT_EQ(*one->getPreferredWidth(), col.getWidth());
-  ASSERT_TRUE(one->getPreferredHeight().has_value());
-  EXPECT_EQ(*one->getPreferredHeight(), 20);
+  EXPECT_EQ(one->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(one->getPreferredHeight(), 20);
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  ASSERT_TRUE(two->getPreferredWidth().has_value());
-  EXPECT_EQ(*two->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(two->getPreferredHeight().has_value());
+  EXPECT_EQ(two->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(two->getPreferredHeight(), 0);
   EXPECT_EQ(two->getTranslation()(0), 0);
   EXPECT_EQ(two->getTranslation()(1), 20);
   // three
-  ASSERT_TRUE(three->getPreferredWidth().has_value());
-  EXPECT_EQ(*three->getPreferredWidth(), col.getWidth());
-  ASSERT_TRUE(three->getPreferredHeight().has_value());
-  EXPECT_EQ(*three->getPreferredHeight(), 40);
+  EXPECT_EQ(three->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(three->getPreferredHeight(), 40);
   EXPECT_EQ(three->getTranslation()(0), 0);
   EXPECT_EQ(three->getTranslation()(1), 100);
 }
@@ -172,23 +158,18 @@ TEST(ColumnWidgetTest, handlesFlexibleSmallPreference) {
   EXPECT_EQ(col.getWidth(), 80);
   EXPECT_EQ(col.getHeight(), 140);
   // one
-  ASSERT_TRUE(one->getPreferredWidth().has_value());
-  EXPECT_EQ(*one->getPreferredWidth(), col.getWidth());
-  ASSERT_TRUE(one->getPreferredHeight().has_value());
-  EXPECT_EQ(*one->getPreferredHeight(), 20);
+  EXPECT_EQ(one->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(one->getPreferredHeight(), 20);
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  ASSERT_TRUE(two->getPreferredWidth().has_value());
-  EXPECT_EQ(*two->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(two->getPreferredHeight().has_value());
+  EXPECT_EQ(two->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(two->getPreferredHeight(), 0);
   EXPECT_EQ(two->getTranslation()(0), 0);
   EXPECT_EQ(two->getTranslation()(1), 20);
   // three
-  ASSERT_TRUE(three->getPreferredWidth().has_value());
-  EXPECT_EQ(*three->getPreferredWidth(), col.getWidth());
-  ASSERT_TRUE(three->getPreferredHeight().has_value());
-  EXPECT_EQ(*three->getPreferredHeight(), 40);
+  EXPECT_EQ(three->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(three->getPreferredHeight(), 40);
   EXPECT_EQ(three->getTranslation()(0), 0);
   EXPECT_EQ(three->getTranslation()(1), 100);
 }
@@ -205,26 +186,21 @@ TEST(ColumnWidgetTest, handlesFlexibleLargePreference) {
   col.setPreferredHeight(200u);
   col.layout();
   // col
-  EXPECT_EQ(col.getWidth(), *col.getPreferredWidth());
-  EXPECT_EQ(col.getHeight(), *col.getPreferredHeight());
+  EXPECT_EQ(col.getWidth(), col.getPreferredWidth());
+  EXPECT_EQ(col.getHeight(), col.getPreferredHeight());
   // one
-  ASSERT_TRUE(one->getPreferredWidth().has_value());
-  EXPECT_EQ(*one->getPreferredWidth(), col.getWidth());
-  ASSERT_TRUE(one->getPreferredHeight().has_value());
-  EXPECT_EQ(*one->getPreferredHeight(), 40);
+  EXPECT_EQ(one->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(one->getPreferredHeight(), 40);
   EXPECT_EQ(one->getTranslation()(0), 0);
   EXPECT_EQ(one->getTranslation()(1), 0);
   // two
-  ASSERT_TRUE(two->getPreferredWidth().has_value());
-  EXPECT_EQ(*two->getPreferredWidth(), col.getWidth());
-  EXPECT_FALSE(two->getPreferredHeight().has_value());
+  EXPECT_EQ(two->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(two->getPreferredHeight(), 0);
   EXPECT_EQ(two->getTranslation()(0), 0);
   EXPECT_EQ(two->getTranslation()(1), 40);
   // three
-  ASSERT_TRUE(three->getPreferredWidth().has_value());
-  EXPECT_EQ(*three->getPreferredWidth(), col.getWidth());
-  ASSERT_TRUE(three->getPreferredHeight().has_value());
-  EXPECT_EQ(*three->getPreferredHeight(), 80);
+  EXPECT_EQ(three->getPreferredWidth(), col.getWidth());
+  EXPECT_EQ(three->getPreferredHeight(), 80);
   EXPECT_EQ(three->getTranslation()(0), 0);
   EXPECT_EQ(three->getTranslation()(1), 120);
 }

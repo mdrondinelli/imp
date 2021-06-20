@@ -9,19 +9,19 @@ namespace imp {
     return height_;
   }
 
-  std::optional<unsigned> Widget::getPreferredWidth() const noexcept {
+  unsigned Widget::getPreferredWidth() const noexcept {
     return preferredWidth_;
   }
 
-  void Widget::setPreferredWidth(std::optional<unsigned> width) noexcept {
+  void Widget::setPreferredWidth(unsigned width) noexcept {
     preferredWidth_ = width;
   }
 
-  std::optional<unsigned> Widget::getPreferredHeight() const noexcept {
+  unsigned Widget::getPreferredHeight() const noexcept {
     return preferredHeight_;
   }
 
-  void Widget::setPreferredHeight(std::optional<unsigned> height) noexcept {
+  void Widget::setPreferredHeight(unsigned height) noexcept {
     preferredHeight_ = height;
   }
 

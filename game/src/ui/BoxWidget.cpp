@@ -24,15 +24,7 @@ namespace imp {
   }
 
   void BoxWidget::layout() {
-    if (auto preferredWidth = getPreferredWidth()) {
-      setWidth(std::max(*preferredWidth, minWidth_));
-    } else {
-      setWidth(minWidth_);
-    }
-    if (auto preferredHeight = getPreferredHeight()) {
-      setHeight(std::max(*preferredHeight, minHeight_));
-    } else {
-      setHeight(minHeight_);
-    }
+    setWidth(std::max(getPreferredWidth(), minWidth_));
+    setHeight(std::max(getPreferredHeight(), minHeight_));
   }
 } // namespace imp
