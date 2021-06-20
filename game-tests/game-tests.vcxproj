@@ -55,10 +55,12 @@
   <ItemGroup>
     <ClCompile Include="..\game\src\ui\BoxWidget.cpp" />
     <ClCompile Include="..\game\src\ui\ColumnWidget.cpp" />
+    <ClCompile Include="..\game\src\ui\ContainerWidget.cpp" />
     <ClCompile Include="..\game\src\ui\RowWidget.cpp" />
     <ClCompile Include="..\game\src\ui\Widget.cpp" />
     <ClCompile Include="src\BoxWidgetTest.cpp" />
     <ClCompile Include="src\ColumnWidgetTest.cpp" />
+    <ClCompile Include="src\ContainerWidgetTest.cpp" />
     <ClCompile Include="src\RowWidgetTest.cpp" />
   </ItemGroup>
   <ItemGroup>

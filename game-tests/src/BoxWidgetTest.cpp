@@ -5,8 +5,8 @@
 TEST(BoxWidgetTest, handlesNoPreference) {
   auto widget = imp::BoxWidget{80u, 40u};
   widget.layout();
-  EXPECT_EQ(widget.getWidth(), 80u);
-  EXPECT_EQ(widget.getHeight(), 40u);
+  EXPECT_EQ(widget.getWidth(), 80);
+  EXPECT_EQ(widget.getHeight(), 40);
 }
 
 TEST(BoxWidgetTest, handlesSmallPreference) {
@@ -14,8 +14,8 @@ TEST(BoxWidgetTest, handlesSmallPreference) {
   widget.setPreferredWidth(60u);
   widget.setPreferredHeight(20u);
   widget.layout();
-  EXPECT_EQ(widget.getWidth(), 80u);
-  EXPECT_EQ(widget.getHeight(), 40u);
+  EXPECT_EQ(widget.getWidth(), 80);
+  EXPECT_EQ(widget.getHeight(), 40);
 }
 
 TEST(BoxWidgetTest, handlesLargePreference) {
@@ -23,6 +23,6 @@ TEST(BoxWidgetTest, handlesLargePreference) {
   widget.setPreferredWidth(100u);
   widget.setPreferredHeight(60u);
   widget.layout();
-  EXPECT_EQ(widget.getWidth(), 100u);
-  EXPECT_EQ(widget.getHeight(), 60u);
+  EXPECT_EQ(widget.getWidth(), 100);
+  EXPECT_EQ(widget.getHeight(), 60);
 }

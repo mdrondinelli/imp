@@ -1,121 +1,147 @@
 #include "ColumnWidget.h"
 
-#include <gsl/gsl>
-
 #include <algorithm>
 
 namespace imp {
-  void ColumnWidget::add(std::shared_ptr<Widget> widget, float flexibility) {
-    Expects(widget);
+  gsl::span<std::pair<std::shared_ptr<Widget>, float> const>
+  ColumnWidget::getWidgets() const noexcept {
+    return widgets_;
+  }
+
+  void
+  ColumnWidget::pushFront(std::shared_ptr<Widget> widget, float flexibility) {
     Expects(flexibility >= 0.0f);
-    widgets_.emplace_back(widget, flexibility);
+    widgets_.emplace(widgets_.begin(), std::move(widget), flexibility);
     if (flexibility) {
       ++flexibleWidgetCount_;
     }
   }
 
-  void ColumnWidget::add(
-      std::shared_ptr<Widget> widget, float flexibility, std::size_t i) {
-    Expects(widget);
+  void
+  ColumnWidget::pushBack(std::shared_ptr<Widget> widget, float flexibility) {
     Expects(flexibility >= 0.0f);
-    Expects(i <= widgets_.size());
-    widgets_.emplace(widgets_.begin() + i, std::move(widget), flexibility);
+    widgets_.emplace_back(std::move(widget), flexibility);
     if (flexibility) {
       ++flexibleWidgetCount_;
     }
   }
 
-  bool ColumnWidget::remove(std::shared_ptr<Widget> widget) {
-    auto it =
-        std::find_if(widgets_.begin(), widgets_.end(), [&](auto const &pair) {
-          return pair.first == widget;
-        });
-    if (it != widgets_.end()) {
-      if (it->second) {
-        --flexibleWidgetCount_;
-      }
-      widgets_.erase(it);
-      return true;
-    } else {
-      return false;
+  void ColumnWidget::insert(
+      std::size_t index, std::shared_ptr<Widget> widget, float flexibility) {
+    Expects(index <= widgets_.size());
+    Expects(flexibility >= 0.0f);
+    widgets_.emplace(widgets_.begin() + index, std::move(widget), flexibility);
+    if (flexibility) {
+      ++flexibleWidgetCount_;
     }
+  }
+
+  void ColumnWidget::popFront() {
+    Expects(!widgets_.empty());
+    if (widgets_.front().second) {
+      --flexibleWidgetCount_;
+    }
+    widgets_.erase(widgets_.begin());
+  }
+
+  void ColumnWidget::popBack() {
+    Expects(!widgets_.empty());
+    if (widgets_.back().second) {
+      --flexibleWidgetCount_;
+    }
+    widgets_.pop_back();
+  }
+
+  void ColumnWidget::erase(std::size_t index) {
+    Expects(index <= widgets_.size());
+    if (widgets_[index].second) {
+      --flexibleWidgetCount_;
+    }
+    widgets_.erase(widgets_.begin() + index);
   }
 
   unsigned ColumnWidget::getMinWidth() const {
     auto minWidth = 0u;
     for (auto const &[widget, _] : widgets_) {
-      minWidth = std::max(minWidth, widget->getMinWidth());
+      if (widget) {
+        minWidth = std::max(minWidth, widget->getMinWidth());
+      }
     }
     return minWidth;
   }
 
   unsigned ColumnWidget::getMinHeight() const {
-    auto flexibilityFactor = 0.0f;
+    auto flexibilityScale = 0.0f;
     auto flexibilitySum = 0.0f;
-    auto minHeight = 0u;
+    auto rigidHeight = 0u;
     for (auto const &[widget, flexibility] : widgets_) {
-      if (flexibility) {
-        flexibilityFactor =
-            std::max(flexibilityFactor, widget->getMinHeight() / flexibility);
-        flexibilitySum += flexibility;
-      } else {
-        minHeight += widget->getMinHeight();
-      }
-    }
-    minHeight +=
-        static_cast<unsigned>(std::round(flexibilityFactor * flexibilitySum));
-    return minHeight;
-  }
-
-  void ColumnWidget::layout() {
-    if (flexibleWidgetCount_) {
-      auto flexibilityFactor = 0.0f;
-      auto flexibilitySum = 0.0f;
-      auto rigidHeight = 0u;
-      for (auto const &[widget, flexibility] : widgets_) {
+      if (widget) {
         if (flexibility) {
-          flexibilityFactor =
-              std::max(flexibilityFactor, widget->getMinHeight() / flexibility);
-          flexibilitySum += flexibility;
+          flexibilityScale =
+              std::max(flexibilityScale, widget->getMinHeight() / flexibility);
         } else {
           rigidHeight += widget->getMinHeight();
         }
       }
+      flexibilitySum += flexibility;
+    }
+    auto flexibleHeight =
+        static_cast<unsigned>(std::round(flexibilityScale * flexibilitySum));
+    return rigidHeight + flexibleHeight;
+  }
+
+  void ColumnWidget::layout() {
+    auto preferredWidth = getPreferredWidth();
+    auto width = preferredWidth ? std::max(*preferredWidth, getMinWidth())
+                                : getMinWidth();
+    setWidth(width);
+    if (flexibleWidgetCount_) {
+      auto flexibilityScale = 0.0f;
+      auto flexibilitySum = 0.0f;
+      auto rigidHeight = 0u;
+      for (auto const &[widget, flexibility] : widgets_) {
+        if (widget) {
+          if (flexibility) {
+            flexibilityScale = std::max(
+                flexibilityScale, widget->getMinHeight() / flexibility);
+          } else {
+            rigidHeight += widget->getMinHeight();
+          }
+        }
+        flexibilitySum += flexibility;
+      }
       if (auto preferredTotalHeight = getPreferredHeight()) {
         auto minFlexibleHeight = static_cast<unsigned>(
-            std::round(flexibilityFactor * flexibilitySum));
+            std::round(flexibilityScale * flexibilitySum));
         auto minTotalHeight = rigidHeight + minFlexibleHeight;
         auto totalHeight = std::max(*preferredTotalHeight, minTotalHeight);
         auto flexibleHeight = totalHeight - rigidHeight;
-        flexibilityFactor = flexibleHeight / flexibilitySum;
+        flexibilityScale = flexibleHeight / flexibilitySum;
       }
-      auto preferredWidth = getPreferredWidth();
-      auto width = preferredWidth ? std::max(*preferredWidth, getMinWidth())
-                                  : getMinWidth();
       auto translation = 0.0f;
       for (auto const &[widget, flexibility] : widgets_) {
-        if (flexibility) {
-          auto minY = static_cast<unsigned>(std::round(translation));
-          translation += flexibilityFactor * flexibility;
-          auto maxY = static_cast<unsigned>(std::round(translation));
-          widget->setPreferredWidth(width);
-          widget->setPreferredHeight(maxY - minY);
-          widget->setTranslation({0, minY});
-          widget->layout();
+        if (widget) {
+          if (flexibility) {
+            auto minY = static_cast<unsigned>(std::round(translation));
+            translation += flexibilityScale * flexibility;
+            auto maxY = static_cast<unsigned>(std::round(translation));
+            widget->setPreferredWidth(width);
+            widget->setPreferredHeight(maxY - minY);
+            widget->setTranslation({0, minY});
+            widget->layout();
+          } else {
+            widget->setPreferredWidth(width);
+            widget->setPreferredHeight(std::nullopt);
+            widget->setTranslation({0, std::round(translation)});
+            widget->layout();
+            translation += widget->getHeight();
+          }
         } else {
-          widget->setPreferredWidth(width);
-          widget->setPreferredHeight(std::nullopt);
-          widget->setTranslation({0, std::round(translation)});
-          widget->layout();
-          translation += widget->getHeight();
+          translation += flexibilityScale * flexibility;
         }
       }
-      setWidth(width);
       setHeight(static_cast<unsigned>(std::round(translation)));
     } else {
-      auto preferredWidth = getPreferredWidth();
-      auto width = preferredWidth ? std::max(*preferredWidth, getMinWidth())
-                                  : getMinWidth();
       auto minHeight = 0u;
       for (auto const &[widget, _] : widgets_) {
         widget->setPreferredWidth(width);
@@ -127,7 +153,6 @@ namespace imp {
       auto preferredHeight = getPreferredHeight();
       auto height =
           preferredHeight ? std::max(*preferredHeight, minHeight) : minHeight;
-      setWidth(width);
       setHeight(height);
     }
   }

@@ -12,6 +12,10 @@ namespace imp {
     explicit Renderer(Display *display);
     ~Renderer();
 
+    //void beginFrame();
+    //void endFrame();
+
+
     void render(Scene const &scene, Camera const &camera);
 
   private:

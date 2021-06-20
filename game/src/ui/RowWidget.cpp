@@ -1,134 +1,159 @@
 #include "RowWidget.h"
 
-#include <gsl/gsl>
-
 #include <algorithm>
 
 namespace imp {
-  void RowWidget::add(std::shared_ptr<Widget> widget, float flexibility) {
-    Expects(widget);
+  gsl::span<std::pair<std::shared_ptr<Widget>, float> const>
+  RowWidget::getWidgets() const noexcept {
+    return widgets_;
+  }
+
+  void RowWidget::pushFront(std::shared_ptr<Widget> widget, float flexibility) {
     Expects(flexibility >= 0.0f);
-    widgets_.emplace_back(widget, flexibility);
+    widgets_.emplace(widgets_.begin(), std::move(widget), flexibility);
     if (flexibility) {
       ++flexibleWidgetCount_;
     }
   }
 
-  void RowWidget::add(
-      std::shared_ptr<Widget> widget, float flexibility, std::size_t i) {
-    Expects(widget);
+  void RowWidget::pushBack(std::shared_ptr<Widget> widget, float flexibility) {
     Expects(flexibility >= 0.0f);
-    Expects(i <= widgets_.size());
-    widgets_.emplace(widgets_.begin() + i, std::move(widget), flexibility);
+    widgets_.emplace_back(std::move(widget), flexibility);
     if (flexibility) {
       ++flexibleWidgetCount_;
     }
   }
 
-  bool RowWidget::remove(std::shared_ptr<Widget> widget) {
-    auto it =
-        std::find_if(widgets_.begin(), widgets_.end(), [&](auto const &pair) {
-          return pair.first == widget;
-        });
-    if (it != widgets_.end()) {
-      if (it->second) {
-        --flexibleWidgetCount_;
-      }
-      widgets_.erase(it);
-      return true;
-    } else {
-      return false;
+  void RowWidget::insert(
+      std::size_t index, std::shared_ptr<Widget> widget, float flexibility) {
+    Expects(index <= widgets_.size());
+    Expects(flexibility >= 0.0f);
+    widgets_.emplace(widgets_.begin() + index, std::move(widget), flexibility);
+    if (flexibility) {
+      ++flexibleWidgetCount_;
     }
+  }
+
+  void RowWidget::popFront() {
+    Expects(!widgets_.empty());
+    if (widgets_.front().second) {
+      --flexibleWidgetCount_;
+    }
+    widgets_.erase(widgets_.begin());
+  }
+
+  void RowWidget::popBack() {
+    Expects(!widgets_.empty());
+    if (widgets_.back().second) {
+      --flexibleWidgetCount_;
+    }
+    widgets_.pop_back();
+  }
+
+  void RowWidget::erase(std::size_t index) {
+    Expects(index <= widgets_.size());
+    if (widgets_[index].second) {
+      --flexibleWidgetCount_;
+    }
+    widgets_.erase(widgets_.begin() + index);
   }
 
   unsigned RowWidget::getMinWidth() const {
-    auto flexibilityFactor = 0.0f;
+    auto flexibilityScale = 0.0f;
     auto flexibilitySum = 0.0f;
-    auto minWidth = 0u;
+    auto rigidWidth = 0u;
     for (auto const &[widget, flexibility] : widgets_) {
-      if (flexibility) {
-        flexibilityFactor =
-            std::max(flexibilityFactor, widget->getMinWidth() / flexibility);
-        flexibilitySum += flexibility;
-      } else {
-        minWidth += widget->getMinWidth();
+      if (widget) {
+        if (flexibility) {
+          flexibilityScale =
+              std::max(flexibilityScale, widget->getMinWidth() / flexibility);
+        } else {
+          rigidWidth += widget->getMinWidth();
+        }
       }
+      flexibilitySum += flexibility;
     }
-    minWidth +=
-        static_cast<unsigned>(std::round(flexibilityFactor * flexibilitySum));
-    return minWidth;
+    auto flexibleWidth =
+        static_cast<unsigned>(std::round(flexibilityScale * flexibilitySum));
+    return rigidWidth + flexibleWidth;
   }
 
   unsigned RowWidget::getMinHeight() const {
     auto minHeight = 0u;
     for (auto const &[widget, _] : widgets_) {
-      minHeight = std::max(minHeight, widget->getMinHeight());
+      if (widget) {
+        minHeight = std::max(minHeight, widget->getMinHeight());
+      }
     }
     return minHeight;
   }
 
   void RowWidget::layout() {
+    auto preferredHeight = getPreferredHeight();
+    auto height = preferredHeight ? std::max(*preferredHeight, getMinHeight())
+                                  : getMinHeight();
+    setHeight(height);
     if (flexibleWidgetCount_) {
-      auto flexibilityFactor = 0.0f;
+      auto flexibilityScale = 0.0f;
       auto flexibilitySum = 0.0f;
       auto rigidWidth = 0u;
       for (auto const &[widget, flexibility] : widgets_) {
-        if (flexibility) {
-          flexibilityFactor =
-              std::max(flexibilityFactor, widget->getMinWidth() / flexibility);
-          flexibilitySum += flexibility;
-        } else {
-          rigidWidth += widget->getMinWidth();
+        if (widget) {
+          if (flexibility) {
+            flexibilityScale =
+                std::max(flexibilityScale, widget->getMinWidth() / flexibility);
+          } else {
+            rigidWidth += widget->getMinWidth();
+          }
         }
+        flexibilitySum += flexibility;
       }
       if (auto preferredTotalWidth = getPreferredWidth()) {
         auto minFlexibleWidth = static_cast<unsigned>(
-            std::round(flexibilityFactor * flexibilitySum));
+            std::round(flexibilityScale * flexibilitySum));
         auto minTotalWidth = rigidWidth + minFlexibleWidth;
         auto totalWidth = std::max(*preferredTotalWidth, minTotalWidth);
         auto flexibleWidth = totalWidth - rigidWidth;
-        flexibilityFactor = flexibleWidth / flexibilitySum;
+        flexibilityScale = flexibleWidth / flexibilitySum;
       }
-      auto preferredHeight = getPreferredHeight();
-      auto height = preferredHeight ? std::max(*preferredHeight, getMinHeight())
-                                    : getMinHeight();
       auto translation = 0.0f;
       for (auto const &[widget, flexibility] : widgets_) {
-        if (flexibility) {
-          auto minX = static_cast<unsigned>(std::round(translation));
-          translation += flexibilityFactor * flexibility;
-          auto maxX = static_cast<unsigned>(std::round(translation));
-          widget->setPreferredWidth(maxX - minX);
-          widget->setPreferredHeight(height);
-          widget->setTranslation({minX, 0});
-          widget->layout();
+        if (widget) {
+          if (flexibility) {
+            auto minX = static_cast<unsigned>(std::round(translation));
+            translation += flexibilityScale * flexibility;
+            auto maxX = static_cast<unsigned>(std::round(translation));
+            widget->setPreferredWidth(maxX - minX);
+            widget->setPreferredHeight(height);
+            widget->setTranslation({minX, 0});
+            widget->layout();
+          } else {
+            widget->setPreferredWidth(std::nullopt);
+            widget->setPreferredHeight(height);
+            widget->setTranslation({std::round(translation), 0});
+            widget->layout();
+            translation += widget->getWidth();
+          }
         } else {
-          widget->setPreferredWidth(std::nullopt);
-          widget->setPreferredHeight(height);
-          widget->setTranslation({std::round(translation), 0});
-          widget->layout();
-          translation += widget->getWidth();
+          translation += flexibilityScale * flexibility;
         }
       }
       setWidth(static_cast<unsigned>(std::round(translation)));
-      setHeight(height);
     } else {
-      auto preferredHeight = getPreferredHeight();
-      auto height = preferredHeight ? std::max(*preferredHeight, getMinHeight())
-                                    : getMinHeight();
       auto minWidth = 0u;
       for (auto const &[widget, _] : widgets_) {
-        widget->setPreferredWidth(std::nullopt);
-        widget->setPreferredHeight(height);
-        widget->setTranslation({minWidth, 0});
-        widget->layout();
-        minWidth += widget->getWidth();
+        if (widget) {
+          widget->setPreferredWidth(std::nullopt);
+          widget->setPreferredHeight(height);
+          widget->setTranslation({minWidth, 0});
+          widget->layout();
+          minWidth += widget->getWidth();
+        }
       }
       auto preferredWidth = getPreferredWidth();
       auto width =
-          preferredHeight ? std::max(*preferredWidth, minWidth) : minWidth;
+          preferredWidth ? std::max(*preferredWidth, minWidth) : minWidth;
       setWidth(width);
-      setHeight(height);
     }
   }
 } // namespace imp
