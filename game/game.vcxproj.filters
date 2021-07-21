@@ -31,15 +31,15 @@
     <Filter Include="Source Files\system">
       <UniqueIdentifier>{9cf5ee09-e9c0-4c31-92e3-87842cab729b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{25401264-4cf6-4398-bc30-7aeb93684ea2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\graphics\AerialPerspectiveLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\Atmosphere.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\AtmosphereBuffer.h">
+    <ClInclude Include="src\graphics\Planet.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Camera.h">
@@ -54,9 +54,6 @@
     <ClInclude Include="src\graphics\Renderer.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\ScatteringLut.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\Scene.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
@@ -64,9 +61,6 @@
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Spectrum.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\TransmittanceLut.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\system\Display.h">
@@ -85,15 +79,6 @@
       <Filter>Header Files\system</Filter>
     </ClInclude>
     <ClInclude Include="src\system\GpuSamplerCache.h">
-      <Filter>Header Files\system</Filter>
-    </ClInclude>
-    <ClInclude Include="src\system\ResourceCache.h">
-      <Filter>Header Files\system</Filter>
-    </ClInclude>
-    <ClInclude Include="src\system\ResourceLoader.h">
-      <Filter>Header Files\system</Filter>
-    </ClInclude>
-    <ClInclude Include="src\system\ResourceState.h">
       <Filter>Header Files\system</Filter>
     </ClInclude>
     <ClInclude Include="src\system\vk_mem_alloc.h">
@@ -117,15 +102,33 @@
     <ClInclude Include="src\ui\ContainerWidget.h">
       <Filter>Header Files\ui</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\SceneView.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\Gsl.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\GpuPipelineLayoutCache.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\system\GpuBufferError.h">
+      <Filter>Header Files\system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\Extent.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\Oct.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\Align.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\Atmosphere.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\AtmosphereBuffer.cpp">
+    <ClCompile Include="src\graphics\Planet.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\Camera.cpp">
@@ -147,9 +150,6 @@
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\Spectrum.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\TransmittanceLut.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\system\Display.cpp">
@@ -193,6 +193,12 @@
     </ClCompile>
     <ClCompile Include="src\ui\ContainerWidget.cpp">
       <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\SceneView.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system\GpuPipelineLayoutCache.cpp">
+      <Filter>Source Files\system</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -122,7 +122,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -138,7 +138,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -154,7 +154,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -170,7 +170,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -184,26 +184,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\graphics\AerialPerspectiveLut.h" />
-    <ClInclude Include="src\graphics\Atmosphere.h" />
-    <ClInclude Include="src\graphics\AtmosphereBuffer.h" />
+    <ClInclude Include="src\graphics\Planet.h" />
     <ClInclude Include="src\graphics\Camera.h" />
     <ClInclude Include="src\graphics\DirectionalLight.h" />
     <ClInclude Include="src\graphics\Frame.h" />
     <ClInclude Include="src\graphics\Renderer.h" />
-    <ClInclude Include="src\graphics\ScatteringLut.h" />
     <ClInclude Include="src\graphics\Scene.h" />
+    <ClInclude Include="src\graphics\SceneView.h" />
     <ClInclude Include="src\graphics\SkyViewLut.h" />
     <ClInclude Include="src\graphics\Spectrum.h" />
-    <ClInclude Include="src\graphics\TransmittanceLut.h" />
     <ClInclude Include="src\system\Display.h" />
     <ClInclude Include="src\system\GpuBuffer.h" />
+    <ClInclude Include="src\system\GpuBufferError.h" />
     <ClInclude Include="src\system\GpuContext.h" />
     <ClInclude Include="src\system\GpuDescriptorSetLayoutCache.h" />
     <ClInclude Include="src\system\GpuImage.h" />
+    <ClInclude Include="src\system\GpuPipelineLayoutCache.h" />
     <ClInclude Include="src\system\GpuSamplerCache.h" />
-    <ClInclude Include="src\system\ResourceCache.h" />
-    <ClInclude Include="src\system\ResourceLoader.h" />
-    <ClInclude Include="src\system\ResourceState.h" />
     <ClInclude Include="src\system\vk_mem_alloc.h" />
     <ClInclude Include="src\system\WorkerThread.h" />
     <ClInclude Include="src\ui\BoxWidget.h" />
@@ -211,25 +208,29 @@
     <ClInclude Include="src\ui\ContainerWidget.h" />
     <ClInclude Include="src\ui\RowWidget.h" />
     <ClInclude Include="src\ui\Widget.h" />
+    <ClInclude Include="src\util\Align.h" />
+    <ClInclude Include="src\util\Extent.h" />
+    <ClInclude Include="src\util\Gsl.h" />
+    <ClInclude Include="src\util\Oct.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp" />
-    <ClCompile Include="src\graphics\Atmosphere.cpp" />
-    <ClCompile Include="src\graphics\AtmosphereBuffer.cpp" />
+    <ClCompile Include="src\graphics\Planet.cpp" />
     <ClCompile Include="src\graphics\Camera.cpp" />
     <ClCompile Include="src\graphics\DirectionalLight.cpp" />
     <ClCompile Include="src\graphics\Frame.cpp" />
     <ClCompile Include="src\graphics\Renderer.cpp" />
     <ClCompile Include="src\graphics\Scene.cpp" />
+    <ClCompile Include="src\graphics\SceneView.cpp" />
     <ClCompile Include="src\graphics\SkyViewLut.cpp" />
     <ClCompile Include="src\graphics\Spectrum.cpp" />
-    <ClCompile Include="src\graphics\TransmittanceLut.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\system\Display.cpp" />
     <ClCompile Include="src\system\GpuBuffer.cpp" />
     <ClCompile Include="src\system\GpuContext.cpp" />
     <ClCompile Include="src\system\GpuDescriptorSetLayoutCache.cpp" />
     <ClCompile Include="src\system\GpuImage.cpp" />
+    <ClCompile Include="src\system\GpuPipelineLayoutCache.cpp" />
     <ClCompile Include="src\system\GpuSamplerCache.cpp" />
     <ClCompile Include="src\system\vk_mem_alloc.cpp" />
     <ClCompile Include="src\system\WorkerThread.cpp" />

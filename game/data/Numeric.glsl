@@ -85,4 +85,19 @@ vec3 sampleSphere(vec2 u) {
   return vec3(f * sign(u[0]) * cos(phi), f * sign(u[1]) * sin(phi), sign(d) * (1.0f - r * r));
 }
 
+vec2 encodeOct(vec3 n) {
+  n /= abs(n.x) + abs(n.y) + abs(n.z);
+  n.xy = n.z >= 0.0f ? n.xy : (1.0f - abs(n.yx)) * mix(vec2(-1.0f), vec2(1.0f), lessThan(n.xy, vec2(0.0f)));
+  n.xy = 0.5f * n.xy + 0.5;
+  return n.xy;
+}
+
+vec3 decodeOct(vec2 f) {
+  f = 2.0f * f - 1.0f;
+  vec3 n = vec3(f.x, f.y, 1.0f - abs(f.x) - abs(f.y));
+  float t = clamp(-n.z, 0.0f, 1.0f);
+  n.xy += mix(vec2(-t), vec2(t), lessThan(n.xy, vec2(0.0f)));
+  return normalize(n);
+}
+
 #endif

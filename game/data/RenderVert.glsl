@@ -1,14 +1,13 @@
 #version 450 core
 
-out VertexData {
-  layout(location = 0) vec3 v;
-} outData;
+#define SCENE_VIEW_SET 0
+#define SCENE_VIEW_BINDING 1
+#include "SceneView.glsl"
 
-layout(push_constant) uniform push_constants {
-  vec3 frustumCorners[4];
-  vec3 cameraPosition;
-  uint frame;
+out VertexData {
+  layout(location = 0) vec3 viewDirection;
 };
+
 
 vec4 positions[3] = vec4[](
   vec4(-1.0f, -1.0f, 0.0f, 1.0f),
@@ -19,10 +18,9 @@ vec4 positions[3] = vec4[](
 void main() {
   float u = positions[gl_VertexIndex].x * 0.5f + 0.5f;
   float v = positions[gl_VertexIndex].y * 0.5f + 0.5f;
-  vec3 p = mix(
-      mix(frustumCorners[0], frustumCorners[1], u),
-      mix(frustumCorners[2], frustumCorners[3], u),
+  viewDirection = mix(
+      mix(sceneView.viewRays[0], sceneView.viewRays[1], u),
+      mix(sceneView.viewRays[2], sceneView.viewRays[3], u),
       v);
-  outData.v = p - cameraPosition;
   gl_Position = positions[gl_VertexIndex];
 }

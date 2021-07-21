@@ -22,8 +22,7 @@ namespace imp {
       GpuDescriptorSetLayoutCreateInfo const &createInfo) {
     auto hashValue = hash(createInfo);
     auto index = hashValue & (buckets_.size() - 1);
-    for (auto node = buckets_[index].get(); node;
-         node = node->next.get()) {
+    for (auto node = buckets_[index].get(); node; node = node->next.get()) {
       if (node->key == createInfo) {
         return *node->value;
       }
@@ -43,8 +42,8 @@ namespace imp {
       index = hashValue & (buckets_.size() - 1);
     }
     auto vkBindings = std::vector<vk::DescriptorSetLayoutBinding>{};
-    vkBindings.resize(createInfo.bindingCount);
-    for (auto i = 0u; i < createInfo.bindingCount; ++i) {
+    vkBindings.resize(createInfo.bindings.size());
+    for (auto i = std::size_t{}; i < createInfo.bindings.size(); ++i) {
       auto &binding = createInfo.bindings[i];
       auto &vkBinding = vkBindings[i];
       vkBinding.binding = i;
@@ -53,13 +52,14 @@ namespace imp {
       vkBinding.stageFlags = binding.stageFlags;
     }
     auto vkCreateInfo = vk::DescriptorSetLayoutCreateInfo{};
-    vkCreateInfo.bindingCount = createInfo.bindingCount;
+    vkCreateInfo.bindingCount = static_cast<std::uint32_t>(vkBindings.size());
     vkCreateInfo.pBindings = vkBindings.data();
     auto node = std::make_unique<Node>();
     node->next = std::move(buckets_[index]);
     node->key.bindings.assign(
-        createInfo.bindings, createInfo.bindings + createInfo.bindingCount);
-    node->value = context_->getDevice().createDescriptorSetLayoutUnique(vkCreateInfo);
+        createInfo.bindings.begin(), createInfo.bindings.end());
+    node->value =
+        context_->getDevice().createDescriptorSetLayoutUnique(vkCreateInfo);
     buckets_[index] = std::move(node);
     return *buckets_[index]->value;
   }

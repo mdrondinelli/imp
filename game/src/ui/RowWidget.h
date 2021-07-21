@@ -3,8 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include <gsl/gsl>
-
+#include "../util/Gsl.h"
 #include "Widget.h"
 
 namespace imp {

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
+
+#include "../util/Gsl.h"
 
 namespace imp {
   class GpuContext;
@@ -15,8 +18,7 @@ namespace imp {
   };
 
   struct GpuDescriptorSetLayoutCreateInfo {
-    std::uint32_t bindingCount;
-    GpuDescriptorSetLayoutBinding const *bindings;
+    gsl::span<GpuDescriptorSetLayoutBinding const> bindings;
   };
 
   struct GpuDescriptorSetLayoutInfo {
@@ -40,15 +42,12 @@ namespace imp {
   inline bool operator==(
       GpuDescriptorSetLayoutCreateInfo const &lhs,
       GpuDescriptorSetLayoutCreateInfo const &rhs) noexcept {
-    if (lhs.bindingCount != rhs.bindingCount) {
-      return false;
-    }
-    for (auto i = 0u; i < lhs.bindingCount; ++i) {
-      if (lhs.bindings[i] != rhs.bindings[i]) {
-        return false;
-      }
-    }
-    return true;
+    return lhs.bindings.size() == rhs.bindings.size() &&
+           (lhs.bindings.data() == rhs.bindings.data() ||
+            std::equal(
+                lhs.bindings.begin(),
+                lhs.bindings.end(),
+                rhs.bindings.begin()));
   }
 
   inline bool operator!=(
@@ -72,15 +71,12 @@ namespace imp {
   inline bool operator==(
       GpuDescriptorSetLayoutCreateInfo const &lhs,
       GpuDescriptorSetLayoutInfo const &rhs) noexcept {
-    if (lhs.bindingCount != rhs.bindings.size()) {
-      return false;
-    }
-    for (auto i = 0u; i < lhs.bindingCount; ++i) {
-      if (lhs.bindings[i] != rhs.bindings[i]) {
-        return false;
-      }
-    }
-    return true;
+    return lhs.bindings.size() == rhs.bindings.size() &&
+           (lhs.bindings.data() == rhs.bindings.data() ||
+            std::equal(
+                lhs.bindings.begin(),
+                lhs.bindings.end(),
+                rhs.bindings.begin()));
   }
 
   inline bool operator!=(
@@ -98,7 +94,7 @@ namespace imp {
   inline bool operator!=(
       GpuDescriptorSetLayoutInfo const &lhs,
       GpuDescriptorSetLayoutCreateInfo const &rhs) noexcept {
-    return !(lhs == rhs);
+    return !(rhs == lhs);
   }
 
   template<typename H>
@@ -108,14 +104,16 @@ namespace imp {
         std::move(state),
         binding.descriptorType,
         binding.descriptorCount,
-        static_cast<vk::ShaderStageFlags::MaskType>(binding.stageFlags));
+        static_cast<VkShaderStageFlags>(binding.stageFlags));
   }
 
   template<typename H>
   H AbslHashValue(
       H state, GpuDescriptorSetLayoutCreateInfo const &createInfo) noexcept {
     return H::combine_contiguous(
-        std::move(state), createInfo.bindings, createInfo.bindingCount);
+        std::move(state),
+        createInfo.bindings.data(),
+        createInfo.bindings.size());
   }
 
   template<typename H>

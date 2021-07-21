@@ -13,14 +13,14 @@ namespace imp {
     static void poll();
 
     Display(
-        GpuContext *context,
+        gsl::not_null<GpuContext *> context,
         unsigned width,
         unsigned height,
         char const *title,
         bool fullscreen);
     ~Display();
 
-    GpuContext *getContext() const noexcept;
+    gsl::not_null<GpuContext *> getContext() const noexcept;
     vk::SurfaceFormatKHR const &getSurfaceFormat() const noexcept;
     unsigned getWindowWidth() const noexcept;
     unsigned getWindowHeight() const noexcept;
@@ -30,33 +30,34 @@ namespace imp {
     unsigned getSwapchainHeight() const noexcept;
     bool shouldClose() const noexcept;
 
-    vk::Framebuffer
-    acquireFramebuffer(vk::Semaphore semaphore, vk::Fence fence);
-    void presentFramebuffer(
-        std::uint32_t waitSemaphoreCount,
-        vk::Semaphore const *waitSemaphores,
-        vk::Framebuffer framebuffer);
+    std::uint32_t acquireImage(vk::Semaphore semaphore, vk::Fence fence);
+    void present(
+        gsl::span<vk::Semaphore const> waitSemaphores,
+        std::uint32_t imageIndex);
+
+    vk::RenderPass getRenderPass() const noexcept;
+    vk::Framebuffer getFramebuffer(std::uint32_t index) const noexcept;
 
   private:
-    GpuContext *context_;
+    gsl::not_null<GpuContext *> context_;
     GLFWwindow *window_;
-    vk::UniqueSurfaceKHR surface_;
+    vk::SurfaceKHR surface_;
     vk::SurfaceFormatKHR surfaceFormat_;
     vk::PresentModeKHR presentMode_;
-    vk::UniqueRenderPass renderPass_;
+    vk::RenderPass renderPass_;
     unsigned swapchainWidth_;
     unsigned swapchainHeight_;
-    vk::UniqueSwapchainKHR swapchain_;
+    vk::SwapchainKHR swapchain_;
     std::vector<vk::Image> swapchainImages_;
-    std::vector<vk::UniqueImageView> swapchainImageViews_;
-    std::vector<vk::UniqueFramebuffer> swapchainFramebuffers_;
+    std::vector<vk::ImageView> swapchainImageViews_;
+    std::vector<vk::Framebuffer> swapchainFramebuffers_;
 
     GLFWwindow *createWindow(
         unsigned width, unsigned height, char const *title, bool fullscreen);
-    vk::UniqueSurfaceKHR createSurface();
+    vk::SurfaceKHR createSurface();
     vk::SurfaceFormatKHR selectSurfaceFormat();
     vk::PresentModeKHR selectPresentMode();
-    vk::UniqueRenderPass createRenderPass();
+    vk::RenderPass createRenderPass();
 
     void createSwapchain();
     void destroySwapchain();

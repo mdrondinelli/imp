@@ -7,14 +7,17 @@ namespace imp {
 
   class AtmosphereBuffer {
   public:
-    explicit AtmosphereBuffer(VmaAllocator allocator);
+    static constexpr auto STRIDE = vk::DeviceSize{256};
+    static constexpr auto SIZE = vk::DeviceSize{60};
 
-    vk::Buffer get() const noexcept;
+    explicit AtmosphereBuffer(
+        gsl::not_null<VmaAllocator> allocator, std::size_t fenceCount);
 
-    void update(Atmosphere const &atmosphere) noexcept;
+    void update(Atmosphere const &atmosphere, std::size_t fenceIndex) noexcept;
+
+    GpuBuffer const &getBuffer() const noexcept;
 
   private:
     GpuBuffer buffer_;
-    GpuBuffer createBuffer(VmaAllocator allocator);
   };
 } // namespace imp
