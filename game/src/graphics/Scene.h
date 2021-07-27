@@ -18,7 +18,7 @@ namespace imp {
         align(DirectionalLight::UNIFORM_ALIGN, Planet::UNIFORM_SIZE) +
         DirectionalLight::UNIFORM_SIZE;
     static constexpr auto UNIFORM_BUFFER_STRIDE =
-        align(std::size_t{256}, UNIFORM_BUFFER_SIZE);
+        align<256>(UNIFORM_BUFFER_SIZE);
     static constexpr auto TRANSMITTANCE_IMAGE_EXTENT = Extent3u{64, 256, 1};
 
     class Flyweight {
@@ -30,6 +30,7 @@ namespace imp {
       vk::DescriptorSetLayout createTransmittanceDescriptorSetLayout() const;
       vk::PipelineLayout createTransmittancePipelineLayout() const;
       vk::Pipeline createTransmittancePipeline() const;
+      vk::Sampler createTransmittanceSampler() const;
 
     public:
       ~Flyweight();
@@ -40,6 +41,7 @@ namespace imp {
       getTransmittanceDescriptorSetLayout() const noexcept;
       vk::PipelineLayout getTransmittancePipelineLayout() const noexcept;
       vk::Pipeline getTransmittancePipeline() const noexcept;
+      vk::Sampler getTransmittanceSampler() const noexcept;
 
     private:
       gsl::not_null<GpuContext *> context_;
@@ -47,6 +49,7 @@ namespace imp {
       vk::DescriptorSetLayout transmittanceDescriptorSetLayout_;
       vk::PipelineLayout transmittancePipelineLayout_;
       vk::Pipeline transmittancePipeline_;
+      vk::Sampler transmittanceSampler_;
     };
 
     struct Frame {
@@ -63,6 +66,9 @@ namespace imp {
     GpuImage createTransmittanceImage() const;
     vk::DescriptorPool createDescriptorPool() const;
     vk::CommandPool createCommandPool() const;
+    vk::CommandBuffer createTransitionCommandBuffer();
+    vk::Semaphore createTransitionSemaphore() const;
+    vk::Fence createTransitionFence() const;
     void initTransmittanceImageViews();
     void initTransmittaceDescriptorSets();
     void initCommandBuffers();
@@ -95,9 +101,13 @@ namespace imp {
     GpuImage transmittanceImage_;
     vk::DescriptorPool descriptorPool_;
     vk::CommandPool commandPool_;
+    vk::CommandBuffer transitionCommandBuffer_;
+    vk::Semaphore transitionSemaphore_;
+    vk::Fence transitionFence_;
     std::vector<Frame> frames_;
     std::shared_ptr<Planet> planet_;
     std::shared_ptr<DirectionalLight> sunLight_;
     std::shared_ptr<DirectionalLight> moonLight_;
+    bool firstFrame_;
   };
 } // namespace imp

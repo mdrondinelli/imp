@@ -12,7 +12,7 @@ namespace imp {
         Eigen::Vector3f const &position = {0.0f, 0.0f, 0.0f},
         float groundRadius = 6360e3f,
         float atmosphereRadius = 6460e3f,
-        Spectrum const &albedo = {0.3f, 0.3f, 0.3f},
+        Spectrum const &albedo = {0.29f, 0.29f, 0.29f},
         Spectrum const &rayleighScattering = {5.802e-6f, 13.558e-6f, 33.1e-6f},
         float rayleighScaleHeight = 8000.0f,
         float mieScattering = 3.996e-6f,

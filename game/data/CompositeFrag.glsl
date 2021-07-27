@@ -12,10 +12,6 @@ layout(push_constant) uniform PushConstants {
   uint ditherSeed;
 };
 
-vec3 expose(vec3 x) {
-  return x / 10;
-}
-
 vec3 tonemap(vec3 x) {
   mat3 inputMat = transpose(mat3(
       vec3(0.59719f, 0.35458f, 0.04823f),
@@ -43,7 +39,7 @@ vec3 gammaCorrect(vec3 x) {
 
 void main() {
   vec3 radiance = texture(textures[textureIndex], textureCoord).rgb;
-  vec3 color = gammaCorrect(tonemap(expose(radiance)));
+  vec3 color = gammaCorrect(tonemap(radiance));
   uvec3 seed = uvec3(gl_FragCoord.xy, ditherSeed);
   uvec3 hash = pcg3d(seed);
   vec3 rand = hash / float(0xffffffffu);

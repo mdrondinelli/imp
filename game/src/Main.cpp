@@ -7,7 +7,6 @@
 #include "graphics/SceneView.h"
 #include "system/Display.h"
 #include "system/GpuContext.h"
-#include "util/Oct.h"
 
 int main() {
   using namespace std::chrono_literals;
@@ -26,25 +25,36 @@ int main() {
     auto earth = imp::gsl::not_null{std::make_shared<imp::Planet>()};
     earth->setPosition({0.0f, -earth->getGroundRadius(), 0.0f});
     auto sun = imp::gsl::not_null{std::make_shared<imp::DirectionalLight>(
-        imp::Spectrum{200.0f},
+        imp::Spectrum{169.0f},
         Eigen::Vector3f{0.0f, -1.0f, 1.0f}.normalized())};
     scene->setPlanet(earth);
     scene->setSunLight(sun);
     auto groundView = imp::gsl::not_null{std::make_shared<imp::SceneView>(
-        renderer.getSceneViewFlyweight(), scene, imp::Extent2u{960, 1080})};
+        renderer.getSceneViewFlyweight(), scene, imp::Extent2u{1920, 1080})};
+    groundView->setExposure(1.0f / 8.0f);
     auto skyView = imp::gsl::not_null{std::make_shared<imp::SceneView>(
-        renderer.getSceneViewFlyweight(), scene, imp::Extent2u{960, 1080})};
+        renderer.getSceneViewFlyweight(), scene, imp::Extent2u{1920, 1080})};
+    skyView->setExposure(1.0f / 8.0f);
     {
       auto viewMatrix = Eigen::Matrix4f::Identity().eval();
-      viewMatrix(1, 3) = -1000.0f;
+      viewMatrix(1, 3) = -2.0f;
       groundView->setViewMatrix(viewMatrix);
-      viewMatrix(1, 3) = -8000.0f;
+    }
+    {
+      auto viewMatrix = Eigen::Matrix4f{};
+      viewMatrix.col(0) = Eigen::Vector4f{0.0f, 0.0f, -1.0f, 0.0f};
+      viewMatrix.col(1) = Eigen::Vector4f{-1.0f, 0.0f, 0.0f, 0.0f};
+      viewMatrix.col(2) = Eigen::Vector4f{0.0f, 1.0f, 0.0f, 0.0f};
+      viewMatrix.col(3) = Eigen::Vector4f{
+          0.0f, 1.0f * earth->getAtmosphereRadius(), 0.0f, 1.0f};
+      viewMatrix = viewMatrix.inverse().eval();
       skyView->setViewMatrix(viewMatrix);
     }
     {
-      auto tanHalfFovY = 0.71f;
+      auto tanHalfFovY = 0.342f;
       auto focalLength = 1.0f / tanHalfFovY;
-      auto aspectRatio = 960.0f / 1080.0f;
+      auto aspectRatio = float(groundView->getExtent().width) /
+                         float(groundView->getExtent().height);
       auto n = 0.01f;
       auto f = 100.0f;
       auto projectionMatrix = Eigen::Matrix4f::Zero().eval();
@@ -54,6 +64,20 @@ int main() {
       projectionMatrix(2, 3) = n * f / (f - n);
       projectionMatrix(3, 2) = -1;
       groundView->setProjectionMatrix(projectionMatrix);
+    }
+    {
+      auto tanHalfFovY = 0.7f;
+      auto focalLength = 1.0f / tanHalfFovY;
+      auto aspectRatio = float(skyView->getExtent().width) /
+                         float(skyView->getExtent().height);
+      auto n = 0.01f;
+      auto f = 100.0f;
+      auto projectionMatrix = Eigen::Matrix4f::Zero().eval();
+      projectionMatrix(0, 0) = focalLength / aspectRatio;
+      projectionMatrix(1, 1) = -focalLength;
+      projectionMatrix(2, 2) = n / (f - n);
+      projectionMatrix(2, 3) = n * f / (f - n);
+      projectionMatrix(3, 2) = -1;
       skyView->setProjectionMatrix(projectionMatrix);
     }
     // Eigen::Matrix4f getProjectionMatrix(Camera const &c) noexcept {
@@ -73,14 +97,17 @@ int main() {
     auto frame_count = 0;
     while (!window.shouldClose()) {
       imp::Display::poll();
-      auto angle = float(glfwGetTime()) * 0.0043633f * 2.0f - 0.15f;
-      sun->setDirection(
-          Eigen::Vector3f{0.0f, std::sin(angle), -std::cos(angle)});
+      auto theta = float(glfwGetTime()) * 0.0043633f * 1.0f - 0.05f;
+      auto cosTheta = std::cos(theta);
+      auto sinTheta = std::sin(theta);
+      Eigen::Vector3f cosAxis = {0.0f, 0.0f, -1.0f};
+      Eigen::Vector3f sinAxis = Eigen::Vector3f{1.0f, 2.0f, 0.0f}.normalized();
+      sun->setDirection(cosAxis * cosTheta + sinAxis * sinTheta);
       if (window.getFramebufferWidth() != 0 &&
           window.getFramebufferHeight() != 0) {
         renderer.begin();
-        renderer.draw(groundView, 0, 0, 960, 1080);
-        renderer.draw(skyView, 960, 0, 960, 1080);
+        renderer.draw(groundView, 0, 0, 1920, 1080);
+        // renderer.draw(skyView, 0, 0, 1920, 1080);
         renderer.end();
         ++frame_count;
       }

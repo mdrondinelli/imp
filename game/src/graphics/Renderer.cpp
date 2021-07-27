@@ -403,7 +403,7 @@ namespace imp {
     waitSemaphores.reserve(sceneViews_.size() + 1);
     waitStages.reserve(sceneViews_.size() + 1);
     for (auto &[sceneView, _] : sceneViews_) {
-      waitSemaphores.emplace_back(sceneView->getRenderSemaphore(frameIndex_));
+      waitSemaphores.emplace_back(sceneView->getSemaphore(frameIndex_));
       waitStages.emplace_back(vk::PipelineStageFlagBits::eFragmentShader);
     }
     waitSemaphores.emplace_back(frame.swapchainSemaphore);
@@ -471,7 +471,7 @@ namespace imp {
     indexBufferData_[indexBufferIndex_ + 5] = vertexBufferIndex_ + 0;
     auto info = vk::DescriptorImageInfo{};
     info.sampler = sampler_;
-    info.imageView = sceneView->getRenderImageView(frameIndex_);
+    info.imageView = sceneView->getFullRenderImageView(frameIndex_);
     info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     auto write = vk::WriteDescriptorSet{};
     write.dstSet = frames_[frameIndex_].descriptorSet;

@@ -211,7 +211,7 @@
     <ClInclude Include="src\util\Align.h" />
     <ClInclude Include="src\util\Extent.h" />
     <ClInclude Include="src\util\Gsl.h" />
-    <ClInclude Include="src\util\Oct.h" />
+    <ClInclude Include="src\util\Math.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp" />

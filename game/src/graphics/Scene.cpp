@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "../system/GpuContext.h"
+#include "../util/Math.h"
 
 namespace imp {
   Scene::Flyweight::Flyweight(
@@ -12,7 +13,8 @@ namespace imp {
       transmittanceDescriptorSetLayout_{
           createTransmittanceDescriptorSetLayout()},
       transmittancePipelineLayout_{createTransmittancePipelineLayout()},
-      transmittancePipeline_{createTransmittancePipeline()} {}
+      transmittancePipeline_{createTransmittancePipeline()},
+      transmittanceSampler_{createTransmittanceSampler()} {}
 
   vk::DescriptorSetLayout
   Scene::Flyweight::createTransmittanceDescriptorSetLayout() const {
@@ -30,8 +32,13 @@ namespace imp {
 
   vk::PipelineLayout
   Scene::Flyweight::createTransmittancePipelineLayout() const {
+    auto pushConstantRange = GpuPushConstantRange{};
+    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = 8;
     auto createInfo = GpuPipelineLayoutCreateInfo{};
     createInfo.setLayouts = gsl::span{&transmittanceDescriptorSetLayout_, 1};
+    createInfo.pushConstantRanges = gsl::span{&pushConstantRange, 1};
     return context_->createPipelineLayout(createInfo);
   }
 
@@ -64,6 +71,17 @@ namespace imp {
         .value;
   }
 
+  vk::Sampler Scene::Flyweight::createTransmittanceSampler() const {
+    auto createInfo = GpuSamplerCreateInfo{};
+    createInfo.magFilter = vk::Filter::eLinear;
+    createInfo.minFilter = vk::Filter::eLinear;
+    createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
+    createInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+    createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+    createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
+    return context_->createSampler(createInfo);
+  }
+
   Scene::Flyweight::~Flyweight() {
     auto device = context_->getDevice();
     device.destroyPipeline(transmittancePipeline_);
@@ -91,17 +109,32 @@ namespace imp {
     return transmittancePipeline_;
   }
 
+  vk::Sampler Scene::Flyweight::getTransmittanceSampler() const noexcept {
+    return transmittanceSampler_;
+  }
+
   Scene::Scene(gsl::not_null<Flyweight const *> flyweight):
       flyweight_{flyweight},
       uniformBuffer_{createUniformBuffer()},
       transmittanceImage_{createTransmittanceImage()},
       descriptorPool_{createDescriptorPool()},
       commandPool_{createCommandPool()},
-      frames_(flyweight_->getFrameCount()) {
+      transitionCommandBuffer_{createTransitionCommandBuffer()},
+      transitionSemaphore_{createTransitionSemaphore()},
+      transitionFence_{createTransitionFence()},
+      frames_(flyweight_->getFrameCount()),
+      firstFrame_{true} {
     initTransmittanceImageViews();
     initTransmittaceDescriptorSets();
     initCommandBuffers();
     initSemaphores();
+    auto submit = vk::SubmitInfo{};
+    submit.commandBufferCount = 1;
+    submit.pCommandBuffers = &transitionCommandBuffer_;
+    submit.signalSemaphoreCount = 1;
+    submit.pSignalSemaphores = &transitionSemaphore_;
+    flyweight_->getContext()->getComputeQueue().submit(
+        submit, transitionFence_);
   }
 
   GpuBuffer Scene::createUniformBuffer() const {
@@ -156,6 +189,48 @@ namespace imp {
     return context.getDevice().createCommandPool(createInfo);
   }
 
+  vk::CommandBuffer Scene::createTransitionCommandBuffer() {
+    auto allocateInfo = vk::CommandBufferAllocateInfo{};
+    allocateInfo.commandPool = commandPool_;
+    allocateInfo.commandBufferCount = 1;
+    auto commandBuffer = vk::CommandBuffer{};
+    flyweight_->getContext()->getDevice().allocateCommandBuffers(
+        &allocateInfo, &commandBuffer);
+    auto beginInfo = vk::CommandBufferBeginInfo{};
+    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+    commandBuffer.begin(beginInfo);
+    auto barrier = vk::ImageMemoryBarrier{};
+    barrier.srcAccessMask = {};
+    barrier.dstAccessMask = {};
+    barrier.oldLayout = vk::ImageLayout::eUndefined;
+    barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = transmittanceImage_.get();
+    barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = transmittanceImage_.getMipLevels();
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = transmittanceImage_.getArrayLayers();
+    commandBuffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eTopOfPipe,
+        vk::PipelineStageFlagBits::eBottomOfPipe,
+        {},
+        {},
+        {},
+        barrier);
+    commandBuffer.end();
+    return commandBuffer;
+  }
+
+  vk::Semaphore Scene::createTransitionSemaphore() const {
+    return flyweight_->getContext()->getDevice().createSemaphore({});
+  }
+
+  vk::Fence Scene::createTransitionFence() const {
+    return flyweight_->getContext()->getDevice().createFence({});
+  }
+
   void Scene::initTransmittanceImageViews() {
     auto createInfo = vk::ImageViewCreateInfo{};
     createInfo.image = transmittanceImage_.get();
@@ -183,31 +258,33 @@ namespace imp {
     allocateInfo.descriptorPool = descriptorPool_;
     allocateInfo.descriptorSetCount = 1;
     allocateInfo.pSetLayouts = &setLayout;
-    auto writes = std::array<vk::WriteDescriptorSet, 2>{};
     auto sceneBufferInfo = vk::DescriptorBufferInfo{};
     sceneBufferInfo.buffer = uniformBuffer_.get();
     sceneBufferInfo.range = UNIFORM_BUFFER_SIZE;
-    writes[0].dstBinding = 0;
-    writes[0].dstArrayElement = 0;
-    writes[0].descriptorCount = 1;
-    writes[0].descriptorType = vk::DescriptorType::eUniformBuffer;
-    writes[0].pBufferInfo = &sceneBufferInfo;
+    auto sceneBufferWrite = vk::WriteDescriptorSet{};
+    sceneBufferWrite.dstBinding = 0;
+    sceneBufferWrite.dstArrayElement = 0;
+    sceneBufferWrite.descriptorCount = 1;
+    sceneBufferWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+    sceneBufferWrite.pBufferInfo = &sceneBufferInfo;
     auto transmittanceImageInfo = vk::DescriptorImageInfo{};
     transmittanceImageInfo.imageLayout = vk::ImageLayout::eGeneral;
-    writes[1].dstBinding = 1;
-    writes[1].dstArrayElement = 0;
-    writes[1].descriptorCount = 1;
-    writes[1].descriptorType = vk::DescriptorType::eStorageImage;
-    writes[1].pImageInfo = &transmittanceImageInfo;
+    auto transmittanceImageWrite = vk::WriteDescriptorSet{};
+    transmittanceImageWrite.dstBinding = 1;
+    transmittanceImageWrite.dstArrayElement = 0;
+    transmittanceImageWrite.descriptorCount = 1;
+    transmittanceImageWrite.descriptorType = vk::DescriptorType::eStorageImage;
+    transmittanceImageWrite.pImageInfo = &transmittanceImageInfo;
     auto device = flyweight_->getContext()->getDevice();
     for (auto i = std::size_t{}; i < frames_.size(); ++i) {
       device.allocateDescriptorSets(
           &allocateInfo, &frames_[i].transmittanceDescriptorSet);
       sceneBufferInfo.offset = UNIFORM_BUFFER_STRIDE * i;
-      writes[0].dstSet = frames_[i].transmittanceDescriptorSet;
       transmittanceImageInfo.imageView = frames_[i].transmittanceImageView;
-      writes[1].dstSet = frames_[i].transmittanceDescriptorSet;
-      device.updateDescriptorSets(writes, {});
+      sceneBufferWrite.dstSet = frames_[i].transmittanceDescriptorSet;
+      transmittanceImageWrite.dstSet = frames_[i].transmittanceDescriptorSet;
+      device.updateDescriptorSets(
+          {sceneBufferWrite, transmittanceImageWrite}, {});
     }
   }
 
@@ -224,7 +301,7 @@ namespace imp {
         auto barrier = vk::ImageMemoryBarrier{};
         barrier.srcAccessMask = {};
         barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
-        barrier.oldLayout = vk::ImageLayout::eUndefined;
+        barrier.oldLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
         barrier.newLayout = vk::ImageLayout::eGeneral;
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -292,21 +369,35 @@ namespace imp {
   Scene::~Scene() {
     auto device = flyweight_->getContext()->getDevice();
     for (auto &frame : frames_) {
-      device.destroySemaphore(frame.semaphore);
-      device.destroyImageView(frame.transmittanceImageView);
+      device.destroy(frame.semaphore);
+      device.destroy(frame.transmittanceImageView);
     }
+    device.waitForFences(
+        transitionFence_, false, std::numeric_limits<std::uint64_t>::max());
+    device.destroyFence(transitionFence_);
+    device.destroySemaphore(transitionSemaphore_);
     device.destroyCommandPool(commandPool_);
     device.destroyDescriptorPool(descriptorPool_);
   }
 
-  void Scene::render(std::size_t frameIndex) {
-    updateUniformBuffer(frameIndex);
+  void Scene::render(std::size_t i) {
+    auto &frame = frames_[i];
+    updateUniformBuffer(i);
+    auto waitSemaphore = transitionSemaphore_;
+    auto waitStage =
+        vk::PipelineStageFlags{vk::PipelineStageFlagBits::eTopOfPipe};
     auto submitInfo = vk::SubmitInfo{};
+    if (firstFrame_) {
+      submitInfo.waitSemaphoreCount = 1;
+      submitInfo.pWaitSemaphores = &waitSemaphore;
+      submitInfo.pWaitDstStageMask = &waitStage;
+    }
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &frames_[frameIndex].commandBuffer;
+    submitInfo.pCommandBuffers = &frame.commandBuffer;
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &frames_[frameIndex].semaphore;
+    submitInfo.pSignalSemaphores = &frame.semaphore;
     flyweight_->getContext()->getComputeQueue().submit(submitInfo);
+    firstFrame_ = false;
   }
 
   void Scene::updateUniformBuffer(std::size_t frameIndex) {
@@ -315,7 +406,6 @@ namespace imp {
     planet_->store(data);
     data += align(DirectionalLight::UNIFORM_ALIGN, Planet::UNIFORM_SIZE);
     sunLight_->store(data);
-    // data += align(..., DirectionalLight::UNIFORM_SIZE);
     uniformBuffer_.flush(offset, UNIFORM_BUFFER_SIZE);
   }
 

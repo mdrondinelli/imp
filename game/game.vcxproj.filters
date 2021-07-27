@@ -117,10 +117,10 @@
     <ClInclude Include="src\util\Extent.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\Oct.h">
+    <ClInclude Include="src\util\Align.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\Align.h">
+    <ClInclude Include="src\util\Math.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>

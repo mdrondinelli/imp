@@ -15,7 +15,7 @@ int nextInt(inout uint seed) {
 
 float nextFloat(inout uint seed) {
   seed = 0xcf019d85u * seed + 1u;
-  return float(seed) * (1.0f / 4294967296.0f);
+  return float(seed) / 4294967296.0f;
 }
 
 // 2 -> 1 hash

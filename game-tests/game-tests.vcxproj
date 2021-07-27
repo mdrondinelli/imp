@@ -62,7 +62,7 @@
     <ClCompile Include="src\ColumnWidgetTest.cpp" />
     <ClCompile Include="src\ContainerWidgetTest.cpp" />
     <ClCompile Include="src\RowWidgetTest.cpp" />
-    <ClCompile Include="src\util\OctTest.cpp" />
+    <ClCompile Include="src\util\MathTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\game\game.vcxproj">
