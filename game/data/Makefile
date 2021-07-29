@@ -2,28 +2,28 @@ COMPILE_COMP = glslc -fshader-stage=comp -O --target-env=vulkan1.1
 COMPILE_VERT = glslc -fshader-stage=vert -O --target-env=vulkan1.1
 COMPILE_FRAG = glslc -fshader-stage=frag -O --target-env=vulkan1.1
 
-all: Transmittance.spv SkyView.spv Render.spv Downsample.spv Blur.spv BlurBlend.spv Bloom.spv CompositeVert.spv CompositeFrag.spv
+all: GenericVert.spv TransmittanceFrag.spv SkyViewFrag.spv PrimaryFrag.spv IdentityFrag.spv BlurFrag.spv BloomFrag.spv CompositeVert.spv CompositeFrag.spv
 
-Transmittance.spv: Transmittance.glsl Constants.glsl Scene.glsl
-	$(COMPILE_COMP) -o Transmittance.spv Transmittance.glsl
+GenericVert.spv: GenericVert.glsl
+	$(COMPILE_VERT) -o GenericVert.spv GenericVert.glsl
 
-SkyView.spv: SkyView.glsl Constants.glsl Intersections.glsl Scene.glsl SceneView.glsl
-	$(COMPILE_COMP) -o SkyView.spv SkyView.glsl
+TransmittanceFrag.spv: TransmittanceFrag.glsl Constants.glsl Scene.glsl
+	$(COMPILE_FRAG) -o TransmittanceFrag.spv TransmittanceFrag.glsl
 
-Render.spv: Render.glsl Constants.glsl Intersections.glsl Numeric.glsl Scene.glsl SceneView.glsl
-	$(COMPILE_COMP) -o Render.spv Render.glsl
+SkyViewFrag.spv: SkyViewFrag.glsl Constants.glsl Intersections.glsl Scene.glsl SceneView.glsl
+	$(COMPILE_FRAG) -o SkyViewFrag.spv SkyViewFrag.glsl
 
-Downsample.spv: Downsample.glsl
-	$(COMPILE_COMP) -o Downsample.spv Downsample.glsl
+PrimaryFrag.spv: PrimaryFrag.glsl Constants.glsl Intersections.glsl Scene.glsl SceneView.glsl
+	$(COMPILE_FRAG) -o PrimaryFrag.spv PrimaryFrag.glsl
 
-Blur.spv: Blur.glsl
-	$(COMPILE_COMP) -o Blur.spv Blur.glsl
+IdentityFrag.spv: IdentityFrag.glsl
+	$(COMPILE_FRAG) -o IdentityFrag.spv IdentityFrag.glsl
 
-BlurBlend.spv: BlurBlend.glsl
-	$(COMPILE_COMP) -o BlurBlend.spv BlurBlend.glsl
+BlurFrag.spv: BlurFrag.glsl
+	$(COMPILE_FRAG) -o BlurFrag.spv BlurFrag.glsl
 
-Bloom.spv: Bloom.glsl
-	$(COMPILE_COMP) -o Bloom.spv Bloom.glsl
+BloomFrag.spv: BloomFrag.glsl
+	$(COMPILE_FRAG) -o BloomFrag.spv BloomFrag.glsl
 
 CompositeVert.spv: CompositeVert.glsl
 	$(COMPILE_VERT) -o CompositeVert.spv CompositeVert.glsl

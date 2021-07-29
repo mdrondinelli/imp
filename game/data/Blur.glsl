@@ -1,6 +1,6 @@
 #version 450 core
 
-layout(constant_id = 0) const int kernelSize = 5;
+layout(constant_id = 0) const int kernelSize = 3;
 layout(set = 0, binding = 0) uniform sampler2D src;
 layout(set = 0, binding = 1, rgba16f) restrict writeonly uniform image2D dst;
 

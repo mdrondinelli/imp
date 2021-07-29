@@ -314,7 +314,7 @@ namespace imp {
     auto imageIndex = window_->acquireImage(frame.swapchainSemaphore, {});
     frame.commandBuffer.begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
     {
-      auto barriers = std::vector<vk::ImageMemoryBarrier>();
+      /*auto barriers = std::vector<vk::ImageMemoryBarrier>();
       if (context.getComputeFamily() != context.getGraphicsFamily()) {
         barriers.reserve(sceneViews_.size() + 1);
         for (auto &[sceneView, _] : sceneViews_) {
@@ -332,8 +332,8 @@ namespace imp {
           barrier.subresourceRange.baseArrayLayer = 0;
           barrier.subresourceRange.layerCount = 1;
         }
-      }
-      auto &barrier = barriers.emplace_back();
+      }*/
+      auto barrier = vk::ImageMemoryBarrier{};
       barrier.srcAccessMask = {};
       barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
       barrier.oldLayout = vk::ImageLayout::eUndefined;
@@ -352,7 +352,7 @@ namespace imp {
           {},
           {},
           {},
-          barriers);
+          barrier);
     }
     auto clearValue = vk::ClearValue{};
     auto renderPassBegin = vk::RenderPassBeginInfo{};
@@ -402,10 +402,10 @@ namespace imp {
     auto waitStages = std::vector<vk::PipelineStageFlags>();
     waitSemaphores.reserve(sceneViews_.size() + 1);
     waitStages.reserve(sceneViews_.size() + 1);
-    for (auto &[sceneView, _] : sceneViews_) {
-      waitSemaphores.emplace_back(sceneView->getSemaphore(frameIndex_));
-      waitStages.emplace_back(vk::PipelineStageFlagBits::eFragmentShader);
-    }
+    //for (auto &[sceneView, _] : sceneViews_) {
+    //  waitSemaphores.emplace_back(sceneView->getSemaphore(frameIndex_));
+    //  waitStages.emplace_back(vk::PipelineStageFlagBits::eFragmentShader);
+    //}
     waitSemaphores.emplace_back(frame.swapchainSemaphore);
     waitStages.emplace_back(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     auto submitInfo = vk::SubmitInfo{};

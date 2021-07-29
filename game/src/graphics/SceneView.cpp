@@ -13,54 +13,137 @@ namespace imp {
       gsl::not_null<GpuContext *> context, std::size_t frameCount):
       context_{context},
       frameCount_{frameCount},
+      renderPass_{createRenderPass()},
+      nonDestructiveRenderPass_{createNonDestructiveRenderPass()},
       skyViewDescriptorSetLayout_{createSkyViewDescriptorSetLayout()},
-      renderDescriptorSetLayout_{createRenderDescriptorSetLayout()},
-      downsampleDescriptorSetLayout_{createDownsampleDescriptorSetLayout()},
+      primaryDescriptorSetLayout_{createPrimaryDescriptorSetLayout()},
+      identityDescriptorSetLayout_{createIdentityDescriptorSetLayout()},
       blurDescriptorSetLayout_{createBlurDescriptorSetLayout()},
-      blurBlendDescriptorSetLayout_{createBlurBlendDescriptorSetLayout()},
       bloomDescriptorSetLayout_{createBloomDescriptorSetLayout()},
       skyViewPipelineLayout_{createSkyViewPipelineLayout()},
-      renderPipelineLayout_{createRenderPipelineLayout()},
-      downsamplePipelineLayout_{createDownsamplePipelineLayout()},
+      primaryPipelineLayout_{createPrimaryPipelineLayout()},
+      identityPipelineLayout_{createIdentityPipelineLayout()},
       blurPipelineLayout_{createBlurPipelineLayout()},
-      blurBlendPipelineLayout_{createBlurBlendPipelineLayout()},
       bloomPipelineLayout_{createBloomPipelineLayout()},
       skyViewPipeline_{createSkyViewPipeline()},
-      renderPipeline_{createRenderPipeline()},
-      downsamplePipeline_{createDownsamplePipeline()},
+      primaryPipeline_{createPrimaryPipeline()},
+      identityPipeline_{createIdentityPipeline()},
       blurPipelines_{createBlurPipelines()},
-      blurBlendPipelines_{createBlurBlendPipelines()},
       bloomPipeline_{createBloomPipeline()},
-      skyViewSampler_{createSkyViewSampler()},
-      generalSampler_{createGeneralSampler()} {}
+      generalSampler_{createGeneralSampler()},
+      skyViewSampler_{createSkyViewSampler()} {}
+
+  vk::RenderPass SceneView::Flyweight::createRenderPass() const {
+    auto attachment = vk::AttachmentDescription{};
+    attachment.format = vk::Format::eR16G16B16A16Sfloat;
+    attachment.samples = vk::SampleCountFlagBits::e1;
+    attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+    attachment.storeOp = vk::AttachmentStoreOp::eStore;
+    attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    attachment.initialLayout = vk::ImageLayout::eUndefined;
+    attachment.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto colorAttachment = vk::AttachmentReference{};
+    colorAttachment.attachment = 0;
+    colorAttachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
+    auto subpass = vk::SubpassDescription{};
+    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachment;
+    auto dependencies = std::array<vk::SubpassDependency, 2>{};
+    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[0].dstSubpass = 0;
+    dependencies[0].srcStageMask =
+        vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+    dependencies[0].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+    dependencies[0].dstAccessMask = vk::AccessFlagBits::eShaderRead;
+    dependencies[1].srcSubpass = 0;
+    dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[1].srcStageMask =
+        vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependencies[1].dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+    dependencies[1].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+    dependencies[1].dstAccessMask = vk::AccessFlagBits::eShaderRead;
+    auto createInfo = vk::RenderPassCreateInfo{};
+    createInfo.attachmentCount = 1;
+    createInfo.pAttachments = &attachment;
+    createInfo.subpassCount = 1;
+    createInfo.pSubpasses = &subpass;
+    createInfo.dependencyCount =
+        static_cast<std::uint32_t>(dependencies.size());
+    createInfo.pDependencies = dependencies.data();
+    return context_->getDevice().createRenderPass(createInfo);
+  }
+
+  vk::RenderPass SceneView::Flyweight::createNonDestructiveRenderPass() const {
+    auto attachment = vk::AttachmentDescription{};
+    attachment.format = vk::Format::eR16G16B16A16Sfloat;
+    attachment.samples = vk::SampleCountFlagBits::e1;
+    attachment.loadOp = vk::AttachmentLoadOp::eLoad;
+    attachment.storeOp = vk::AttachmentStoreOp::eStore;
+    attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    attachment.initialLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    attachment.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto colorAttachment = vk::AttachmentReference{};
+    colorAttachment.attachment = 0;
+    colorAttachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
+    auto subpass = vk::SubpassDescription{};
+    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachment;
+    auto dependencies = std::array<vk::SubpassDependency, 2>{};
+    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[0].dstSubpass = 0;
+    dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+    dependencies[0].dstStageMask =
+        vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependencies[0].srcAccessMask = vk::AccessFlagBits::eShaderRead;
+    dependencies[0].dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+    dependencies[1].srcSubpass = 0;
+    dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[1].srcStageMask =
+        vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependencies[1].dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+    dependencies[1].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+    dependencies[1].dstAccessMask = vk::AccessFlagBits::eShaderRead;
+    auto createInfo = vk::RenderPassCreateInfo{};
+    createInfo.attachmentCount = 1;
+    createInfo.pAttachments = &attachment;
+    createInfo.subpassCount = 1;
+    createInfo.pSubpasses = &subpass;
+    createInfo.dependencyCount =
+        static_cast<std::uint32_t>(dependencies.size());
+    createInfo.pDependencies = dependencies.data();
+    return context_->getDevice().createRenderPass(createInfo);
+  }
 
   vk::DescriptorSetLayout
   SceneView::Flyweight::createSkyViewDescriptorSetLayout() const {
+    auto bindings = std::array<GpuDescriptorSetLayoutBinding, 3>{};
+    bindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+    bindings[1].descriptorType = vk::DescriptorType::eUniformBuffer;
+    bindings[2].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    for (auto &binding : bindings) {
+      binding.descriptorCount = 1;
+      binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+    }
+    auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
+    createInfo.bindings = bindings;
+    return context_->createDescriptorSetLayout(createInfo);
+  }
+
+  vk::DescriptorSetLayout
+  SceneView::Flyweight::createPrimaryDescriptorSetLayout() const {
     auto bindings = std::array<GpuDescriptorSetLayoutBinding, 4>{};
     bindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
     bindings[1].descriptorType = vk::DescriptorType::eUniformBuffer;
     bindings[2].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    bindings[3].descriptorType = vk::DescriptorType::eStorageImage;
-    for (auto &binding : bindings) {
-      binding.descriptorCount = 1;
-      binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
-    }
-    auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
-    createInfo.bindings = bindings;
-    return context_->createDescriptorSetLayout(createInfo);
-  }
-
-  vk::DescriptorSetLayout
-  SceneView::Flyweight::createRenderDescriptorSetLayout() const {
-    auto bindings = std::array<GpuDescriptorSetLayoutBinding, 5>{};
-    bindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
-    bindings[1].descriptorType = vk::DescriptorType::eUniformBuffer;
-    bindings[2].descriptorType = vk::DescriptorType::eCombinedImageSampler;
     bindings[3].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    bindings[4].descriptorType = vk::DescriptorType::eStorageImage;
     for (auto &binding : bindings) {
       binding.descriptorCount = 1;
-      binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
+      binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
     }
     auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
     createInfo.bindings = bindings;
@@ -68,59 +151,35 @@ namespace imp {
   }
 
   vk::DescriptorSetLayout
-  SceneView::Flyweight::createDownsampleDescriptorSetLayout() const {
-    auto bindings = std::array<GpuDescriptorSetLayoutBinding, 2>{};
-    bindings[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    bindings[1].descriptorType = vk::DescriptorType::eStorageImage;
-    for (auto &binding : bindings) {
-      binding.descriptorCount = 1;
-      binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
-    }
+  SceneView::Flyweight::createIdentityDescriptorSetLayout() const {
+    auto binding = GpuDescriptorSetLayoutBinding{};
+    binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    binding.descriptorCount = 1;
+    binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
     auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
-    createInfo.bindings = bindings;
+    createInfo.bindings = {&binding, 1};
     return context_->createDescriptorSetLayout(createInfo);
   }
 
   vk::DescriptorSetLayout
   SceneView::Flyweight::createBlurDescriptorSetLayout() const {
-    auto bindings = std::array<GpuDescriptorSetLayoutBinding, 2>{};
-    bindings[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    bindings[1].descriptorType = vk::DescriptorType::eStorageImage;
-    for (auto &binding : bindings) {
-      binding.descriptorCount = 1;
-      binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
-    }
+    auto binding = GpuDescriptorSetLayoutBinding{};
+    binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    binding.descriptorCount = 1;
+    binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
     auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
-    createInfo.bindings = bindings;
-    return context_->createDescriptorSetLayout(createInfo);
-  }
-
-  vk::DescriptorSetLayout
-  SceneView::Flyweight::createBlurBlendDescriptorSetLayout() const {
-    auto bindings = std::array<GpuDescriptorSetLayoutBinding, 3>{};
-    bindings[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    bindings[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    bindings[2].descriptorType = vk::DescriptorType::eStorageImage;
-    for (auto &binding : bindings) {
-      binding.descriptorCount = 1;
-      binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
-    }
-    auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
-    createInfo.bindings = bindings;
+    createInfo.bindings = {&binding, 1};
     return context_->createDescriptorSetLayout(createInfo);
   }
 
   vk::DescriptorSetLayout
   SceneView::Flyweight::createBloomDescriptorSetLayout() const {
-    auto bindings = std::array<GpuDescriptorSetLayoutBinding, 2>{};
-    bindings[0].descriptorType = vk::DescriptorType::eStorageImage;
-    bindings[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    for (auto &binding : bindings) {
-      binding.descriptorCount = 1;
-      binding.stageFlags = vk::ShaderStageFlagBits::eCompute;
-    }
+    auto binding = GpuDescriptorSetLayoutBinding{};
+    binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    binding.descriptorCount = 1;
+    binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
     auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
-    createInfo.bindings = bindings;
+    createInfo.bindings = {&binding, 1};
     return context_->createDescriptorSetLayout(createInfo);
   }
 
@@ -130,36 +189,25 @@ namespace imp {
     return context_->createPipelineLayout(createInfo);
   }
 
-  vk::PipelineLayout SceneView::Flyweight::createRenderPipelineLayout() const {
+  vk::PipelineLayout SceneView::Flyweight::createPrimaryPipelineLayout() const {
     auto createInfo = GpuPipelineLayoutCreateInfo{};
-    createInfo.setLayouts = {&renderDescriptorSetLayout_, 1};
+    createInfo.setLayouts = {&primaryDescriptorSetLayout_, 1};
     return context_->createPipelineLayout(createInfo);
   }
 
   vk::PipelineLayout
-  SceneView::Flyweight::createDownsamplePipelineLayout() const {
+  SceneView::Flyweight::createIdentityPipelineLayout() const {
     auto createInfo = GpuPipelineLayoutCreateInfo{};
-    createInfo.setLayouts = {&downsampleDescriptorSetLayout_, 1};
+    createInfo.setLayouts = {&identityDescriptorSetLayout_, 1};
     return context_->createPipelineLayout(createInfo);
   }
 
   vk::PipelineLayout SceneView::Flyweight::createBlurPipelineLayout() const {
     auto pushConstantRange = GpuPushConstantRange{};
-    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
-    pushConstantRange.size = 4;
+    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eFragment;
+    pushConstantRange.size = 24;
     auto createInfo = GpuPipelineLayoutCreateInfo{};
     createInfo.setLayouts = {&blurDescriptorSetLayout_, 1};
-    createInfo.pushConstantRanges = {&pushConstantRange, 1};
-    return context_->createPipelineLayout(createInfo);
-  }
-
-  vk::PipelineLayout
-  SceneView::Flyweight::createBlurBlendPipelineLayout() const {
-    auto pushConstantRange = GpuPushConstantRange{};
-    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
-    pushConstantRange.size = 12;
-    auto createInfo = GpuPipelineLayoutCreateInfo{};
-    createInfo.setLayouts = {&blurBlendDescriptorSetLayout_, 1};
     createInfo.pushConstantRanges = {&pushConstantRange, 1};
     return context_->createPipelineLayout(createInfo);
   }
@@ -171,105 +219,271 @@ namespace imp {
   }
 
   vk::Pipeline SceneView::Flyweight::createSkyViewPipeline() const {
-    auto device = context_->getDevice();
-    auto ifs = std::ifstream{};
-    ifs.exceptions(std::ios::badbit | std::ios::failbit);
-    ifs.open("./data/SkyView.spv", std::ios::binary);
-    ifs.seekg(0, std::ios::end);
-    auto code = std::vector<char>{};
-    code.resize(ifs.tellg());
-    if (code.size() % 4 != 0) {
-      throw std::runtime_error{"invalid shader module"};
+    auto vertModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/GenericVert.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      vertModule = context_->getDevice().createShaderModuleUnique(createInfo);
     }
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(code.data(), code.size());
-    ifs.close();
-    auto moduleCreateInfo = vk::ShaderModuleCreateInfo{};
-    moduleCreateInfo.codeSize = code.size();
-    moduleCreateInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
-    auto module = device.createShaderModuleUnique(moduleCreateInfo);
-    auto createInfo = vk::ComputePipelineCreateInfo{};
-    createInfo.stage.stage = vk::ShaderStageFlagBits::eCompute;
-    createInfo.stage.module = *module;
-    createInfo.stage.pName = "main";
+    auto fragModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/SkyViewFrag.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      fragModule = context_->getDevice().createShaderModuleUnique(createInfo);
+    }
+    auto stages = std::array<vk::PipelineShaderStageCreateInfo, 2>{};
+    stages[0].stage = vk::ShaderStageFlagBits::eVertex;
+    stages[0].module = *vertModule;
+    stages[0].pName = "main";
+    stages[1].stage = vk::ShaderStageFlagBits::eFragment;
+    stages[1].module = *fragModule;
+    stages[1].pName = "main";
+    auto vertexInputState = vk::PipelineVertexInputStateCreateInfo{};
+    auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo{};
+    inputAssemblyState.topology = vk::PrimitiveTopology::eTriangleList;
+    auto viewportState = vk::PipelineViewportStateCreateInfo{};
+    viewportState.viewportCount = 1;
+    viewportState.scissorCount = 1;
+    auto rasterizationState = vk::PipelineRasterizationStateCreateInfo{};
+    rasterizationState.lineWidth = 1.0f;
+    auto multisampleState = vk::PipelineMultisampleStateCreateInfo{};
+    multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    auto attachment = vk::PipelineColorBlendAttachmentState{};
+    attachment.colorWriteMask =
+        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+    auto colorBlendState = vk::PipelineColorBlendStateCreateInfo{};
+    colorBlendState.attachmentCount = 1;
+    colorBlendState.pAttachments = &attachment;
+    auto dynamicStates =
+        std::array{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+    auto dynamicState = vk::PipelineDynamicStateCreateInfo{};
+    dynamicState.dynamicStateCount =
+        static_cast<std::uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+    auto createInfo = vk::GraphicsPipelineCreateInfo{};
+    createInfo.stageCount = static_cast<std::uint32_t>(stages.size());
+    createInfo.pStages = stages.data();
+    createInfo.pVertexInputState = &vertexInputState;
+    createInfo.pInputAssemblyState = &inputAssemblyState;
+    createInfo.pViewportState = &viewportState;
+    createInfo.pRasterizationState = &rasterizationState;
+    createInfo.pMultisampleState = &multisampleState;
+    createInfo.pColorBlendState = &colorBlendState;
+    createInfo.pDynamicState = &dynamicState;
     createInfo.layout = skyViewPipelineLayout_;
+    createInfo.renderPass = renderPass_;
+    createInfo.subpass = 0;
     createInfo.basePipelineIndex = -1;
-    return device.createComputePipeline({}, createInfo).value;
+    return context_->getDevice().createGraphicsPipeline({}, createInfo).value;
   }
 
-  vk::Pipeline SceneView::Flyweight::createRenderPipeline() const {
-    auto device = context_->getDevice();
-    auto ifs = std::ifstream{};
-    ifs.exceptions(std::ios::badbit | std::ios::failbit);
-    ifs.open("./data/Render.spv", std::ios::binary);
-    ifs.seekg(0, std::ios::end);
-    auto code = std::vector<char>{};
-    code.resize(ifs.tellg());
-    if (code.size() % 4 != 0) {
-      throw std::runtime_error{"invalid shader module"};
+  vk::Pipeline SceneView::Flyweight::createPrimaryPipeline() const {
+    auto vertModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/GenericVert.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      vertModule = context_->getDevice().createShaderModuleUnique(createInfo);
     }
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(code.data(), code.size());
-    ifs.close();
-    auto moduleCreateInfo = vk::ShaderModuleCreateInfo{};
-    moduleCreateInfo.codeSize = code.size();
-    moduleCreateInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
-    auto module = device.createShaderModuleUnique(moduleCreateInfo);
-    auto createInfo = vk::ComputePipelineCreateInfo{};
-    createInfo.stage.stage = vk::ShaderStageFlagBits::eCompute;
-    createInfo.stage.module = *module;
-    createInfo.stage.pName = "main";
-    createInfo.layout = renderPipelineLayout_;
+    auto fragModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/PrimaryFrag.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      fragModule = context_->getDevice().createShaderModuleUnique(createInfo);
+    }
+    auto stages = std::array<vk::PipelineShaderStageCreateInfo, 2>{};
+    stages[0].stage = vk::ShaderStageFlagBits::eVertex;
+    stages[0].module = *vertModule;
+    stages[0].pName = "main";
+    stages[1].stage = vk::ShaderStageFlagBits::eFragment;
+    stages[1].module = *fragModule;
+    stages[1].pName = "main";
+    auto vertexInputState = vk::PipelineVertexInputStateCreateInfo{};
+    auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo{};
+    inputAssemblyState.topology = vk::PrimitiveTopology::eTriangleList;
+    auto viewportState = vk::PipelineViewportStateCreateInfo{};
+    viewportState.viewportCount = 1;
+    viewportState.scissorCount = 1;
+    auto rasterizationState = vk::PipelineRasterizationStateCreateInfo{};
+    rasterizationState.lineWidth = 1.0f;
+    auto multisampleState = vk::PipelineMultisampleStateCreateInfo{};
+    multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    auto attachment = vk::PipelineColorBlendAttachmentState{};
+    attachment.colorWriteMask =
+        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+    auto colorBlendState = vk::PipelineColorBlendStateCreateInfo{};
+    colorBlendState.attachmentCount = 1;
+    colorBlendState.pAttachments = &attachment;
+    auto dynamicStates =
+        std::array{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+    auto dynamicState = vk::PipelineDynamicStateCreateInfo{};
+    dynamicState.dynamicStateCount =
+        static_cast<std::uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+    auto createInfo = vk::GraphicsPipelineCreateInfo{};
+    createInfo.stageCount = static_cast<std::uint32_t>(stages.size());
+    createInfo.pStages = stages.data();
+    createInfo.pVertexInputState = &vertexInputState;
+    createInfo.pInputAssemblyState = &inputAssemblyState;
+    createInfo.pViewportState = &viewportState;
+    createInfo.pRasterizationState = &rasterizationState;
+    createInfo.pMultisampleState = &multisampleState;
+    createInfo.pColorBlendState = &colorBlendState;
+    createInfo.pDynamicState = &dynamicState;
+    createInfo.layout = primaryPipelineLayout_;
+    createInfo.renderPass = renderPass_;
+    createInfo.subpass = 0;
     createInfo.basePipelineIndex = -1;
-    return device.createComputePipeline({}, createInfo).value;
+    return context_->getDevice().createGraphicsPipeline({}, createInfo).value;
   }
 
-  vk::Pipeline SceneView::Flyweight::createDownsamplePipeline() const {
-    auto device = context_->getDevice();
-    auto ifs = std::ifstream{};
-    ifs.exceptions(std::ios::badbit | std::ios::failbit);
-    ifs.open("./data/Downsample.spv", std::ios::binary);
-    ifs.seekg(0, std::ios::end);
-    auto code = std::vector<char>{};
-    code.resize(ifs.tellg());
-    if (code.size() % 4 != 0) {
-      throw std::runtime_error{"invalid shader module"};
+  vk::Pipeline SceneView::Flyweight::createIdentityPipeline() const {
+    auto vertModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/GenericVert.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      vertModule = context_->getDevice().createShaderModuleUnique(createInfo);
     }
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(code.data(), code.size());
-    ifs.close();
-    auto moduleCreateInfo = vk::ShaderModuleCreateInfo{};
-    moduleCreateInfo.codeSize = code.size();
-    moduleCreateInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
-    auto module = device.createShaderModuleUnique(moduleCreateInfo);
-    auto createInfo = vk::ComputePipelineCreateInfo{};
-    createInfo.stage.stage = vk::ShaderStageFlagBits::eCompute;
-    createInfo.stage.module = *module;
-    createInfo.stage.pName = "main";
-    createInfo.layout = downsamplePipelineLayout_;
+    auto fragModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/IdentityFrag.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      fragModule = context_->getDevice().createShaderModuleUnique(createInfo);
+    }
+    auto stages = std::array<vk::PipelineShaderStageCreateInfo, 2>{};
+    stages[0].stage = vk::ShaderStageFlagBits::eVertex;
+    stages[0].module = *vertModule;
+    stages[0].pName = "main";
+    stages[1].stage = vk::ShaderStageFlagBits::eFragment;
+    stages[1].module = *fragModule;
+    stages[1].pName = "main";
+    auto vertexInputState = vk::PipelineVertexInputStateCreateInfo{};
+    auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo{};
+    inputAssemblyState.topology = vk::PrimitiveTopology::eTriangleList;
+    auto viewportState = vk::PipelineViewportStateCreateInfo{};
+    viewportState.viewportCount = 1;
+    viewportState.scissorCount = 1;
+    auto rasterizationState = vk::PipelineRasterizationStateCreateInfo{};
+    rasterizationState.lineWidth = 1.0f;
+    auto multisampleState = vk::PipelineMultisampleStateCreateInfo{};
+    multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    auto attachment = vk::PipelineColorBlendAttachmentState{};
+    attachment.colorWriteMask =
+        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+    auto colorBlendState = vk::PipelineColorBlendStateCreateInfo{};
+    colorBlendState.attachmentCount = 1;
+    colorBlendState.pAttachments = &attachment;
+    auto dynamicStates =
+        std::array{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+    auto dynamicState = vk::PipelineDynamicStateCreateInfo{};
+    dynamicState.dynamicStateCount =
+        static_cast<std::uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+    auto createInfo = vk::GraphicsPipelineCreateInfo{};
+    createInfo.stageCount = static_cast<std::uint32_t>(stages.size());
+    createInfo.pStages = stages.data();
+    createInfo.pVertexInputState = &vertexInputState;
+    createInfo.pInputAssemblyState = &inputAssemblyState;
+    createInfo.pViewportState = &viewportState;
+    createInfo.pRasterizationState = &rasterizationState;
+    createInfo.pMultisampleState = &multisampleState;
+    createInfo.pColorBlendState = &colorBlendState;
+    createInfo.pDynamicState = &dynamicState;
+    createInfo.layout = identityPipelineLayout_;
+    createInfo.renderPass = renderPass_;
+    createInfo.subpass = 0;
     createInfo.basePipelineIndex = -1;
-    return device.createComputePipeline({}, createInfo).value;
+    return context_->getDevice().createGraphicsPipeline({}, createInfo).value;
   }
 
   absl::flat_hash_map<int, vk::Pipeline>
   SceneView::Flyweight::createBlurPipelines() const {
-    auto device = context_->getDevice();
-    auto ifs = std::ifstream{};
-    ifs.exceptions(std::ios::badbit | std::ios::failbit);
-    ifs.open("./data/Blur.spv", std::ios::binary);
-    ifs.seekg(0, std::ios::end);
-    auto code = std::vector<char>{};
-    code.resize(ifs.tellg());
-    if (code.size() % 4 != 0) {
-      throw std::runtime_error{"invalid shader module"};
+    auto vertModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/GenericVert.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      vertModule = context_->getDevice().createShaderModuleUnique(createInfo);
     }
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(code.data(), code.size());
-    ifs.close();
-    auto moduleCreateInfo = vk::ShaderModuleCreateInfo{};
-    moduleCreateInfo.codeSize = code.size();
-    moduleCreateInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
-    auto module = device.createShaderModuleUnique(moduleCreateInfo);
+    auto fragModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/BlurFrag.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      fragModule = context_->getDevice().createShaderModuleUnique(createInfo);
+    }
     auto mapEntry = vk::SpecializationMapEntry{};
     mapEntry.constantID = 0;
     mapEntry.offset = 0;
@@ -279,104 +493,145 @@ namespace imp {
     specializationInfo.pMapEntries = &mapEntry;
     specializationInfo.dataSize = 4;
     specializationInfo.pData = nullptr;
-    auto createInfo = vk::ComputePipelineCreateInfo{};
-    createInfo.stage.stage = vk::ShaderStageFlagBits::eCompute;
-    createInfo.stage.module = *module;
-    createInfo.stage.pName = "main";
-    createInfo.stage.pSpecializationInfo = &specializationInfo;
+    auto stages = std::array<vk::PipelineShaderStageCreateInfo, 2>{};
+    stages[0].stage = vk::ShaderStageFlagBits::eVertex;
+    stages[0].module = *vertModule;
+    stages[0].pName = "main";
+    stages[1].stage = vk::ShaderStageFlagBits::eFragment;
+    stages[1].module = *fragModule;
+    stages[1].pName = "main";
+    stages[1].pSpecializationInfo = &specializationInfo;
+    auto vertexInputState = vk::PipelineVertexInputStateCreateInfo{};
+    auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo{};
+    inputAssemblyState.topology = vk::PrimitiveTopology::eTriangleList;
+    auto viewportState = vk::PipelineViewportStateCreateInfo{};
+    viewportState.viewportCount = 1;
+    viewportState.scissorCount = 1;
+    auto rasterizationState = vk::PipelineRasterizationStateCreateInfo{};
+    rasterizationState.lineWidth = 1.0f;
+    auto multisampleState = vk::PipelineMultisampleStateCreateInfo{};
+    multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    auto attachment = vk::PipelineColorBlendAttachmentState{};
+    attachment.colorWriteMask =
+        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+    auto colorBlendState = vk::PipelineColorBlendStateCreateInfo{};
+    colorBlendState.attachmentCount = 1;
+    colorBlendState.pAttachments = &attachment;
+    auto dynamicStates =
+        std::array{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+    auto dynamicState = vk::PipelineDynamicStateCreateInfo{};
+    dynamicState.dynamicStateCount =
+        static_cast<std::uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+    auto createInfo = vk::GraphicsPipelineCreateInfo{};
+    createInfo.stageCount = static_cast<std::uint32_t>(stages.size());
+    createInfo.pStages = stages.data();
+    createInfo.pVertexInputState = &vertexInputState;
+    createInfo.pInputAssemblyState = &inputAssemblyState;
+    createInfo.pViewportState = &viewportState;
+    createInfo.pRasterizationState = &rasterizationState;
+    createInfo.pMultisampleState = &multisampleState;
+    createInfo.pColorBlendState = &colorBlendState;
+    createInfo.pDynamicState = &dynamicState;
     createInfo.layout = blurPipelineLayout_;
+    createInfo.renderPass = renderPass_;
+    createInfo.subpass = 0;
     createInfo.basePipelineIndex = -1;
     auto pipelines = absl::flat_hash_map<int, vk::Pipeline>{};
     for (auto kernelSize : std::vector<std::int32_t>{
              3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}) {
       specializationInfo.pData = &kernelSize;
       pipelines.emplace(
-          kernelSize, device.createComputePipeline({}, createInfo).value);
-    }
-    return pipelines;
-  }
-
-  absl::flat_hash_map<int, vk::Pipeline>
-  SceneView::Flyweight::createBlurBlendPipelines() const {
-    auto device = context_->getDevice();
-    auto ifs = std::ifstream{};
-    ifs.exceptions(std::ios::badbit | std::ios::failbit);
-    ifs.open("./data/BlurBlend.spv", std::ios::binary);
-    ifs.seekg(0, std::ios::end);
-    auto code = std::vector<char>{};
-    code.resize(ifs.tellg());
-    if (code.size() % 4 != 0) {
-      throw std::runtime_error{"invalid shader module"};
-    }
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(code.data(), code.size());
-    ifs.close();
-    auto moduleCreateInfo = vk::ShaderModuleCreateInfo{};
-    moduleCreateInfo.codeSize = code.size();
-    moduleCreateInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
-    auto module = device.createShaderModuleUnique(moduleCreateInfo);
-    auto mapEntry = vk::SpecializationMapEntry{};
-    mapEntry.constantID = 0;
-    mapEntry.offset = 0;
-    mapEntry.size = 4;
-    auto specializationInfo = vk::SpecializationInfo{};
-    specializationInfo.mapEntryCount = 1;
-    specializationInfo.pMapEntries = &mapEntry;
-    specializationInfo.dataSize = 4;
-    specializationInfo.pData = nullptr;
-    auto createInfo = vk::ComputePipelineCreateInfo{};
-    createInfo.stage.stage = vk::ShaderStageFlagBits::eCompute;
-    createInfo.stage.module = *module;
-    createInfo.stage.pName = "main";
-    createInfo.stage.pSpecializationInfo = &specializationInfo;
-    createInfo.layout = blurBlendPipelineLayout_;
-    createInfo.basePipelineIndex = -1;
-    auto pipelines = absl::flat_hash_map<int, vk::Pipeline>{};
-    for (auto kernelSize : std::vector<std::int32_t>{
-             3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}) {
-      specializationInfo.pData = &kernelSize;
-      pipelines.emplace(
-          kernelSize, device.createComputePipeline({}, createInfo).value);
+          kernelSize,
+          context_->getDevice().createGraphicsPipeline({}, createInfo).value);
     }
     return pipelines;
   }
 
   vk::Pipeline SceneView::Flyweight::createBloomPipeline() const {
-    auto device = context_->getDevice();
-    auto ifs = std::ifstream{};
-    ifs.exceptions(std::ios::badbit | std::ios::failbit);
-    ifs.open("./data/Bloom.spv", std::ios::binary);
-    ifs.seekg(0, std::ios::end);
-    auto code = std::vector<char>{};
-    code.resize(ifs.tellg());
-    if (code.size() % 4 != 0) {
-      throw std::runtime_error{"invalid shader module"};
+    auto vertModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/GenericVert.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      vertModule = context_->getDevice().createShaderModuleUnique(createInfo);
     }
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(code.data(), code.size());
-    ifs.close();
-    auto moduleCreateInfo = vk::ShaderModuleCreateInfo{};
-    moduleCreateInfo.codeSize = code.size();
-    moduleCreateInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
-    auto module = device.createShaderModuleUnique(moduleCreateInfo);
-    auto createInfo = vk::ComputePipelineCreateInfo{};
-    createInfo.stage.stage = vk::ShaderStageFlagBits::eCompute;
-    createInfo.stage.module = *module;
-    createInfo.stage.pName = "main";
+    auto fragModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/BloomFrag.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      fragModule = context_->getDevice().createShaderModuleUnique(createInfo);
+    }
+    auto stages = std::array<vk::PipelineShaderStageCreateInfo, 2>{};
+    stages[0].stage = vk::ShaderStageFlagBits::eVertex;
+    stages[0].module = *vertModule;
+    stages[0].pName = "main";
+    stages[1].stage = vk::ShaderStageFlagBits::eFragment;
+    stages[1].module = *fragModule;
+    stages[1].pName = "main";
+    auto vertexInputState = vk::PipelineVertexInputStateCreateInfo{};
+    auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo{};
+    inputAssemblyState.topology = vk::PrimitiveTopology::eTriangleList;
+    auto viewportState = vk::PipelineViewportStateCreateInfo{};
+    viewportState.viewportCount = 1;
+    viewportState.scissorCount = 1;
+    auto rasterizationState = vk::PipelineRasterizationStateCreateInfo{};
+    rasterizationState.lineWidth = 1.0f;
+    auto multisampleState = vk::PipelineMultisampleStateCreateInfo{};
+    multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    auto attachment = vk::PipelineColorBlendAttachmentState{};
+    attachment.blendEnable = true;
+    attachment.srcColorBlendFactor = vk::BlendFactor::eOne;
+    attachment.dstColorBlendFactor = vk::BlendFactor::eOne;
+    attachment.colorBlendOp = vk::BlendOp::eAdd;
+    attachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+    attachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+    attachment.alphaBlendOp = vk::BlendOp::eAdd;
+    attachment.colorWriteMask =
+        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+    auto colorBlendState = vk::PipelineColorBlendStateCreateInfo{};
+    colorBlendState.attachmentCount = 1;
+    colorBlendState.pAttachments = &attachment;
+    auto dynamicStates =
+        std::array{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+    auto dynamicState = vk::PipelineDynamicStateCreateInfo{};
+    dynamicState.dynamicStateCount =
+        static_cast<std::uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+    auto createInfo = vk::GraphicsPipelineCreateInfo{};
+    createInfo.stageCount = static_cast<std::uint32_t>(stages.size());
+    createInfo.pStages = stages.data();
+    createInfo.pVertexInputState = &vertexInputState;
+    createInfo.pInputAssemblyState = &inputAssemblyState;
+    createInfo.pViewportState = &viewportState;
+    createInfo.pRasterizationState = &rasterizationState;
+    createInfo.pMultisampleState = &multisampleState;
+    createInfo.pColorBlendState = &colorBlendState;
+    createInfo.pDynamicState = &dynamicState;
     createInfo.layout = bloomPipelineLayout_;
+    createInfo.renderPass = renderPass_;
+    createInfo.subpass = 0;
     createInfo.basePipelineIndex = -1;
-    return device.createComputePipeline({}, createInfo).value;
-  }
-
-  vk::Sampler SceneView::Flyweight::createSkyViewSampler() const {
-    auto createInfo = GpuSamplerCreateInfo{};
-    createInfo.magFilter = vk::Filter::eLinear;
-    createInfo.minFilter = vk::Filter::eLinear;
-    createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
-    createInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
-    createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
-    createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
-    return context_->createSampler(createInfo);
+    return context_->getDevice().createGraphicsPipeline({}, createInfo).value;
   }
 
   vk::Sampler SceneView::Flyweight::createGeneralSampler() const {
@@ -390,18 +645,28 @@ namespace imp {
     return context_->createSampler(createInfo);
   }
 
+  vk::Sampler SceneView::Flyweight::createSkyViewSampler() const {
+    auto createInfo = GpuSamplerCreateInfo{};
+    createInfo.magFilter = vk::Filter::eLinear;
+    createInfo.minFilter = vk::Filter::eLinear;
+    createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
+    createInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+    createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+    createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
+    return context_->createSampler(createInfo);
+  }
+
   SceneView::Flyweight::~Flyweight() {
     auto device = context_->getDevice();
     device.destroy(bloomPipeline_);
-    for (auto [_, pipeline] : blurBlendPipelines_) {
-      device.destroy(pipeline);
-    }
     for (auto [_, pipeline] : blurPipelines_) {
       device.destroy(pipeline);
     }
-    device.destroy(downsamplePipeline_);
-    device.destroy(renderPipeline_);
+    device.destroy(identityPipeline_);
+    device.destroy(primaryPipeline_);
     device.destroy(skyViewPipeline_);
+    device.destroy(nonDestructiveRenderPass_);
+    device.destroy(renderPass_);
   }
 
   gsl::not_null<GpuContext *>
@@ -413,19 +678,28 @@ namespace imp {
     return frameCount_;
   }
 
+  vk::RenderPass SceneView::Flyweight::getRenderPass() const noexcept {
+    return renderPass_;
+  }
+
+  vk::RenderPass
+  SceneView::Flyweight::getNonDestructiveRenderPass() const noexcept {
+    return nonDestructiveRenderPass_;
+  }
+
   vk::DescriptorSetLayout
   SceneView::Flyweight::getSkyViewDescriptorSetLayout() const noexcept {
     return skyViewDescriptorSetLayout_;
   }
 
   vk::DescriptorSetLayout
-  SceneView::Flyweight::getRenderDescriptorSetLayout() const noexcept {
-    return renderDescriptorSetLayout_;
+  SceneView::Flyweight::getPrimaryDescriptorSetLayout() const noexcept {
+    return primaryDescriptorSetLayout_;
   }
 
   vk::DescriptorSetLayout
-  SceneView::Flyweight::getDownsampleDescriptorSetLayout() const noexcept {
-    return downsampleDescriptorSetLayout_;
+  SceneView::Flyweight::getIdentityDescriptorSetLayout() const noexcept {
+    return identityDescriptorSetLayout_;
   }
 
   vk::DescriptorSetLayout
@@ -434,12 +708,7 @@ namespace imp {
   }
 
   vk::DescriptorSetLayout
-  SceneView::Flyweight::getBlurBlendDescriptorSetLayout() const noexcept {
-    return blurBlendDescriptorSetLayout_;
-  }
-
-  vk::DescriptorSetLayout
-  SceneView::Flyweight::getBloomDescriptorSetLayout() const noexcept {
+  SceneView::Flyweight::getBloomDescriptorSetLayout() const {
     return bloomDescriptorSetLayout_;
   }
 
@@ -449,23 +718,18 @@ namespace imp {
   }
 
   vk::PipelineLayout
-  SceneView::Flyweight::getRenderPipelineLayout() const noexcept {
-    return renderPipelineLayout_;
+  SceneView::Flyweight::getPrimaryPipelineLayout() const noexcept {
+    return primaryPipelineLayout_;
   }
 
   vk::PipelineLayout
-  SceneView::Flyweight::getDownsamplePipelineLayout() const noexcept {
-    return downsamplePipelineLayout_;
+  SceneView::Flyweight::getIdentityPipelineLayout() const noexcept {
+    return identityPipelineLayout_;
   }
 
   vk::PipelineLayout
   SceneView::Flyweight::getBlurPipelineLayout() const noexcept {
     return blurPipelineLayout_;
-  }
-
-  vk::PipelineLayout
-  SceneView::Flyweight::getBlurBlendPipelineLayout() const noexcept {
-    return blurBlendPipelineLayout_;
   }
 
   vk::PipelineLayout
@@ -477,22 +741,17 @@ namespace imp {
     return skyViewPipeline_;
   }
 
-  vk::Pipeline SceneView::Flyweight::getRenderPipeline() const noexcept {
-    return renderPipeline_;
+  vk::Pipeline SceneView::Flyweight::getPrimaryPipeline() const noexcept {
+    return primaryPipeline_;
   }
 
-  vk::Pipeline SceneView::Flyweight::getDownsamplePipeline() const noexcept {
-    return downsamplePipeline_;
+  vk::Pipeline SceneView::Flyweight::getIdentityPipeline() const noexcept {
+    return identityPipeline_;
   }
 
   vk::Pipeline
   SceneView::Flyweight::getBlurPipeline(int kernelSize) const noexcept {
     return blurPipelines_.at(kernelSize);
-  }
-
-  vk::Pipeline
-  SceneView::Flyweight::getBlurBlendPipeline(int kernelSize) const noexcept {
-    return blurBlendPipelines_.at(kernelSize);
   }
 
   vk::Pipeline SceneView::Flyweight::getBloomPipeline() const noexcept {
@@ -524,28 +783,24 @@ namespace imp {
       flyweight_{flyweight},
       scene_{std::move(scene)},
       extent_{extent},
+      descriptorPool_{createDescriptorPool()},
       uniformBuffer_{createUniformBuffer()},
       skyViewImage_{createSkyViewImage()},
       frames_{createFrames()},
-      descriptorPool_{createDescriptorPool()},
-      transitionCommandPool_{createTransitionCommandPool()},
-      transitionCommandBuffer_{createTransitionCommandBuffer()},
-      transitionSemaphore_{
-          flyweight_->getContext()->getDevice().createSemaphore({})},
-      transitionFence_{flyweight_->getContext()->getDevice().createFence({})},
       viewMatrix_{Eigen::Matrix4f::Identity()},
       invViewMatrix_{Eigen::Matrix4f::Identity()},
       projectionMatrix_{Eigen::Matrix4f::Identity()},
       invProjectionMatrix_{Eigen::Matrix4f::Identity()},
       exposure_{1.0f},
       smallBloomKernel_{15},
-      mediumBloomKernel_{15},
-      largeBloomKernel_{15},
-      smallBloomWeight_{0.0006f},
-      mediumBloomWeight_{0.0005f},
-      largeBloomWeight_{0.0004f},
+      mediumBloomKernel_{19},
+      largeBloomKernel_{23},
+      smallBloomWeight_{0.0030f},
+      mediumBloomWeight_{0.0025f},
+      largeBloomWeight_{0.0020f},
       firstFrame_{true} {
     for (auto i = std::size_t{}; i < frames_.size(); ++i) {
+      auto &frame = frames_[i];
       initSkyViewImageView(i);
       initRenderImageView(i);
       initHalfRenderImageView(i);
@@ -554,25 +809,49 @@ namespace imp {
       initSmallBloomImageViews(i);
       initMediumBloomImageViews(i);
       initLargeBloomImageViews(i);
+      initSkyViewFramebuffer(frame);
+      initPrimaryFramebuffer(frame);
+      initHalfPrimaryFramebuffer(frame);
+      initFourthPrimaryFramebuffer(frame);
+      initEighthPrimaryFramebuffer(frame);
+      initSmallBloomFramebuffers(frame);
+      initMediumBloomFramebuffers(frame);
+      initLargeBloomFramebuffers(frame);
       allocateDescriptorSets(i);
       initSkyViewDescriptorSet(i);
-      initRenderDescriptorSet(i);
-      initDownsampleDescriptorSets(i);
+      initPrimaryDescriptorSet(i);
+      initIdentityDescriptorSets(i);
       initSmallBlurDescriptorSets(i);
       initMediumBlurDescriptorSets(i);
       initLargeBlurDescriptorSets(i);
-      initBloomDescriptorSet(i);
+      initBloomDescriptorSets(i);
       initCommandPool(i);
       initCommandBuffers(i);
       initSemaphores(i);
     }
-    auto submit = vk::SubmitInfo{};
-    submit.commandBufferCount = 1;
-    submit.pCommandBuffers = &transitionCommandBuffer_;
-    submit.signalSemaphoreCount = 1;
-    submit.pSignalSemaphores = &transitionSemaphore_;
-    flyweight_->getContext()->getComputeQueue().submit(
-        submit, transitionFence_);
+  }
+
+  vk::DescriptorPool SceneView::createDescriptorPool() const {
+    auto frameCount32 = static_cast<std::uint32_t>(flyweight_->getFrameCount());
+    auto poolSizes = std::vector<vk::DescriptorPoolSize>{
+        // sky view
+        {vk::DescriptorType::eUniformBuffer, 2 * frameCount32},
+        {vk::DescriptorType::eCombinedImageSampler, 1 * frameCount32},
+        // primary
+        {vk::DescriptorType::eUniformBuffer, 2 * frameCount32},
+        {vk::DescriptorType::eCombinedImageSampler, 2 * frameCount32},
+        // identity
+        {vk::DescriptorType::eCombinedImageSampler, 3 * frameCount32},
+        // identity blend
+        {vk::DescriptorType::eCombinedImageSampler, 3 * frameCount32},
+        // blur
+        {vk::DescriptorType::eCombinedImageSampler, 6 * frameCount32}};
+    auto createInfo = vk::DescriptorPoolCreateInfo{};
+    createInfo.maxSets = 14 * frameCount32;
+    createInfo.poolSizeCount = static_cast<std::uint32_t>(poolSizes.size());
+    createInfo.pPoolSizes = poolSizes.data();
+    return flyweight_->getContext()->getDevice().createDescriptorPool(
+        createInfo);
   }
 
   GpuBuffer SceneView::createUniformBuffer() const {
@@ -597,8 +876,8 @@ namespace imp {
     image.arrayLayers = static_cast<std::uint32_t>(flyweight_->getFrameCount());
     image.samples = vk::SampleCountFlagBits::e1;
     image.tiling = vk::ImageTiling::eOptimal;
-    image.usage =
-        vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage;
+    image.usage = vk::ImageUsageFlagBits::eSampled |
+                  vk::ImageUsageFlagBits::eColorAttachment;
     image.sharingMode = vk::SharingMode::eExclusive;
     image.initialLayout = vk::ImageLayout::eUndefined;
     auto allocation = VmaAllocationCreateInfo{};
@@ -629,8 +908,8 @@ namespace imp {
     image.arrayLayers = 1;
     image.samples = vk::SampleCountFlagBits::e1;
     image.tiling = vk::ImageTiling::eOptimal;
-    image.usage =
-        vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled;
+    image.usage = vk::ImageUsageFlagBits::eSampled |
+                  vk::ImageUsageFlagBits::eColorAttachment;
     auto allocation = VmaAllocationCreateInfo{};
     allocation.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
     allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -647,8 +926,8 @@ namespace imp {
     image.arrayLayers = 2;
     image.samples = vk::SampleCountFlagBits::e1;
     image.tiling = vk::ImageTiling::eOptimal;
-    image.usage =
-        vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled;
+    image.usage = vk::ImageUsageFlagBits::eSampled |
+                  vk::ImageUsageFlagBits::eColorAttachment;
     auto allocation = VmaAllocationCreateInfo{};
     allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
     return GpuImage{
@@ -664,8 +943,8 @@ namespace imp {
     image.arrayLayers = 2;
     image.samples = vk::SampleCountFlagBits::e1;
     image.tiling = vk::ImageTiling::eOptimal;
-    image.usage =
-        vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled;
+    image.usage = vk::ImageUsageFlagBits::eSampled |
+                  vk::ImageUsageFlagBits::eColorAttachment;
     auto allocation = VmaAllocationCreateInfo{};
     allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
     return GpuImage{
@@ -681,82 +960,12 @@ namespace imp {
     image.arrayLayers = 2;
     image.samples = vk::SampleCountFlagBits::e1;
     image.tiling = vk::ImageTiling::eOptimal;
-    image.usage =
-        vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled;
+    image.usage = vk::ImageUsageFlagBits::eSampled |
+                  vk::ImageUsageFlagBits::eColorAttachment;
     auto allocation = VmaAllocationCreateInfo{};
     allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
     return GpuImage{
         flyweight_->getContext()->getAllocator(), image, allocation};
-  }
-
-  vk::DescriptorPool SceneView::createDescriptorPool() const {
-    auto frameCount32 = static_cast<std::uint32_t>(flyweight_->getFrameCount());
-    auto poolSizes = std::vector<vk::DescriptorPoolSize>{
-        // sky view
-        {vk::DescriptorType::eUniformBuffer, 2 * frameCount32},
-        {vk::DescriptorType::eCombinedImageSampler, 1 * frameCount32},
-        {vk::DescriptorType::eStorageImage, 1 * frameCount32},
-        // render
-        {vk::DescriptorType::eUniformBuffer, 2 * frameCount32},
-        {vk::DescriptorType::eCombinedImageSampler, 2 * frameCount32},
-        {vk::DescriptorType::eStorageImage, 1 * frameCount32},
-        // downsample
-        {vk::DescriptorType::eCombinedImageSampler, 3 * frameCount32},
-        {vk::DescriptorType::eStorageImage, 3 * frameCount32},
-        // blur
-        {vk::DescriptorType::eCombinedImageSampler, 4 * frameCount32},
-        {vk::DescriptorType::eStorageImage, 4 * frameCount32},
-        // blurBlend
-        {vk::DescriptorType::eCombinedImageSampler, 4 * frameCount32},
-        {vk::DescriptorType::eStorageImage, 2 * frameCount32},
-        // bloom
-        {vk::DescriptorType::eCombinedImageSampler, 1 * frameCount32},
-        {vk::DescriptorType::eStorageImage, 1 * frameCount32}};
-    auto createInfo = vk::DescriptorPoolCreateInfo{};
-    createInfo.maxSets = 12 * frameCount32;
-    createInfo.poolSizeCount = static_cast<std::uint32_t>(poolSizes.size());
-    createInfo.pPoolSizes = poolSizes.data();
-    return flyweight_->getContext()->getDevice().createDescriptorPool(
-        createInfo);
-  }
-
-  vk::CommandPool SceneView::createTransitionCommandPool() const {
-    auto &context = *flyweight_->getContext();
-    auto createInfo = vk::CommandPoolCreateInfo{};
-    createInfo.queueFamilyIndex = context.getComputeFamily();
-    return context.getDevice().createCommandPool(createInfo);
-  }
-
-  vk::CommandBuffer SceneView::createTransitionCommandBuffer() {
-    auto allocateInfo = vk::CommandBufferAllocateInfo{};
-    allocateInfo.commandPool = transitionCommandPool_;
-    allocateInfo.commandBufferCount = 1;
-    auto commandBuffer = vk::CommandBuffer{};
-    flyweight_->getContext()->getDevice().allocateCommandBuffers(
-        &allocateInfo, &commandBuffer);
-    commandBuffer.begin(vk::CommandBufferBeginInfo{});
-    auto barrier = vk::ImageMemoryBarrier{};
-    barrier.srcAccessMask = {};
-    barrier.dstAccessMask = {};
-    barrier.oldLayout = vk::ImageLayout::eUndefined;
-    barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = skyViewImage_.get();
-    barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-    barrier.subresourceRange.baseMipLevel = 0;
-    barrier.subresourceRange.levelCount = skyViewImage_.getMipLevels();
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = skyViewImage_.getArrayLayers();
-    commandBuffer.pipelineBarrier(
-        vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eBottomOfPipe,
-        {},
-        {},
-        {},
-        barrier);
-    commandBuffer.end();
-    return commandBuffer;
   }
 
   void SceneView::initSkyViewImageView(std::size_t i) {
@@ -884,77 +1093,166 @@ namespace imp {
     }
   }
 
+  void SceneView::initSkyViewFramebuffer(Frame &frame) const {
+    auto createInfo = vk::FramebufferCreateInfo{};
+    createInfo.renderPass = flyweight_->getRenderPass();
+    createInfo.attachmentCount = 1;
+    createInfo.pAttachments = &frame.skyViewImageView;
+    createInfo.width = skyViewImage_.getExtent().width;
+    createInfo.height = skyViewImage_.getExtent().height;
+    createInfo.layers = 1;
+    frame.skyViewFramebuffer =
+        flyweight_->getContext()->getDevice().createFramebuffer(createInfo);
+  }
+
+  void SceneView::initPrimaryFramebuffer(Frame &frame) const {
+    auto createInfo = vk::FramebufferCreateInfo{};
+    createInfo.renderPass = flyweight_->getRenderPass();
+    createInfo.attachmentCount = 1;
+    createInfo.pAttachments = &frame.renderImageView;
+    createInfo.width = frame.renderImage.getExtent().width;
+    createInfo.height = frame.renderImage.getExtent().height;
+    createInfo.layers = 1;
+    frame.primaryFramebuffer =
+        flyweight_->getContext()->getDevice().createFramebuffer(createInfo);
+  }
+
+  void SceneView::initHalfPrimaryFramebuffer(Frame &frame) const {
+    auto createInfo = vk::FramebufferCreateInfo{};
+    createInfo.renderPass = flyweight_->getRenderPass();
+    createInfo.attachmentCount = 1;
+    createInfo.pAttachments = &frame.halfRenderImageView;
+    createInfo.width = frame.renderImage.getExtent().width / 2;
+    createInfo.height = frame.renderImage.getExtent().height / 2;
+    createInfo.layers = 1;
+    frame.halfPrimaryFramebuffer =
+        flyweight_->getContext()->getDevice().createFramebuffer(createInfo);
+  }
+
+  void SceneView::initFourthPrimaryFramebuffer(Frame &frame) const {
+    auto createInfo = vk::FramebufferCreateInfo{};
+    createInfo.renderPass = flyweight_->getRenderPass();
+    createInfo.attachmentCount = 1;
+    createInfo.pAttachments = &frame.fourthRenderImageView;
+    createInfo.width = frame.renderImage.getExtent().width / 4;
+    createInfo.height = frame.renderImage.getExtent().height / 4;
+    createInfo.layers = 1;
+    frame.fourthPrimaryFramebuffer =
+        flyweight_->getContext()->getDevice().createFramebuffer(createInfo);
+  }
+
+  void SceneView::initEighthPrimaryFramebuffer(Frame &frame) const {
+    auto createInfo = vk::FramebufferCreateInfo{};
+    createInfo.renderPass = flyweight_->getRenderPass();
+    createInfo.attachmentCount = 1;
+    createInfo.pAttachments = &frame.eighthRenderImageView;
+    createInfo.width = frame.renderImage.getExtent().width / 8;
+    createInfo.height = frame.renderImage.getExtent().height / 8;
+    createInfo.layers = 1;
+    frame.eighthPrimaryFramebuffer =
+        flyweight_->getContext()->getDevice().createFramebuffer(createInfo);
+  }
+
+  void SceneView::initSmallBloomFramebuffers(Frame &frame) const {
+    auto createInfo = vk::FramebufferCreateInfo{};
+    createInfo.renderPass = flyweight_->getRenderPass();
+    createInfo.attachmentCount = 1;
+    createInfo.width = frame.smallBloomImageArray.getExtent().width;
+    createInfo.height = frame.smallBloomImageArray.getExtent().height;
+    createInfo.layers = 1;
+    for (auto i = 0; i < 2; ++i) {
+      createInfo.pAttachments = &frame.smallBloomImageViews[i];
+      frame.smallBloomFramebuffers[i] =
+          flyweight_->getContext()->getDevice().createFramebuffer(createInfo);
+    }
+  }
+
+  void SceneView::initMediumBloomFramebuffers(Frame &frame) const {
+    auto createInfo = vk::FramebufferCreateInfo{};
+    createInfo.renderPass = flyweight_->getRenderPass();
+    createInfo.attachmentCount = 1;
+    createInfo.width = frame.mediumBloomImageArray.getExtent().width;
+    createInfo.height = frame.mediumBloomImageArray.getExtent().height;
+    createInfo.layers = 1;
+    for (auto i = 0; i < 2; ++i) {
+      createInfo.pAttachments = &frame.mediumBloomImageViews[i];
+      frame.mediumBloomFramebuffers[i] =
+          flyweight_->getContext()->getDevice().createFramebuffer(createInfo);
+    }
+  }
+
+  void SceneView::initLargeBloomFramebuffers(Frame &frame) const {
+    auto createInfo = vk::FramebufferCreateInfo{};
+    createInfo.renderPass = flyweight_->getRenderPass();
+    createInfo.attachmentCount = 1;
+    createInfo.width = frame.largeBloomImageArray.getExtent().width;
+    createInfo.height = frame.largeBloomImageArray.getExtent().height;
+    createInfo.layers = 1;
+    for (auto i = 0; i < 2; ++i) {
+      createInfo.pAttachments = &frame.largeBloomImageViews[i];
+      frame.largeBloomFramebuffers[i] =
+          flyweight_->getContext()->getDevice().createFramebuffer(createInfo);
+    }
+  }
+
   void SceneView::allocateDescriptorSets(std::size_t i) {
     auto &frame = frames_[i];
     auto device = flyweight_->getContext()->getDevice();
     auto skyViewSetLayout = flyweight_->getSkyViewDescriptorSetLayout();
-    auto renderSetLayout = flyweight_->getRenderDescriptorSetLayout();
-    auto downsampleSetLayout = flyweight_->getDownsampleDescriptorSetLayout();
+    auto primarySetLayout = flyweight_->getPrimaryDescriptorSetLayout();
+    auto identitySetLayout = flyweight_->getIdentityDescriptorSetLayout();
     auto blurSetLayout = flyweight_->getBlurDescriptorSetLayout();
-    auto blurBlendSetLayout = flyweight_->getBlurBlendDescriptorSetLayout();
     auto bloomSetLayout = flyweight_->getBloomDescriptorSetLayout();
     auto allocateInfo = vk::DescriptorSetAllocateInfo{};
     allocateInfo.descriptorPool = descriptorPool_;
     allocateInfo.descriptorSetCount = 1;
     allocateInfo.pSetLayouts = &skyViewSetLayout;
     device.allocateDescriptorSets(&allocateInfo, &frame.skyViewDescriptorSet);
-    allocateInfo.pSetLayouts = &renderSetLayout;
-    device.allocateDescriptorSets(&allocateInfo, &frame.renderDescriptorSet);
-    allocateInfo.pSetLayouts = &downsampleSetLayout;
+    allocateInfo.pSetLayouts = &primarySetLayout;
+    device.allocateDescriptorSets(&allocateInfo, &frame.primaryDescriptorSet);
+    allocateInfo.pSetLayouts = &identitySetLayout;
     device.allocateDescriptorSets(
-        &allocateInfo, &frame.downsampleDescriptorSets[0]);
+        &allocateInfo, &frame.identityDescriptorSets[0]);
     device.allocateDescriptorSets(
-        &allocateInfo, &frame.downsampleDescriptorSets[1]);
+        &allocateInfo, &frame.identityDescriptorSets[1]);
     device.allocateDescriptorSets(
-        &allocateInfo, &frame.downsampleDescriptorSets[2]);
+        &allocateInfo, &frame.identityDescriptorSets[2]);
     allocateInfo.pSetLayouts = &blurSetLayout;
     device.allocateDescriptorSets(
         &allocateInfo, &frame.smallBlurDescriptorSets[0]);
-    allocateInfo.pSetLayouts = &blurBlendSetLayout;
     device.allocateDescriptorSets(
         &allocateInfo, &frame.smallBlurDescriptorSets[1]);
-    allocateInfo.pSetLayouts = &blurSetLayout;
     device.allocateDescriptorSets(
         &allocateInfo, &frame.mediumBlurDescriptorSets[0]);
-    allocateInfo.pSetLayouts = &blurBlendSetLayout;
     device.allocateDescriptorSets(
         &allocateInfo, &frame.mediumBlurDescriptorSets[1]);
-    allocateInfo.pSetLayouts = &blurSetLayout;
     device.allocateDescriptorSets(
         &allocateInfo, &frame.largeBlurDescriptorSets[0]);
     device.allocateDescriptorSets(
         &allocateInfo, &frame.largeBlurDescriptorSets[1]);
     allocateInfo.pSetLayouts = &bloomSetLayout;
-    device.allocateDescriptorSets(
-        &allocateInfo, &frames_[i].bloomDescriptorSet);
+    device.allocateDescriptorSets(&allocateInfo, &frame.bloomDescriptorSets[0]);
+    device.allocateDescriptorSets(&allocateInfo, &frame.bloomDescriptorSets[1]);
+    device.allocateDescriptorSets(&allocateInfo, &frame.bloomDescriptorSets[2]);
   }
 
   void SceneView::initSkyViewDescriptorSet(std::size_t i) {
     auto &frame = frames_[i];
-    auto sceneViewBufferInfo = vk::DescriptorBufferInfo{};
-    sceneViewBufferInfo.buffer = uniformBuffer_.get();
-    sceneViewBufferInfo.offset = UNIFORM_BUFFER_STRIDE * i;
-    sceneViewBufferInfo.range = UNIFORM_BUFFER_SIZE;
-    auto skyViewImageInfo = vk::DescriptorImageInfo{};
-    skyViewImageInfo.imageView = frame.skyViewImageView;
-    skyViewImageInfo.imageLayout = vk::ImageLayout::eGeneral;
-    auto writes = std::array<vk::WriteDescriptorSet, 2>{};
-    writes[0].dstSet = frames_[i].skyViewDescriptorSet;
-    writes[0].dstBinding = 1;
-    writes[0].dstArrayElement = 0;
-    writes[0].descriptorCount = 1;
-    writes[0].descriptorType = vk::DescriptorType::eUniformBuffer;
-    writes[0].pBufferInfo = &sceneViewBufferInfo;
-    writes[1].dstSet = frames_[i].skyViewDescriptorSet;
-    writes[1].dstBinding = 3;
-    writes[1].dstArrayElement = 0;
-    writes[1].descriptorCount = 1;
-    writes[1].descriptorType = vk::DescriptorType::eStorageImage;
-    writes[1].pImageInfo = &skyViewImageInfo;
-    flyweight_->getContext()->getDevice().updateDescriptorSets(writes, {});
+    auto info = vk::DescriptorBufferInfo{};
+    info.buffer = uniformBuffer_.get();
+    info.offset = UNIFORM_BUFFER_STRIDE * i;
+    info.range = UNIFORM_BUFFER_SIZE;
+    auto write = vk::WriteDescriptorSet{};
+    write.dstSet = frame.skyViewDescriptorSet;
+    write.dstBinding = 1;
+    write.dstArrayElement = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = vk::DescriptorType::eUniformBuffer;
+    write.pBufferInfo = &info;
+    flyweight_->getContext()->getDevice().updateDescriptorSets(write, {});
   }
 
-  void SceneView::initRenderDescriptorSet(std::size_t i) {
+  void SceneView::initPrimaryDescriptorSet(std::size_t i) {
     auto &frame = frames_[i];
     auto sceneViewBufferInfo = vk::DescriptorBufferInfo{};
     sceneViewBufferInfo.buffer = uniformBuffer_.get();
@@ -964,132 +1262,74 @@ namespace imp {
     skyViewTextureInfo.sampler = flyweight_->getSkyViewSampler();
     skyViewTextureInfo.imageView = frame.skyViewImageView;
     skyViewTextureInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    auto renderImageInfo = vk::DescriptorImageInfo{};
-    renderImageInfo.imageView = frame.renderImageView;
-    renderImageInfo.imageLayout = vk::ImageLayout::eGeneral;
-    auto writes = std::array<vk::WriteDescriptorSet, 3>{};
-    writes[0].dstSet = frame.renderDescriptorSet;
+    auto writes = std::array<vk::WriteDescriptorSet, 2>{};
+    writes[0].dstSet = frame.primaryDescriptorSet;
     writes[0].dstBinding = 1;
     writes[0].dstArrayElement = 0;
     writes[0].descriptorCount = 1;
     writes[0].descriptorType = vk::DescriptorType::eUniformBuffer;
     writes[0].pBufferInfo = &sceneViewBufferInfo;
-    writes[1].dstSet = frame.renderDescriptorSet;
+    writes[1].dstSet = frame.primaryDescriptorSet;
     writes[1].dstBinding = 3;
     writes[1].dstArrayElement = 0;
     writes[1].descriptorCount = 1;
     writes[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
     writes[1].pImageInfo = &skyViewTextureInfo;
-    writes[2].dstSet = frame.renderDescriptorSet;
-    writes[2].dstBinding = 4;
-    writes[2].dstArrayElement = 0;
-    writes[2].descriptorCount = 1;
-    writes[2].descriptorType = vk::DescriptorType::eStorageImage;
-    writes[2].pImageInfo = &renderImageInfo;
     flyweight_->getContext()->getDevice().updateDescriptorSets(writes, {});
   }
 
-  void SceneView::initDownsampleDescriptorSets(std::size_t i) {
+  void SceneView::initIdentityDescriptorSets(std::size_t i) {
     auto &frame = frames_[i];
-    auto highResImageInfo = vk::DescriptorImageInfo{};
-    highResImageInfo.sampler = flyweight_->getGeneralSampler();
-    highResImageInfo.imageView = frame.renderImageView;
-    highResImageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    auto highResImageWrite = vk::WriteDescriptorSet{};
-    highResImageWrite.dstSet = frame.downsampleDescriptorSets[0];
-    highResImageWrite.dstBinding = 0;
-    highResImageWrite.dstArrayElement = 0;
-    highResImageWrite.descriptorCount = 1;
-    highResImageWrite.descriptorType =
-        vk::DescriptorType::eCombinedImageSampler;
-    highResImageWrite.pImageInfo = &highResImageInfo;
-    auto lowResImageInfo = vk::DescriptorImageInfo{};
-    lowResImageInfo.imageView = frame.halfRenderImageView;
-    lowResImageInfo.imageLayout = vk::ImageLayout::eGeneral;
-    auto lowResImageWrite = vk::WriteDescriptorSet{};
-    lowResImageWrite.dstSet = frame.downsampleDescriptorSets[0];
-    lowResImageWrite.dstBinding = 1;
-    lowResImageWrite.dstArrayElement = 0;
-    lowResImageWrite.descriptorCount = 1;
-    lowResImageWrite.descriptorType = vk::DescriptorType::eStorageImage;
-    lowResImageWrite.pImageInfo = &lowResImageInfo;
-    flyweight_->getContext()->getDevice().updateDescriptorSets(
-        {highResImageWrite, lowResImageWrite}, {});
-    highResImageInfo.imageView = frame.halfRenderImageView;
-    highResImageWrite.dstSet = frame.downsampleDescriptorSets[1];
-    lowResImageInfo.imageView = frame.fourthRenderImageView;
-    lowResImageWrite.dstSet = frame.downsampleDescriptorSets[1];
-    flyweight_->getContext()->getDevice().updateDescriptorSets(
-        {highResImageWrite, lowResImageWrite}, {});
-    highResImageInfo.imageView = frame.fourthRenderImageView;
-    highResImageWrite.dstSet = frame.downsampleDescriptorSets[2];
-    lowResImageInfo.imageView = frame.eighthRenderImageView;
-    lowResImageWrite.dstSet = frame.downsampleDescriptorSets[2];
-    flyweight_->getContext()->getDevice().updateDescriptorSets(
-        {highResImageWrite, lowResImageWrite}, {});
+    auto info = vk::DescriptorImageInfo{};
+    info.sampler = flyweight_->getGeneralSampler();
+    info.imageView = frame.renderImageView;
+    info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto write = vk::WriteDescriptorSet{};
+    write.dstSet = frame.identityDescriptorSets[0];
+    write.dstBinding = 0;
+    write.dstArrayElement = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    write.pImageInfo = &info;
+    flyweight_->getContext()->getDevice().updateDescriptorSets(write, {});
+    info.imageView = frame.halfRenderImageView;
+    write.dstSet = frame.identityDescriptorSets[1];
+    flyweight_->getContext()->getDevice().updateDescriptorSets(write, {});
+    info.imageView = frame.fourthRenderImageView;
+    write.dstSet = frame.identityDescriptorSets[2];
+    flyweight_->getContext()->getDevice().updateDescriptorSets(write, {});
   }
 
   void SceneView::initSmallBlurDescriptorSets(std::size_t i) {
     auto &frame = frames_[i];
     auto device = flyweight_->getContext()->getDevice();
     {
-      auto srcInfo = vk::DescriptorImageInfo{};
-      srcInfo.sampler = flyweight_->getGeneralSampler();
-      srcInfo.imageView = frame.halfRenderImageView;
-      srcInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      auto srcWrite = vk::WriteDescriptorSet{};
-      srcWrite.dstSet = frame.smallBlurDescriptorSets[0];
-      srcWrite.dstBinding = 0;
-      srcWrite.dstArrayElement = 0;
-      srcWrite.descriptorCount = 1;
-      srcWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      srcWrite.pImageInfo = &srcInfo;
-      auto dstInfo = vk::DescriptorImageInfo{};
-      dstInfo.imageView = frame.smallBloomImageViews[0];
-      dstInfo.imageLayout = vk::ImageLayout::eGeneral;
-      auto dstWrite = vk::WriteDescriptorSet{};
-      dstWrite.dstSet = frame.smallBlurDescriptorSets[0];
-      dstWrite.dstBinding = 1;
-      dstWrite.dstArrayElement = 0;
-      dstWrite.descriptorCount = 1;
-      dstWrite.descriptorType = vk::DescriptorType::eStorageImage;
-      dstWrite.pImageInfo = &dstInfo;
-      device.updateDescriptorSets({srcWrite, dstWrite}, 0);
+      auto info = vk::DescriptorImageInfo{};
+      info.sampler = flyweight_->getGeneralSampler();
+      info.imageView = frame.halfRenderImageView;
+      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      auto write = vk::WriteDescriptorSet{};
+      write.dstSet = frame.smallBlurDescriptorSets[0];
+      write.dstBinding = 0;
+      write.dstArrayElement = 0;
+      write.descriptorCount = 1;
+      write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      write.pImageInfo = &info;
+      device.updateDescriptorSets(write, 0);
     }
     {
-      auto blurSrcInfo = vk::DescriptorImageInfo{};
-      blurSrcInfo.sampler = flyweight_->getGeneralSampler();
-      blurSrcInfo.imageView = frame.smallBloomImageViews[0];
-      blurSrcInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      auto blurSrcWrite = vk::WriteDescriptorSet{};
-      blurSrcWrite.dstSet = frame.smallBlurDescriptorSets[1];
-      blurSrcWrite.dstBinding = 0;
-      blurSrcWrite.dstArrayElement = 0;
-      blurSrcWrite.descriptorCount = 1;
-      blurSrcWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      blurSrcWrite.pImageInfo = &blurSrcInfo;
-      auto blendSrcInfo = vk::DescriptorImageInfo{};
-      blendSrcInfo.sampler = flyweight_->getGeneralSampler();
-      blendSrcInfo.imageView = frame.mediumBloomImageViews[1];
-      blendSrcInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      auto blendSrcWrite = vk::WriteDescriptorSet{};
-      blendSrcWrite.dstSet = frame.smallBlurDescriptorSets[1];
-      blendSrcWrite.dstBinding = 1;
-      blendSrcWrite.dstArrayElement = 0;
-      blendSrcWrite.descriptorCount = 1;
-      blendSrcWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      blendSrcWrite.pImageInfo = &blendSrcInfo;
-      auto dstInfo = vk::DescriptorImageInfo{};
-      dstInfo.imageView = frame.smallBloomImageViews[1];
-      dstInfo.imageLayout = vk::ImageLayout::eGeneral;
-      auto dstWrite = vk::WriteDescriptorSet{};
-      dstWrite.dstSet = frame.smallBlurDescriptorSets[1];
-      dstWrite.dstBinding = 2;
-      dstWrite.dstArrayElement = 0;
-      dstWrite.descriptorCount = 1;
-      dstWrite.descriptorType = vk::DescriptorType::eStorageImage;
-      dstWrite.pImageInfo = &dstInfo;
-      device.updateDescriptorSets({blurSrcWrite, blendSrcWrite, dstWrite}, 0);
+      auto info = vk::DescriptorImageInfo{};
+      info.sampler = flyweight_->getGeneralSampler();
+      info.imageView = frame.smallBloomImageViews[0];
+      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      auto write = vk::WriteDescriptorSet{};
+      write.dstSet = frame.smallBlurDescriptorSets[1];
+      write.dstBinding = 0;
+      write.dstArrayElement = 0;
+      write.descriptorCount = 1;
+      write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      write.pImageInfo = &info;
+      device.updateDescriptorSets(write, 0);
     }
   }
 
@@ -1097,63 +1337,32 @@ namespace imp {
     auto &frame = frames_[i];
     auto device = flyweight_->getContext()->getDevice();
     {
-      auto srcInfo = vk::DescriptorImageInfo{};
-      srcInfo.sampler = flyweight_->getGeneralSampler();
-      srcInfo.imageView = frame.fourthRenderImageView;
-      srcInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      auto srcWrite = vk::WriteDescriptorSet{};
-      srcWrite.dstSet = frame.mediumBlurDescriptorSets[0];
-      srcWrite.dstBinding = 0;
-      srcWrite.dstArrayElement = 0;
-      srcWrite.descriptorCount = 1;
-      srcWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      srcWrite.pImageInfo = &srcInfo;
-      auto dstInfo = vk::DescriptorImageInfo{};
-      dstInfo.imageView = frame.mediumBloomImageViews[0];
-      dstInfo.imageLayout = vk::ImageLayout::eGeneral;
-      auto dstWrite = vk::WriteDescriptorSet{};
-      dstWrite.dstSet = frame.mediumBlurDescriptorSets[0];
-      dstWrite.dstBinding = 1;
-      dstWrite.dstArrayElement = 0;
-      dstWrite.descriptorCount = 1;
-      dstWrite.descriptorType = vk::DescriptorType::eStorageImage;
-      dstWrite.pImageInfo = &dstInfo;
-      device.updateDescriptorSets({srcWrite, dstWrite}, 0);
+      auto info = vk::DescriptorImageInfo{};
+      info.sampler = flyweight_->getGeneralSampler();
+      info.imageView = frame.fourthRenderImageView;
+      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      auto write = vk::WriteDescriptorSet{};
+      write.dstSet = frame.mediumBlurDescriptorSets[0];
+      write.dstBinding = 0;
+      write.dstArrayElement = 0;
+      write.descriptorCount = 1;
+      write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      write.pImageInfo = &info;
+      device.updateDescriptorSets(write, 0);
     }
     {
-      auto blurSrcInfo = vk::DescriptorImageInfo{};
-      blurSrcInfo.sampler = flyweight_->getGeneralSampler();
-      blurSrcInfo.imageView = frame.mediumBloomImageViews[0];
-      blurSrcInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      auto blurSrcWrite = vk::WriteDescriptorSet{};
-      blurSrcWrite.dstSet = frame.mediumBlurDescriptorSets[1];
-      blurSrcWrite.dstBinding = 0;
-      blurSrcWrite.dstArrayElement = 0;
-      blurSrcWrite.descriptorCount = 1;
-      blurSrcWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      blurSrcWrite.pImageInfo = &blurSrcInfo;
-      auto blendSrcInfo = vk::DescriptorImageInfo{};
-      blendSrcInfo.sampler = flyweight_->getGeneralSampler();
-      blendSrcInfo.imageView = frame.largeBloomImageViews[1];
-      blendSrcInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      auto blendSrcWrite = vk::WriteDescriptorSet{};
-      blendSrcWrite.dstSet = frame.mediumBlurDescriptorSets[1];
-      blendSrcWrite.dstBinding = 1;
-      blendSrcWrite.dstArrayElement = 0;
-      blendSrcWrite.descriptorCount = 1;
-      blendSrcWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      blendSrcWrite.pImageInfo = &blendSrcInfo;
-      auto dstInfo = vk::DescriptorImageInfo{};
-      dstInfo.imageView = frame.mediumBloomImageViews[1];
-      dstInfo.imageLayout = vk::ImageLayout::eGeneral;
-      auto dstWrite = vk::WriteDescriptorSet{};
-      dstWrite.dstSet = frame.mediumBlurDescriptorSets[1];
-      dstWrite.dstBinding = 2;
-      dstWrite.dstArrayElement = 0;
-      dstWrite.descriptorCount = 1;
-      dstWrite.descriptorType = vk::DescriptorType::eStorageImage;
-      dstWrite.pImageInfo = &dstInfo;
-      device.updateDescriptorSets({blurSrcWrite, blendSrcWrite, dstWrite}, 0);
+      auto info = vk::DescriptorImageInfo{};
+      info.sampler = flyweight_->getGeneralSampler();
+      info.imageView = frame.mediumBloomImageViews[0];
+      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      auto write = vk::WriteDescriptorSet{};
+      write.dstSet = frame.mediumBlurDescriptorSets[1];
+      write.dstBinding = 0;
+      write.dstArrayElement = 0;
+      write.descriptorCount = 1;
+      write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      write.pImageInfo = &info;
+      device.updateDescriptorSets(write, 0);
     }
   }
 
@@ -1161,60 +1370,55 @@ namespace imp {
     auto &frame = frames_[i];
     auto device = flyweight_->getContext()->getDevice();
     {
-      auto srcInfo = vk::DescriptorImageInfo{};
-      srcInfo.sampler = flyweight_->getGeneralSampler();
-      srcInfo.imageView = frame.eighthRenderImageView;
-      srcInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      auto srcWrite = vk::WriteDescriptorSet{};
-      srcWrite.dstSet = frame.largeBlurDescriptorSets[0];
-      srcWrite.dstBinding = 0;
-      srcWrite.dstArrayElement = 0;
-      srcWrite.descriptorCount = 1;
-      srcWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      srcWrite.pImageInfo = &srcInfo;
-      auto dstInfo = vk::DescriptorImageInfo{};
-      dstInfo.imageView = frame.largeBloomImageViews[0];
-      dstInfo.imageLayout = vk::ImageLayout::eGeneral;
-      auto dstWrite = vk::WriteDescriptorSet{};
-      dstWrite.dstSet = frame.largeBlurDescriptorSets[0];
-      dstWrite.dstBinding = 1;
-      dstWrite.dstArrayElement = 0;
-      dstWrite.descriptorCount = 1;
-      dstWrite.descriptorType = vk::DescriptorType::eStorageImage;
-      dstWrite.pImageInfo = &dstInfo;
-      device.updateDescriptorSets({srcWrite, dstWrite}, 0);
-      srcInfo.imageView = frame.largeBloomImageViews[0];
-      srcWrite.dstSet = frame.largeBlurDescriptorSets[1];
-      dstInfo.imageView = frame.largeBloomImageViews[1];
-      dstWrite.dstSet = frame.largeBlurDescriptorSets[1];
-      device.updateDescriptorSets({srcWrite, dstWrite}, 0);
+      auto info = vk::DescriptorImageInfo{};
+      info.sampler = flyweight_->getGeneralSampler();
+      info.imageView = frame.eighthRenderImageView;
+      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      auto write = vk::WriteDescriptorSet{};
+      write.dstSet = frame.largeBlurDescriptorSets[0];
+      write.dstBinding = 0;
+      write.dstArrayElement = 0;
+      write.descriptorCount = 1;
+      write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      write.pImageInfo = &info;
+      device.updateDescriptorSets(write, 0);
+    }
+    {
+      auto info = vk::DescriptorImageInfo{};
+      info.sampler = flyweight_->getGeneralSampler();
+      info.imageView = frame.largeBloomImageViews[0];
+      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      auto write = vk::WriteDescriptorSet{};
+      write.dstSet = frame.largeBlurDescriptorSets[1];
+      write.dstBinding = 0;
+      write.dstArrayElement = 0;
+      write.descriptorCount = 1;
+      write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      write.pImageInfo = &info;
+      device.updateDescriptorSets(write, 0);
     }
   }
 
-  void SceneView::initBloomDescriptorSet(std::size_t i) {
-    auto renderImageInfo = vk::DescriptorImageInfo{};
-    renderImageInfo.imageView = frames_[i].renderImageView;
-    renderImageInfo.imageLayout = vk::ImageLayout::eGeneral;
-    auto renderImageWrite = vk::WriteDescriptorSet{};
-    renderImageWrite.dstSet = frames_[i].bloomDescriptorSet;
-    renderImageWrite.dstBinding = 0;
-    renderImageWrite.dstArrayElement = 0;
-    renderImageWrite.descriptorCount = 1;
-    renderImageWrite.descriptorType = vk::DescriptorType::eStorageImage;
-    renderImageWrite.pImageInfo = &renderImageInfo;
-    auto bloomImageInfo = vk::DescriptorImageInfo{};
-    bloomImageInfo.sampler = flyweight_->getGeneralSampler();
-    bloomImageInfo.imageView = frames_[i].smallBloomImageViews[1];
-    bloomImageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    auto bloomImageWrite = vk::WriteDescriptorSet{};
-    bloomImageWrite.dstSet = frames_[i].bloomDescriptorSet;
-    bloomImageWrite.dstBinding = 1;
-    bloomImageWrite.dstArrayElement = 0;
-    bloomImageWrite.descriptorCount = 1;
-    bloomImageWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    bloomImageWrite.pImageInfo = &bloomImageInfo;
-    flyweight_->getContext()->getDevice().updateDescriptorSets(
-        {renderImageWrite, bloomImageWrite}, {});
+  void SceneView::initBloomDescriptorSets(std::size_t i) {
+    auto &frame = frames_[i];
+    auto info = vk::DescriptorImageInfo{};
+    info.sampler = flyweight_->getGeneralSampler();
+    info.imageView = frame.largeBloomImageViews[1];
+    info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto write = vk::WriteDescriptorSet{};
+    write.dstSet = frame.bloomDescriptorSets[0];
+    write.dstBinding = 0;
+    write.dstArrayElement = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    write.pImageInfo = &info;
+    flyweight_->getContext()->getDevice().updateDescriptorSets(write, {});
+    info.imageView = frame.mediumBloomImageViews[1];
+    write.dstSet = frame.bloomDescriptorSets[1];
+    flyweight_->getContext()->getDevice().updateDescriptorSets(write, {});
+    info.imageView = frame.smallBloomImageViews[1];
+    write.dstSet = frame.bloomDescriptorSets[2];
+    flyweight_->getContext()->getDevice().updateDescriptorSets(write, {});
   }
 
   void SceneView::initCommandPool(std::size_t i) {
@@ -1244,6 +1448,20 @@ namespace imp {
     for (auto &frame : frames_) {
       device.destroy(frame.semaphore);
       device.destroy(frame.commandPool);
+      for (auto framebuffer : frame.largeBloomFramebuffers) {
+        device.destroy(framebuffer);
+      }
+      for (auto framebuffer : frame.mediumBloomFramebuffers) {
+        device.destroy(framebuffer);
+      }
+      for (auto framebuffer : frame.smallBloomFramebuffers) {
+        device.destroy(framebuffer);
+      }
+      device.destroy(frame.eighthPrimaryFramebuffer);
+      device.destroy(frame.fourthPrimaryFramebuffer);
+      device.destroy(frame.halfPrimaryFramebuffer);
+      device.destroy(frame.primaryFramebuffer);
+      device.destroy(frame.skyViewFramebuffer);
       for (auto imageView : frame.largeBloomImageViews) {
         device.destroy(imageView);
       }
@@ -1259,11 +1477,6 @@ namespace imp {
       device.destroy(frame.renderImageView);
       device.destroy(frame.skyViewImageView);
     }
-    device.waitForFences(
-        transitionFence_, false, std::numeric_limits<std::uint64_t>::max());
-    device.destroy(transitionFence_);
-    device.destroy(transitionSemaphore_);
-    device.destroy(transitionCommandPool_);
     device.destroy(descriptorPool_);
   }
 
@@ -1279,7 +1492,7 @@ namespace imp {
     }
     if (frame.scene != scene_) {
       updateSkyViewDescriptorSet(i);
-      updateRenderDescriptorSet(i);
+      updatePrimaryDescriptorSet(i);
       frame.scene = scene_;
     }
     device.resetCommandPool(frame.commandPool);
@@ -1290,6 +1503,15 @@ namespace imp {
   void SceneView::updateRenderImages(std::size_t i) {
     auto device = flyweight_->getContext()->getDevice();
     auto &frame = frames_[i];
+    for (auto framebuffer : frame.largeBloomFramebuffers) {
+      device.destroy(framebuffer);
+    }
+    for (auto framebuffer : frame.mediumBloomFramebuffers) {
+      device.destroy(framebuffer);
+    }
+    for (auto framebuffer : frame.smallBloomFramebuffers) {
+      device.destroy(framebuffer);
+    }
     for (auto imageView : frame.largeBloomImageViews) {
       device.destroy(imageView);
     }
@@ -1314,12 +1536,18 @@ namespace imp {
     initSmallBloomImageViews(i);
     initMediumBloomImageViews(i);
     initLargeBloomImageViews(i);
-    initRenderDescriptorSet(i);
-    initDownsampleDescriptorSets(i);
+    initPrimaryFramebuffer(frame);
+    initHalfPrimaryFramebuffer(frame);
+    initFourthPrimaryFramebuffer(frame);
+    initEighthPrimaryFramebuffer(frame);
+    initSmallBloomFramebuffers(frame);
+    initMediumBloomFramebuffers(frame);
+    initLargeBloomFramebuffers(frame);
+    initIdentityDescriptorSets(i);
     initSmallBlurDescriptorSets(i);
     initMediumBlurDescriptorSets(i);
     initLargeBlurDescriptorSets(i);
-    initBloomDescriptorSet(i);
+    initBloomDescriptorSets(i);
   }
 
   void SceneView::updateUniformBuffer(std::size_t frameIndex) {
@@ -1408,13 +1636,13 @@ namespace imp {
     flyweight_->getContext()->getDevice().updateDescriptorSets(writes, {});
   }
 
-  void SceneView::updateRenderDescriptorSet(std::size_t i) {
+  void SceneView::updatePrimaryDescriptorSet(std::size_t i) {
     auto sceneBufferInfo = vk::DescriptorBufferInfo{};
     sceneBufferInfo.buffer = scene_->getUniformBuffer().get();
     sceneBufferInfo.offset = Scene::UNIFORM_BUFFER_STRIDE * i;
     sceneBufferInfo.range = Scene::UNIFORM_BUFFER_SIZE;
     auto sceneBufferWrite = vk::WriteDescriptorSet{};
-    sceneBufferWrite.dstSet = frames_[i].renderDescriptorSet;
+    sceneBufferWrite.dstSet = frames_[i].primaryDescriptorSet;
     sceneBufferWrite.dstBinding = 0;
     sceneBufferWrite.dstArrayElement = 0;
     sceneBufferWrite.descriptorCount = 1;
@@ -1427,7 +1655,7 @@ namespace imp {
     transmittanceImageInfo.imageLayout =
         vk::ImageLayout::eShaderReadOnlyOptimal;
     auto transmittanceLutWrite = vk::WriteDescriptorSet{};
-    transmittanceLutWrite.dstSet = frames_[i].renderDescriptorSet;
+    transmittanceLutWrite.dstSet = frames_[i].primaryDescriptorSet;
     transmittanceLutWrite.dstBinding = 2;
     transmittanceLutWrite.dstArrayElement = 0;
     transmittanceLutWrite.descriptorCount = 1;
@@ -1444,9 +1672,9 @@ namespace imp {
     computeSkyViewImage(i);
     computeRenderImage(i);
     computeRenderImageMips(i);
-    computeBloomImageArray(i);
+    computeBloomImageArray(frame);
     applyBloom(i);
-    {
+    /*{
       auto barrier = vk::ImageMemoryBarrier{};
       barrier.srcAccessMask =
           vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite;
@@ -1470,38 +1698,47 @@ namespace imp {
           {},
           {},
           barrier);
-    }
+    }*/
     frame.commandBuffer.end();
-    auto waitSemaphores = std::vector<vk::Semaphore>{scene_->getSemaphore(i)};
-    auto waitStages = std::vector<vk::PipelineStageFlags>{
-        vk::PipelineStageFlagBits::eComputeShader};
-    if (firstFrame_) {
-      waitSemaphores.emplace_back(transitionSemaphore_);
-      waitStages.emplace_back(vk::PipelineStageFlagBits::eTopOfPipe);
-    }
     auto submitInfo = vk::SubmitInfo{};
-    submitInfo.waitSemaphoreCount =
-        static_cast<std::uint32_t>(waitSemaphores.size());
-    submitInfo.pWaitSemaphores = waitSemaphores.data();
-    submitInfo.pWaitDstStageMask = waitStages.data();
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &frame.commandBuffer;
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &frame.semaphore;
-    flyweight_->getContext()->getComputeQueue().submit(submitInfo);
+    // submitInfo.signalSemaphoreCount = 1;
+    // submitInfo.pSignalSemaphores = &frame.semaphore;
+    flyweight_->getContext()->getGraphicsQueue().submit(submitInfo);
   }
 
   void SceneView::computeSkyViewImage(std::size_t i) {
     auto &frame = frames_[i];
+    auto clearValue = vk::ClearValue{};
+    auto renderPassBegin = vk::RenderPassBeginInfo{};
+    renderPassBegin.renderPass = flyweight_->getRenderPass();
+    renderPassBegin.framebuffer = frame.skyViewFramebuffer;
+    renderPassBegin.renderArea.extent.width = skyViewImage_.getExtent().width;
+    renderPassBegin.renderArea.extent.height = skyViewImage_.getExtent().height;
+    renderPassBegin.clearValueCount = 1;
+    renderPassBegin.pClearValues = &clearValue;
+    frame.commandBuffer.beginRenderPass(
+        renderPassBegin, vk::SubpassContents::eInline);
     frame.commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eCompute, flyweight_->getSkyViewPipeline());
+        vk::PipelineBindPoint::eGraphics, flyweight_->getSkyViewPipeline());
+    auto viewport = vk::Viewport{};
+    viewport.width = renderPassBegin.renderArea.extent.width;
+    viewport.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setViewport(0, viewport);
+    auto scissor = vk::Rect2D{};
+    scissor.extent.width = renderPassBegin.renderArea.extent.width;
+    scissor.extent.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setScissor(0, scissor);
     frame.commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute,
+        vk::PipelineBindPoint::eGraphics,
         flyweight_->getSkyViewPipelineLayout(),
         0,
         frame.skyViewDescriptorSet,
         {});
-    {
+    frame.commandBuffer.draw(3, 1, 0, 0);
+    frame.commandBuffer.endRenderPass();
+    /*{
       auto barrier = vk::ImageMemoryBarrier{};
       barrier.srcAccessMask = {};
       barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
@@ -1522,24 +1759,46 @@ namespace imp {
           {},
           {},
           barrier);
-    }
-    frame.commandBuffer.dispatch(
+    }*/
+    /*frame.commandBuffer.dispatch(
         (skyViewImage_.getExtent().width + 7) / 8,
         (skyViewImage_.getExtent().height + 7) / 8,
-        1);
+        1);*/
   }
 
   void SceneView::computeRenderImage(std::size_t i) {
     auto &frame = frames_[i];
+    auto clearValue = vk::ClearValue{};
+    auto renderPassBegin = vk::RenderPassBeginInfo{};
+    renderPassBegin.renderPass = flyweight_->getRenderPass();
+    renderPassBegin.framebuffer = frame.primaryFramebuffer;
+    renderPassBegin.renderArea.extent.width =
+        frame.renderImage.getExtent().width;
+    renderPassBegin.renderArea.extent.height =
+        frame.renderImage.getExtent().height;
+    renderPassBegin.clearValueCount = 1;
+    renderPassBegin.pClearValues = &clearValue;
+    frame.commandBuffer.beginRenderPass(
+        renderPassBegin, vk::SubpassContents::eInline);
     frame.commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eCompute, flyweight_->getRenderPipeline());
+        vk::PipelineBindPoint::eGraphics, flyweight_->getPrimaryPipeline());
+    auto viewport = vk::Viewport{};
+    viewport.width = renderPassBegin.renderArea.extent.width;
+    viewport.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setViewport(0, viewport);
+    auto scissor = vk::Rect2D{};
+    scissor.extent.width = renderPassBegin.renderArea.extent.width;
+    scissor.extent.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setScissor(0, scissor);
     frame.commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute,
-        flyweight_->getRenderPipelineLayout(),
+        vk::PipelineBindPoint::eGraphics,
+        flyweight_->getPrimaryPipelineLayout(),
         0,
-        frame.renderDescriptorSet,
+        frame.primaryDescriptorSet,
         {});
-    {
+    frame.commandBuffer.draw(3, 1, 0, 0);
+    frame.commandBuffer.endRenderPass();
+    /*{
       auto barrier = vk::ImageMemoryBarrier{};
       barrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite;
       barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
@@ -1560,8 +1819,8 @@ namespace imp {
           {},
           {},
           barrier);
-    }
-    {
+    }*/
+    /*{
       auto barrier = vk::ImageMemoryBarrier{};
       barrier.srcAccessMask = {};
       barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
@@ -1582,132 +1841,386 @@ namespace imp {
           {},
           {},
           barrier);
-    }
-    frame.commandBuffer.dispatch(
+    }*/
+    /*frame.commandBuffer.dispatch(
         (frame.renderImage.getExtent().width + 7) / 8,
         (frame.renderImage.getExtent().height + 7) / 8,
-        1);
+        1);*/
   }
 
   void SceneView::computeRenderImageMips(std::size_t i) {
     auto &frame = frames_[i];
-    auto barrier = vk::ImageMemoryBarrier{};
+    auto clearValue = vk::ClearValue{};
+    auto renderPassBegin = vk::RenderPassBeginInfo{};
+    renderPassBegin.renderPass = flyweight_->getRenderPass();
+    renderPassBegin.clearValueCount = 1;
+    renderPassBegin.pClearValues = &clearValue;
+    auto viewport = vk::Viewport{};
+    auto scissor = vk::Rect2D{};
+    renderPassBegin.framebuffer = frame.halfPrimaryFramebuffer;
+    renderPassBegin.renderArea.extent.width =
+        frame.renderImage.getExtent().width / 2;
+    renderPassBegin.renderArea.extent.height =
+        frame.renderImage.getExtent().height / 2;
+    frame.commandBuffer.beginRenderPass(
+        renderPassBegin, vk::SubpassContents::eInline);
+    frame.commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eGraphics, flyweight_->getIdentityPipeline());
+    viewport.width = renderPassBegin.renderArea.extent.width;
+    viewport.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setViewport(0, viewport);
+    scissor.extent.width = renderPassBegin.renderArea.extent.width;
+    scissor.extent.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setScissor(0, scissor);
+    frame.commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        flyweight_->getIdentityPipelineLayout(),
+        0,
+        frame.identityDescriptorSets[0],
+        {});
+    frame.commandBuffer.draw(3, 1, 0, 0);
+    frame.commandBuffer.endRenderPass();
+    renderPassBegin.framebuffer = frame.fourthPrimaryFramebuffer;
+    renderPassBegin.renderArea.extent.width =
+        frame.renderImage.getExtent().width / 4;
+    renderPassBegin.renderArea.extent.height =
+        frame.renderImage.getExtent().height / 4;
+    frame.commandBuffer.beginRenderPass(
+        renderPassBegin, vk::SubpassContents::eInline);
+    frame.commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eGraphics, flyweight_->getIdentityPipeline());
+    viewport.width = renderPassBegin.renderArea.extent.width;
+    viewport.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setViewport(0, viewport);
+    scissor.extent.width = renderPassBegin.renderArea.extent.width;
+    scissor.extent.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setScissor(0, scissor);
+    frame.commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        flyweight_->getIdentityPipelineLayout(),
+        0,
+        frame.identityDescriptorSets[1],
+        {});
+    frame.commandBuffer.draw(3, 1, 0, 0);
+    frame.commandBuffer.endRenderPass();
+    renderPassBegin.framebuffer = frame.eighthPrimaryFramebuffer;
+    renderPassBegin.renderArea.extent.width =
+        frame.renderImage.getExtent().width / 8;
+    renderPassBegin.renderArea.extent.height =
+        frame.renderImage.getExtent().height / 8;
+    frame.commandBuffer.beginRenderPass(
+        renderPassBegin, vk::SubpassContents::eInline);
+    frame.commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eGraphics, flyweight_->getIdentityPipeline());
+    viewport.width = renderPassBegin.renderArea.extent.width;
+    viewport.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setViewport(0, viewport);
+    scissor.extent.width = renderPassBegin.renderArea.extent.width;
+    scissor.extent.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setScissor(0, scissor);
+    frame.commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        flyweight_->getIdentityPipelineLayout(),
+        0,
+        frame.identityDescriptorSets[2],
+        {});
+    frame.commandBuffer.draw(3, 1, 0, 0);
+    frame.commandBuffer.endRenderPass();
+
+    /* auto barrier = vk::ImageMemoryBarrier{};
+    barrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+    barrier.oldLayout = vk::ImageLayout::eGeneral;
+    barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.image = frame.renderImage.get();
     barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = 1;
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount = 1;
-    frame.commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eCompute, flyweight_->getDownsamplePipeline());
-    frame.commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute,
-        flyweight_->getDownsamplePipelineLayout(),
-        0,
-        frame.downsampleDescriptorSets[0],
-        {});
-    barrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite;
-    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-    barrier.oldLayout = vk::ImageLayout::eGeneral;
-    barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    barrier.subresourceRange.baseMipLevel = 0;
     frame.commandBuffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eComputeShader,
-        vk::PipelineStageFlagBits::eComputeShader,
+        vk::PipelineStageFlagBits::eTransfer,
         {},
         {},
         {},
         barrier);
     barrier.srcAccessMask = {};
-    barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
     barrier.oldLayout = vk::ImageLayout::eUndefined;
-    barrier.newLayout = vk::ImageLayout::eGeneral;
+    barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
     barrier.subresourceRange.baseMipLevel = 1;
     frame.commandBuffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eComputeShader,
+        vk::PipelineStageFlagBits::eTransfer,
         {},
         {},
         {},
         barrier);
-    frame.commandBuffer.dispatch(
-        (frame.renderImage.getExtent().width / 2 + 7) / 8,
-        (frame.renderImage.getExtent().height / 2 + 7) / 8,
-        1);
-    frame.commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute,
-        flyweight_->getDownsamplePipelineLayout(),
-        0,
-        frame.downsampleDescriptorSets[1],
-        {});
-    barrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite;
-    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-    barrier.oldLayout = vk::ImageLayout::eGeneral;
-    barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto region = vk::ImageBlit{};
+    region.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+    region.srcSubresource.mipLevel = 0;
+    region.srcSubresource.baseArrayLayer = 0;
+    region.srcSubresource.layerCount = 1;
+    region.srcOffsets[0].x = 0;
+    region.srcOffsets[0].y = 0;
+    region.srcOffsets[1].x = extent_.width;
+    region.srcOffsets[1].y = extent_.height;
+    region.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+    region.dstSubresource.mipLevel = 1;
+    region.dstSubresource.baseArrayLayer = 0;
+    region.dstSubresource.layerCount = 1;
+    region.dstOffsets[0].x = 0;
+    region.dstOffsets[0].y = 0;
+    region.dstOffsets[1].x = extent_.width / 2;
+    region.dstOffsets[1].y = extent_.height / 2;
+    frame.commandBuffer.blitImage(
+        frame.renderImage.get(),
+        vk::ImageLayout::eTransferSrcOptimal,
+        frame.renderImage.get(),
+        vk::ImageLayout::eTransferDstOptimal,
+        region,
+        vk::Filter::eLinear);
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+    barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+    barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
     barrier.subresourceRange.baseMipLevel = 1;
     frame.commandBuffer.pipelineBarrier(
-        vk::PipelineStageFlagBits::eComputeShader,
-        vk::PipelineStageFlagBits::eComputeShader,
+        vk::PipelineStageFlagBits::eTransfer,
+        vk::PipelineStageFlagBits::eTransfer,
         {},
         {},
         {},
         barrier);
     barrier.srcAccessMask = {};
-    barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
     barrier.oldLayout = vk::ImageLayout::eUndefined;
-    barrier.newLayout = vk::ImageLayout::eGeneral;
+    barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
     barrier.subresourceRange.baseMipLevel = 2;
     frame.commandBuffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eComputeShader,
+        vk::PipelineStageFlagBits::eTransfer,
         {},
         {},
         {},
         barrier);
-    frame.commandBuffer.dispatch(
-        (frame.renderImage.getExtent().width / 4 + 7) / 8,
-        (frame.renderImage.getExtent().height / 4 + 7) / 8,
-        1);
-    frame.commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute,
-        flyweight_->getDownsamplePipelineLayout(),
-        0,
-        frame.downsampleDescriptorSets[2],
-        {});
-    barrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite;
-    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-    barrier.oldLayout = vk::ImageLayout::eGeneral;
-    barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    region.srcSubresource.mipLevel = 1;
+    region.srcOffsets[1].x = extent_.width / 2;
+    region.srcOffsets[1].y = extent_.height / 2;
+    region.dstSubresource.mipLevel = 2;
+    region.dstOffsets[1].x = extent_.width / 4;
+    region.dstOffsets[1].y = extent_.height / 4;
+    frame.commandBuffer.blitImage(
+        frame.renderImage.get(),
+        vk::ImageLayout::eTransferSrcOptimal,
+        frame.renderImage.get(),
+        vk::ImageLayout::eTransferDstOptimal,
+        region,
+        vk::Filter::eLinear);
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+    barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+    barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
     barrier.subresourceRange.baseMipLevel = 2;
     frame.commandBuffer.pipelineBarrier(
-        vk::PipelineStageFlagBits::eComputeShader,
-        vk::PipelineStageFlagBits::eComputeShader,
+        vk::PipelineStageFlagBits::eTransfer,
+        vk::PipelineStageFlagBits::eTransfer,
         {},
         {},
         {},
         barrier);
     barrier.srcAccessMask = {};
-    barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
     barrier.oldLayout = vk::ImageLayout::eUndefined;
-    barrier.newLayout = vk::ImageLayout::eGeneral;
+    barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
     barrier.subresourceRange.baseMipLevel = 3;
     frame.commandBuffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eComputeShader,
+        vk::PipelineStageFlagBits::eTransfer,
         {},
         {},
         {},
         barrier);
-    frame.commandBuffer.dispatch(
-        (frame.renderImage.getExtent().width / 8 + 7) / 8,
-        (frame.renderImage.getExtent().height / 8 + 7) / 8,
-        1);
+    region.srcSubresource.mipLevel = 2;
+    region.srcOffsets[1].x = extent_.width / 4;
+    region.srcOffsets[1].y = extent_.height / 4;
+    region.dstSubresource.mipLevel = 3;
+    region.dstOffsets[1].x = extent_.width / 8;
+    region.dstOffsets[1].y = extent_.height / 8;
+    frame.commandBuffer.blitImage(
+        frame.renderImage.get(),
+        vk::ImageLayout::eTransferSrcOptimal,
+        frame.renderImage.get(),
+        vk::ImageLayout::eTransferDstOptimal,
+        region,
+        vk::Filter::eLinear);*/
   }
 
-  void SceneView::computeBloomImageArray(std::size_t i) {
-    auto &frame = frames_[i];
-    frame.commandBuffer.bindPipeline(
+  void SceneView::computeBloomImageArray(Frame &frame) {
+    auto clearValue = vk::ClearValue{};
+    auto renderPassBegin = vk::RenderPassBeginInfo{};
+    renderPassBegin.renderPass = flyweight_->getRenderPass();
+    renderPassBegin.clearValueCount = 1;
+    renderPassBegin.pClearValues = &clearValue;
+    auto viewport = vk::Viewport{};
+    auto scissor = vk::Rect2D{};
+    struct {
+      float factorR;
+      float factorG;
+      float factorB;
+      float factorA;
+      float dx;
+      float dy;
+    } pushConstants;
+    for (auto i = 0; i < 2; ++i) {
+      renderPassBegin.framebuffer = frame.largeBloomFramebuffers[i];
+      renderPassBegin.renderArea.extent.width =
+          frame.largeBloomImageArray.getExtent().width;
+      renderPassBegin.renderArea.extent.height =
+          frame.largeBloomImageArray.getExtent().height;
+      frame.commandBuffer.beginRenderPass(
+          renderPassBegin, vk::SubpassContents::eInline);
+      frame.commandBuffer.bindPipeline(
+          vk::PipelineBindPoint::eGraphics,
+          flyweight_->getBlurPipeline(largeBloomKernel_));
+      viewport.width = renderPassBegin.renderArea.extent.width;
+      viewport.height = renderPassBegin.renderArea.extent.height;
+      frame.commandBuffer.setViewport(0, viewport);
+      scissor.extent.width = renderPassBegin.renderArea.extent.width;
+      scissor.extent.height = renderPassBegin.renderArea.extent.height;
+      frame.commandBuffer.setScissor(0, scissor);
+      frame.commandBuffer.bindDescriptorSets(
+          vk::PipelineBindPoint::eGraphics,
+          flyweight_->getBlurPipelineLayout(),
+          0,
+          frame.largeBlurDescriptorSets[i],
+          {});
+      pushConstants.factorR = i == 0 ? largeBloomWeight_ : 1.0f;
+      pushConstants.factorG = i == 0 ? largeBloomWeight_ : 1.0f;
+      pushConstants.factorB = i == 0 ? largeBloomWeight_ : 1.0f;
+      pushConstants.factorA = i == 0 ? largeBloomWeight_ : 1.0f;
+      pushConstants.dx =
+          i == 0 ? 1.0f / frame.largeBloomImageArray.getExtent().width : 0.0f;
+      pushConstants.dy =
+          i == 0 ? 0.0f : 1.0f / frame.largeBloomImageArray.getExtent().height;
+      frame.commandBuffer.pushConstants(
+          flyweight_->getBlurPipelineLayout(),
+          vk::ShaderStageFlagBits::eFragment,
+          0,
+          sizeof(pushConstants),
+          &pushConstants);
+      frame.commandBuffer.draw(3, 1, 0, 0);
+      frame.commandBuffer.endRenderPass();
+      //
+      renderPassBegin.framebuffer = frame.mediumBloomFramebuffers[i];
+      renderPassBegin.renderArea.extent.width =
+          frame.mediumBloomImageArray.getExtent().width;
+      renderPassBegin.renderArea.extent.height =
+          frame.mediumBloomImageArray.getExtent().height;
+      frame.commandBuffer.beginRenderPass(
+          renderPassBegin, vk::SubpassContents::eInline);
+      frame.commandBuffer.bindPipeline(
+          vk::PipelineBindPoint::eGraphics,
+          flyweight_->getBlurPipeline(mediumBloomKernel_));
+      viewport.width = renderPassBegin.renderArea.extent.width;
+      viewport.height = renderPassBegin.renderArea.extent.height;
+      frame.commandBuffer.setViewport(0, viewport);
+      scissor.extent.width = renderPassBegin.renderArea.extent.width;
+      scissor.extent.height = renderPassBegin.renderArea.extent.height;
+      frame.commandBuffer.setScissor(0, scissor);
+      frame.commandBuffer.bindDescriptorSets(
+          vk::PipelineBindPoint::eGraphics,
+          flyweight_->getBlurPipelineLayout(),
+          0,
+          frame.mediumBlurDescriptorSets[i],
+          {});
+      pushConstants.factorR = i == 0 ? mediumBloomWeight_ : 1.0f;
+      pushConstants.factorG = i == 0 ? mediumBloomWeight_ : 1.0f;
+      pushConstants.factorB = i == 0 ? mediumBloomWeight_ : 1.0f;
+      pushConstants.factorA = i == 0 ? mediumBloomWeight_ : 1.0f;
+      pushConstants.dx =
+          i == 0 ? 1.0f / frame.mediumBloomImageArray.getExtent().width : 0.0f;
+      pushConstants.dy =
+          i == 0 ? 0.0f : 1.0f / frame.mediumBloomImageArray.getExtent().height;
+      frame.commandBuffer.pushConstants(
+          flyweight_->getBlurPipelineLayout(),
+          vk::ShaderStageFlagBits::eFragment,
+          0,
+          sizeof(pushConstants),
+          &pushConstants);
+      frame.commandBuffer.draw(3, 1, 0, 0);
+      if (i == 1) {
+        frame.commandBuffer.bindPipeline(
+            vk::PipelineBindPoint::eGraphics, flyweight_->getBloomPipeline());
+        frame.commandBuffer.setViewport(0, viewport);
+        frame.commandBuffer.setScissor(0, scissor);
+        frame.commandBuffer.bindDescriptorSets(
+            vk::PipelineBindPoint::eGraphics,
+            flyweight_->getBloomPipelineLayout(),
+            0,
+            frame.bloomDescriptorSets[0],
+            {});
+        frame.commandBuffer.draw(3, 1, 0, 0);
+      }
+      frame.commandBuffer.endRenderPass();
+      //
+      renderPassBegin.framebuffer = frame.smallBloomFramebuffers[i];
+      renderPassBegin.renderArea.extent.width =
+          frame.smallBloomImageArray.getExtent().width;
+      renderPassBegin.renderArea.extent.height =
+          frame.smallBloomImageArray.getExtent().height;
+      frame.commandBuffer.beginRenderPass(
+          renderPassBegin, vk::SubpassContents::eInline);
+      frame.commandBuffer.bindPipeline(
+          vk::PipelineBindPoint::eGraphics,
+          flyweight_->getBlurPipeline(smallBloomKernel_));
+      viewport.width = renderPassBegin.renderArea.extent.width;
+      viewport.height = renderPassBegin.renderArea.extent.height;
+      frame.commandBuffer.setViewport(0, viewport);
+      scissor.extent.width = renderPassBegin.renderArea.extent.width;
+      scissor.extent.height = renderPassBegin.renderArea.extent.height;
+      frame.commandBuffer.setScissor(0, scissor);
+      frame.commandBuffer.bindDescriptorSets(
+          vk::PipelineBindPoint::eGraphics,
+          flyweight_->getBlurPipelineLayout(),
+          0,
+          frame.smallBlurDescriptorSets[i],
+          {});
+      pushConstants.factorR = i == 0 ? smallBloomWeight_ : 1.0f;
+      pushConstants.factorG = i == 0 ? smallBloomWeight_ : 1.0f;
+      pushConstants.factorB = i == 0 ? smallBloomWeight_ : 1.0f;
+      pushConstants.factorA = i == 0 ? smallBloomWeight_ : 1.0f;
+      pushConstants.dx =
+          i == 0 ? 1.0f / frame.smallBloomImageArray.getExtent().width : 0.0f;
+      pushConstants.dy =
+          i == 0 ? 0.0f : 1.0f / frame.smallBloomImageArray.getExtent().height;
+      frame.commandBuffer.pushConstants(
+          flyweight_->getBlurPipelineLayout(),
+          vk::ShaderStageFlagBits::eFragment,
+          0,
+          sizeof(pushConstants),
+          &pushConstants);
+      frame.commandBuffer.draw(3, 1, 0, 0);
+      if (i == 1) {
+        frame.commandBuffer.bindPipeline(
+            vk::PipelineBindPoint::eGraphics, flyweight_->getBloomPipeline());
+        frame.commandBuffer.setViewport(0, viewport);
+        frame.commandBuffer.setScissor(0, scissor);
+        frame.commandBuffer.bindDescriptorSets(
+            vk::PipelineBindPoint::eGraphics,
+            flyweight_->getBloomPipelineLayout(),
+            0,
+            frame.bloomDescriptorSets[1],
+            {});
+        frame.commandBuffer.draw(3, 1, 0, 0);
+      }
+      frame.commandBuffer.endRenderPass();
+    }
+
+    /* frame.commandBuffer.bindPipeline(
         vk::PipelineBindPoint::eCompute,
         flyweight_->getBlurPipeline(largeBloomKernel_));
     frame.commandBuffer.bindDescriptorSets(
@@ -1727,9 +2240,9 @@ namespace imp {
     }
     {
       auto barrier = vk::ImageMemoryBarrier{};
-      barrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite;
+      barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
       barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-      barrier.oldLayout = vk::ImageLayout::eGeneral;
+      barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
       barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
       barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
       barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -1740,7 +2253,7 @@ namespace imp {
       barrier.subresourceRange.baseArrayLayer = 0;
       barrier.subresourceRange.layerCount = 1;
       frame.commandBuffer.pipelineBarrier(
-          vk::PipelineStageFlagBits::eComputeShader,
+          vk::PipelineStageFlagBits::eTransfer,
           vk::PipelineStageFlagBits::eComputeShader,
           {},
           {},
@@ -1793,6 +2306,28 @@ namespace imp {
     }
     {
       auto barrier = vk::ImageMemoryBarrier{};
+      barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+      barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+      barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+      barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.image = frame.renderImage.get();
+      barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+      barrier.subresourceRange.baseMipLevel = 2;
+      barrier.subresourceRange.levelCount = 1;
+      barrier.subresourceRange.baseArrayLayer = 0;
+      barrier.subresourceRange.layerCount = 1;
+      frame.commandBuffer.pipelineBarrier(
+          vk::PipelineStageFlagBits::eTransfer,
+          vk::PipelineStageFlagBits::eComputeShader,
+          {},
+          {},
+          {},
+          barrier);
+    }
+    {
+      auto barrier = vk::ImageMemoryBarrier{};
       barrier.srcAccessMask = {};
       barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
       barrier.oldLayout = vk::ImageLayout::eUndefined;
@@ -1834,6 +2369,28 @@ namespace imp {
           0,
           4,
           pushConstants.data());
+    }
+    {
+      auto barrier = vk::ImageMemoryBarrier{};
+      barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+      barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+      barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+      barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.image = frame.renderImage.get();
+      barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+      barrier.subresourceRange.baseMipLevel = 1;
+      barrier.subresourceRange.levelCount = 1;
+      barrier.subresourceRange.baseArrayLayer = 0;
+      barrier.subresourceRange.layerCount = 1;
+      frame.commandBuffer.pipelineBarrier(
+          vk::PipelineStageFlagBits::eTransfer,
+          vk::PipelineStageFlagBits::eComputeShader,
+          {},
+          {},
+          {},
+          barrier);
     }
     {
       auto barrier = vk::ImageMemoryBarrier{};
@@ -2116,10 +2673,42 @@ namespace imp {
           (frame.smallBloomImageArray.getExtent().width + 7) / 8,
           (frame.smallBloomImageArray.getExtent().height + 7) / 8,
           1);
-    }
+    }*/
   }
 
   void SceneView::applyBloom(std::size_t i) {
+    auto &frame = frames_[i];
+    auto clearValue = vk::ClearValue{};
+    auto renderPassBegin = vk::RenderPassBeginInfo{};
+    renderPassBegin.renderPass = flyweight_->getNonDestructiveRenderPass();
+    renderPassBegin.framebuffer = frame.primaryFramebuffer;
+    renderPassBegin.renderArea.extent.width =
+        frame.renderImage.getExtent().width;
+    renderPassBegin.renderArea.extent.height =
+        frame.renderImage.getExtent().height;
+    renderPassBegin.clearValueCount = 1;
+    renderPassBegin.pClearValues = &clearValue;
+    frame.commandBuffer.beginRenderPass(
+        renderPassBegin, vk::SubpassContents::eInline);
+    frame.commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eGraphics, flyweight_->getBloomPipeline());
+    auto viewport = vk::Viewport{};
+    viewport.width = renderPassBegin.renderArea.extent.width;
+    viewport.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setViewport(0, viewport);
+    auto scissor = vk::Rect2D{};
+    scissor.extent.width = renderPassBegin.renderArea.extent.width;
+    scissor.extent.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setScissor(0, scissor);
+    frame.commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        flyweight_->getBloomPipelineLayout(),
+        0,
+        frame.bloomDescriptorSets[2],
+        {});
+    frame.commandBuffer.draw(3, 1, 0, 0);
+    frame.commandBuffer.endRenderPass();
+    /*
     auto &frame = frames_[i];
     frame.commandBuffer.bindPipeline(
         vk::PipelineBindPoint::eCompute, flyweight_->getBloomPipeline());
@@ -2177,7 +2766,7 @@ namespace imp {
     frame.commandBuffer.dispatch(
         (frame.renderImage.getExtent().width + 7) / 8,
         (frame.renderImage.getExtent().height + 7) / 8,
-        1);
+        1);*/
   }
 
   gsl::not_null<SceneView::Flyweight const *>

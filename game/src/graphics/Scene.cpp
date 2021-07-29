@@ -10,65 +10,141 @@ namespace imp {
       gsl::not_null<GpuContext *> context, std::size_t frameCount):
       context_{context},
       frameCount_{frameCount},
+      transmittanceRenderPass_{createTransmittanceRenderPass()},
       transmittanceDescriptorSetLayout_{
           createTransmittanceDescriptorSetLayout()},
       transmittancePipelineLayout_{createTransmittancePipelineLayout()},
       transmittancePipeline_{createTransmittancePipeline()},
       transmittanceSampler_{createTransmittanceSampler()} {}
 
+  vk::RenderPass Scene::Flyweight::createTransmittanceRenderPass() const {
+    auto attachment = vk::AttachmentDescription{};
+    attachment.format = vk::Format::eR16G16B16A16Sfloat;
+    attachment.samples = vk::SampleCountFlagBits::e1;
+    attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+    attachment.storeOp = vk::AttachmentStoreOp::eStore;
+    attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    attachment.initialLayout = vk::ImageLayout::eUndefined;
+    attachment.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto colorAttachment = vk::AttachmentReference{};
+    colorAttachment.attachment = 0;
+    colorAttachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
+    auto subpass = vk::SubpassDescription{};
+    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachment;
+    auto dependency = vk::SubpassDependency{};
+    dependency.srcSubpass = 0;
+    dependency.dstSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+    dependency.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+    dependency.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+    auto createInfo = vk::RenderPassCreateInfo{};
+    createInfo.attachmentCount = 1;
+    createInfo.pAttachments = &attachment;
+    createInfo.subpassCount = 1;
+    createInfo.pSubpasses = &subpass;
+    createInfo.dependencyCount = 1;
+    createInfo.pDependencies = &dependency;
+    return context_->getDevice().createRenderPass(createInfo);
+  }
+
   vk::DescriptorSetLayout
   Scene::Flyweight::createTransmittanceDescriptorSetLayout() const {
-    auto bindings = std::array<GpuDescriptorSetLayoutBinding, 2>{};
-    bindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
-    bindings[0].descriptorCount = 1;
-    bindings[0].stageFlags = vk::ShaderStageFlagBits::eCompute;
-    bindings[1].descriptorType = vk::DescriptorType::eStorageImage;
-    bindings[1].descriptorCount = 1;
-    bindings[1].stageFlags = vk::ShaderStageFlagBits::eCompute;
+    auto binding = GpuDescriptorSetLayoutBinding{};
+    binding.descriptorType = vk::DescriptorType::eUniformBuffer;
+    binding.descriptorCount = 1;
+    binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
     auto createInfo = GpuDescriptorSetLayoutCreateInfo{};
-    createInfo.bindings = bindings;
+    createInfo.bindings = {&binding, 1};
     return context_->createDescriptorSetLayout(createInfo);
   }
 
   vk::PipelineLayout
   Scene::Flyweight::createTransmittancePipelineLayout() const {
-    auto pushConstantRange = GpuPushConstantRange{};
-    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
-    pushConstantRange.offset = 0;
-    pushConstantRange.size = 8;
     auto createInfo = GpuPipelineLayoutCreateInfo{};
     createInfo.setLayouts = gsl::span{&transmittanceDescriptorSetLayout_, 1};
-    createInfo.pushConstantRanges = gsl::span{&pushConstantRange, 1};
     return context_->createPipelineLayout(createInfo);
   }
 
   vk::Pipeline Scene::Flyweight::createTransmittancePipeline() const {
-    auto code = std::vector<char>{};
-    auto in = std::ifstream{};
-    in.exceptions(std::ios::badbit | std::ios::failbit);
-    in.open("./data/Transmittance.spv", std::ios::binary);
-    in.seekg(0, std::ios::end);
-    auto codeSize = static_cast<std::size_t>(in.tellg());
-    if (codeSize % 4 != 0) {
-      throw std::runtime_error{"invalid shader module"};
+    auto vertModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/GenericVert.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      vertModule = context_->getDevice().createShaderModuleUnique(createInfo);
     }
-    code.resize(codeSize);
-    in.seekg(0, std::ios::beg);
-    in.read(code.data(), code.size());
-    auto moduleCreateInfo = vk::ShaderModuleCreateInfo{};
-    moduleCreateInfo.codeSize = code.size();
-    moduleCreateInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
-    auto module =
-        context_->getDevice().createShaderModuleUnique(moduleCreateInfo);
-    auto pipelineCreateInfo = vk::ComputePipelineCreateInfo{};
-    pipelineCreateInfo.stage.stage = vk::ShaderStageFlagBits::eCompute;
-    pipelineCreateInfo.stage.module = *module;
-    pipelineCreateInfo.stage.pName = "main";
-    pipelineCreateInfo.layout = transmittancePipelineLayout_;
-    pipelineCreateInfo.basePipelineIndex = -1;
-    return context_->getDevice()
-        .createComputePipeline({}, pipelineCreateInfo)
-        .value;
+    auto fragModule = vk::UniqueShaderModule{};
+    {
+      auto code = std::vector<char>{};
+      auto in = std::ifstream{};
+      in.exceptions(std::ios::badbit | std::ios::failbit);
+      in.open("./data/TransmittanceFrag.spv", std::ios::binary);
+      in.seekg(0, std::ios::end);
+      code.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(code.data(), code.size());
+      auto createInfo = vk::ShaderModuleCreateInfo{};
+      createInfo.codeSize = code.size();
+      createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
+      fragModule = context_->getDevice().createShaderModuleUnique(createInfo);
+    }
+    auto stages = std::array<vk::PipelineShaderStageCreateInfo, 2>{};
+    stages[0].stage = vk::ShaderStageFlagBits::eVertex;
+    stages[0].module = *vertModule;
+    stages[0].pName = "main";
+    stages[1].stage = vk::ShaderStageFlagBits::eFragment;
+    stages[1].module = *fragModule;
+    stages[1].pName = "main";
+    auto vertexInputState = vk::PipelineVertexInputStateCreateInfo{};
+    auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo{};
+    inputAssemblyState.topology = vk::PrimitiveTopology::eTriangleList;
+    auto viewportState = vk::PipelineViewportStateCreateInfo{};
+    viewportState.viewportCount = 1;
+    viewportState.scissorCount = 1;
+    auto rasterizationState = vk::PipelineRasterizationStateCreateInfo{};
+    rasterizationState.lineWidth = 1.0f;
+    auto multisampleState = vk::PipelineMultisampleStateCreateInfo{};
+    multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    auto attachment = vk::PipelineColorBlendAttachmentState{};
+    attachment.colorWriteMask =
+        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+    auto colorBlendState = vk::PipelineColorBlendStateCreateInfo{};
+    colorBlendState.attachmentCount = 1;
+    colorBlendState.pAttachments = &attachment;
+    auto dynamicStates =
+        std::array{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+    auto dynamicState = vk::PipelineDynamicStateCreateInfo{};
+    dynamicState.dynamicStateCount =
+        static_cast<std::uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+    auto createInfo = vk::GraphicsPipelineCreateInfo{};
+    createInfo.stageCount = static_cast<std::uint32_t>(stages.size());
+    createInfo.pStages = stages.data();
+    createInfo.pVertexInputState = &vertexInputState;
+    createInfo.pInputAssemblyState = &inputAssemblyState;
+    createInfo.pViewportState = &viewportState;
+    createInfo.pRasterizationState = &rasterizationState;
+    createInfo.pMultisampleState = &multisampleState;
+    createInfo.pColorBlendState = &colorBlendState;
+    createInfo.pDynamicState = &dynamicState;
+    createInfo.layout = transmittancePipelineLayout_;
+    createInfo.renderPass = transmittanceRenderPass_;
+    createInfo.subpass = 0;
+    createInfo.basePipelineIndex = -1;
+    return context_->getDevice().createGraphicsPipeline({}, createInfo).value;
   }
 
   vk::Sampler Scene::Flyweight::createTransmittanceSampler() const {
@@ -85,6 +161,7 @@ namespace imp {
   Scene::Flyweight::~Flyweight() {
     auto device = context_->getDevice();
     device.destroyPipeline(transmittancePipeline_);
+    device.destroyRenderPass(transmittanceRenderPass_);
   }
 
   gsl::not_null<GpuContext *> Scene::Flyweight::getContext() const noexcept {
@@ -93,6 +170,10 @@ namespace imp {
 
   std::size_t Scene::Flyweight::getFrameCount() const noexcept {
     return frameCount_;
+  }
+
+  vk::RenderPass Scene::Flyweight::getTransmittanceRenderPass() const noexcept {
+    return transmittanceRenderPass_;
   }
 
   vk::DescriptorSetLayout
@@ -113,28 +194,26 @@ namespace imp {
     return transmittanceSampler_;
   }
 
+  Scene::Frame::Frame(GpuImage &&transmittanceImage) noexcept:
+      transmittanceImage{std::move(transmittanceImage)} {}
+
   Scene::Scene(gsl::not_null<Flyweight const *> flyweight):
       flyweight_{flyweight},
-      uniformBuffer_{createUniformBuffer()},
-      transmittanceImage_{createTransmittanceImage()},
       descriptorPool_{createDescriptorPool()},
-      commandPool_{createCommandPool()},
-      transitionCommandBuffer_{createTransitionCommandBuffer()},
-      transitionSemaphore_{createTransitionSemaphore()},
-      transitionFence_{createTransitionFence()},
-      frames_(flyweight_->getFrameCount()),
-      firstFrame_{true} {
-    initTransmittanceImageViews();
-    initTransmittaceDescriptorSets();
-    initCommandBuffers();
-    initSemaphores();
-    auto submit = vk::SubmitInfo{};
-    submit.commandBufferCount = 1;
-    submit.pCommandBuffers = &transitionCommandBuffer_;
-    submit.signalSemaphoreCount = 1;
-    submit.pSignalSemaphores = &transitionSemaphore_;
-    flyweight_->getContext()->getComputeQueue().submit(
-        submit, transitionFence_);
+      uniformBuffer_{createUniformBuffer()},
+      frames_{createFrames()},
+      firstFrame_{true} {}
+
+  vk::DescriptorPool Scene::createDescriptorPool() const {
+    auto frameCount32 = static_cast<std::uint32_t>(flyweight_->getFrameCount());
+    auto poolSize = vk::DescriptorPoolSize{
+        vk::DescriptorType::eUniformBuffer, frameCount32};
+    auto createInfo = vk::DescriptorPoolCreateInfo{};
+    createInfo.maxSets = frameCount32;
+    createInfo.poolSizeCount = 1;
+    createInfo.pPoolSizes = &poolSize;
+    return flyweight_->getContext()->getDevice().createDescriptorPool(
+        createInfo);
   }
 
   GpuBuffer Scene::createUniformBuffer() const {
@@ -150,17 +229,34 @@ namespace imp {
         flyweight_->getContext()->getAllocator(), buffer, allocation};
   }
 
+  std::vector<Scene::Frame> Scene::createFrames() const {
+    auto frames = std::vector<Frame>{};
+    frames.reserve(flyweight_->getFrameCount());
+    for (auto i = std::size_t{}; i < frames.capacity(); ++i) {
+      frames.emplace_back(createTransmittanceImage());
+      initTransmittanceImageView(frames.back());
+      initTransmittanceFramebuffer(frames.back());
+      initTransmittanceDescriptorSet(frames.back());
+      updateTransmittanceDescriptorSet(frames.back(), i);
+      initCommandPool(frames.back());
+      initCommandBuffer(frames.back());
+      updateCommandBuffer(frames.back());
+      initSemaphore(frames.back());
+    }
+    return frames;
+  }
+
   GpuImage Scene::createTransmittanceImage() const {
     auto image = vk::ImageCreateInfo{};
     image.imageType = vk::ImageType::e2D;
     image.format = vk::Format::eR16G16B16A16Sfloat;
     image.extent = TRANSMITTANCE_IMAGE_EXTENT;
     image.mipLevels = 1;
-    image.arrayLayers = static_cast<std::uint32_t>(flyweight_->getFrameCount());
+    image.arrayLayers = 1;
     image.samples = vk::SampleCountFlagBits::e1;
     image.tiling = vk::ImageTiling::eOptimal;
-    image.usage =
-        vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage;
+    image.usage = vk::ImageUsageFlagBits::eSampled |
+                  vk::ImageUsageFlagBits::eColorAttachment;
     image.sharingMode = vk::SharingMode::eExclusive;
     image.initialLayout = vk::ImageLayout::eUndefined;
     auto allocation = VmaAllocationCreateInfo{};
@@ -169,234 +265,129 @@ namespace imp {
         flyweight_->getContext()->getAllocator(), image, allocation};
   }
 
-  vk::DescriptorPool Scene::createDescriptorPool() const {
-    auto frameCount32 = static_cast<std::uint32_t>(flyweight_->getFrameCount());
-    auto poolSizes = std::vector<vk::DescriptorPoolSize>{
-        {vk::DescriptorType::eUniformBuffer, frameCount32},
-        {vk::DescriptorType::eStorageImage, frameCount32}};
-    auto createInfo = vk::DescriptorPoolCreateInfo{};
-    createInfo.maxSets = frameCount32;
-    createInfo.poolSizeCount = static_cast<std::uint32_t>(poolSizes.size());
-    createInfo.pPoolSizes = poolSizes.data();
-    return flyweight_->getContext()->getDevice().createDescriptorPool(
-        createInfo);
-  }
-
-  vk::CommandPool Scene::createCommandPool() const {
-    auto &context = *flyweight_->getContext();
-    auto createInfo = vk::CommandPoolCreateInfo{};
-    createInfo.queueFamilyIndex = context.getComputeFamily();
-    return context.getDevice().createCommandPool(createInfo);
-  }
-
-  vk::CommandBuffer Scene::createTransitionCommandBuffer() {
-    auto allocateInfo = vk::CommandBufferAllocateInfo{};
-    allocateInfo.commandPool = commandPool_;
-    allocateInfo.commandBufferCount = 1;
-    auto commandBuffer = vk::CommandBuffer{};
-    flyweight_->getContext()->getDevice().allocateCommandBuffers(
-        &allocateInfo, &commandBuffer);
-    auto beginInfo = vk::CommandBufferBeginInfo{};
-    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-    commandBuffer.begin(beginInfo);
-    auto barrier = vk::ImageMemoryBarrier{};
-    barrier.srcAccessMask = {};
-    barrier.dstAccessMask = {};
-    barrier.oldLayout = vk::ImageLayout::eUndefined;
-    barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = transmittanceImage_.get();
-    barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-    barrier.subresourceRange.baseMipLevel = 0;
-    barrier.subresourceRange.levelCount = transmittanceImage_.getMipLevels();
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = transmittanceImage_.getArrayLayers();
-    commandBuffer.pipelineBarrier(
-        vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eBottomOfPipe,
-        {},
-        {},
-        {},
-        barrier);
-    commandBuffer.end();
-    return commandBuffer;
-  }
-
-  vk::Semaphore Scene::createTransitionSemaphore() const {
-    return flyweight_->getContext()->getDevice().createSemaphore({});
-  }
-
-  vk::Fence Scene::createTransitionFence() const {
-    return flyweight_->getContext()->getDevice().createFence({});
-  }
-
-  void Scene::initTransmittanceImageViews() {
+  void Scene::initTransmittanceImageView(Frame &frame) const {
     auto createInfo = vk::ImageViewCreateInfo{};
-    createInfo.image = transmittanceImage_.get();
+    createInfo.image = frame.transmittanceImage.get();
     createInfo.viewType = vk::ImageViewType::e2D;
-    createInfo.format = transmittanceImage_.getFormat();
-    createInfo.components.r = vk::ComponentSwizzle::eIdentity;
-    createInfo.components.g = vk::ComponentSwizzle::eIdentity;
-    createInfo.components.b = vk::ComponentSwizzle::eIdentity;
-    createInfo.components.a = vk::ComponentSwizzle::eIdentity;
+    createInfo.format = frame.transmittanceImage.getFormat();
     createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-    createInfo.subresourceRange.baseMipLevel = 0;
     createInfo.subresourceRange.levelCount = 1;
     createInfo.subresourceRange.layerCount = 1;
-    for (auto i = std::size_t{}; i < frames_.size(); ++i) {
-      createInfo.subresourceRange.baseArrayLayer =
-          static_cast<std::uint32_t>(i);
-      frames_[i].transmittanceImageView =
-          flyweight_->getContext()->getDevice().createImageView(createInfo);
-    }
+    frame.transmittanceImageView =
+        flyweight_->getContext()->getDevice().createImageView(createInfo);
   }
 
-  void Scene::initTransmittaceDescriptorSets() {
+  void Scene::initTransmittanceFramebuffer(Frame &frame) const {
+    auto createInfo = vk::FramebufferCreateInfo{};
+    createInfo.renderPass = flyweight_->getTransmittanceRenderPass();
+    createInfo.attachmentCount = 1;
+    createInfo.pAttachments = &frame.transmittanceImageView;
+    createInfo.width = frame.transmittanceImage.getExtent().width;
+    createInfo.height = frame.transmittanceImage.getExtent().height;
+    createInfo.layers = 1;
+    frame.transmittanceFramebuffer =
+        flyweight_->getContext()->getDevice().createFramebuffer(createInfo);
+  }
+
+  void Scene::initTransmittanceDescriptorSet(Frame &frame) const {
     auto setLayout = flyweight_->getTransmittanceDescriptorSetLayout();
     auto allocateInfo = vk::DescriptorSetAllocateInfo{};
     allocateInfo.descriptorPool = descriptorPool_;
     allocateInfo.descriptorSetCount = 1;
     allocateInfo.pSetLayouts = &setLayout;
-    auto sceneBufferInfo = vk::DescriptorBufferInfo{};
-    sceneBufferInfo.buffer = uniformBuffer_.get();
-    sceneBufferInfo.range = UNIFORM_BUFFER_SIZE;
-    auto sceneBufferWrite = vk::WriteDescriptorSet{};
-    sceneBufferWrite.dstBinding = 0;
-    sceneBufferWrite.dstArrayElement = 0;
-    sceneBufferWrite.descriptorCount = 1;
-    sceneBufferWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
-    sceneBufferWrite.pBufferInfo = &sceneBufferInfo;
-    auto transmittanceImageInfo = vk::DescriptorImageInfo{};
-    transmittanceImageInfo.imageLayout = vk::ImageLayout::eGeneral;
-    auto transmittanceImageWrite = vk::WriteDescriptorSet{};
-    transmittanceImageWrite.dstBinding = 1;
-    transmittanceImageWrite.dstArrayElement = 0;
-    transmittanceImageWrite.descriptorCount = 1;
-    transmittanceImageWrite.descriptorType = vk::DescriptorType::eStorageImage;
-    transmittanceImageWrite.pImageInfo = &transmittanceImageInfo;
-    auto device = flyweight_->getContext()->getDevice();
-    for (auto i = std::size_t{}; i < frames_.size(); ++i) {
-      device.allocateDescriptorSets(
-          &allocateInfo, &frames_[i].transmittanceDescriptorSet);
-      sceneBufferInfo.offset = UNIFORM_BUFFER_STRIDE * i;
-      transmittanceImageInfo.imageView = frames_[i].transmittanceImageView;
-      sceneBufferWrite.dstSet = frames_[i].transmittanceDescriptorSet;
-      transmittanceImageWrite.dstSet = frames_[i].transmittanceDescriptorSet;
-      device.updateDescriptorSets(
-          {sceneBufferWrite, transmittanceImageWrite}, {});
-    }
+    flyweight_->getContext()->getDevice().allocateDescriptorSets(
+        &allocateInfo, &frame.transmittanceDescriptorSet);
   }
 
-  void Scene::initCommandBuffers() {
+  void Scene::updateTransmittanceDescriptorSet(
+      Frame &frame, std::size_t index) const {
+    auto info = vk::DescriptorBufferInfo{};
+    info.buffer = uniformBuffer_.get();
+    info.offset = UNIFORM_BUFFER_STRIDE * index;
+    info.range = UNIFORM_BUFFER_SIZE;
+    auto write = vk::WriteDescriptorSet{};
+    write.dstSet = frame.transmittanceDescriptorSet;
+    write.dstBinding = 0;
+    write.dstArrayElement = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = vk::DescriptorType::eUniformBuffer;
+    write.pBufferInfo = &info;
+    flyweight_->getContext()->getDevice().updateDescriptorSets(write, {});
+  }
+
+  void Scene::initCommandPool(Frame &frame) const {
+    auto &context = *flyweight_->getContext();
+    auto createInfo = vk::CommandPoolCreateInfo{};
+    createInfo.queueFamilyIndex = context.getGraphicsFamily();
+    frame.commandPool = context.getDevice().createCommandPool(createInfo);
+  }
+
+  void Scene::initCommandBuffer(Frame &frame) const {
     auto allocateInfo = vk::CommandBufferAllocateInfo{};
-    allocateInfo.commandPool = commandPool_;
-    allocateInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocateInfo.commandPool = frame.commandPool;
     allocateInfo.commandBufferCount = 1;
-    for (auto i = std::size_t{}; i < frames_.size(); ++i) {
-      flyweight_->getContext()->getDevice().allocateCommandBuffers(
-          &allocateInfo, &frames_[i].commandBuffer);
-      frames_[i].commandBuffer.begin(vk::CommandBufferBeginInfo{});
-      {
-        auto barrier = vk::ImageMemoryBarrier{};
-        barrier.srcAccessMask = {};
-        barrier.dstAccessMask = vk::AccessFlagBits::eShaderWrite;
-        barrier.oldLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-        barrier.newLayout = vk::ImageLayout::eGeneral;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.image = transmittanceImage_.get();
-        barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-        barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
-        barrier.subresourceRange.baseArrayLayer = static_cast<std::uint32_t>(i);
-        barrier.subresourceRange.layerCount = 1;
-        frames_[i].commandBuffer.pipelineBarrier(
-            vk::PipelineStageFlagBits::eTopOfPipe,
-            vk::PipelineStageFlagBits::eComputeShader,
-            {},
-            {},
-            {},
-            barrier);
-      }
-      frames_[i].commandBuffer.bindPipeline(
-          vk::PipelineBindPoint::eCompute,
-          flyweight_->getTransmittancePipeline());
-      frames_[i].commandBuffer.bindDescriptorSets(
-          vk::PipelineBindPoint::eCompute,
-          flyweight_->getTransmittancePipelineLayout(),
-          0,
-          frames_[i].transmittanceDescriptorSet,
-          {});
-      frames_[i].commandBuffer.dispatch(
-          TRANSMITTANCE_IMAGE_EXTENT.width / 8,
-          TRANSMITTANCE_IMAGE_EXTENT.height / 8,
-          1);
-      {
-        auto barrier = vk::ImageMemoryBarrier{};
-        barrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite;
-        barrier.dstAccessMask = {};
-        barrier.oldLayout = vk::ImageLayout::eGeneral;
-        barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.image = transmittanceImage_.get();
-        barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-        barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
-        barrier.subresourceRange.baseArrayLayer = static_cast<std::uint32_t>(i);
-        barrier.subresourceRange.layerCount = 1;
-        frames_[i].commandBuffer.pipelineBarrier(
-            vk::PipelineStageFlagBits::eComputeShader,
-            vk::PipelineStageFlagBits::eBottomOfPipe,
-            // vk::PipelineStageFlagBits::eComputeShader,
-            {},
-            {},
-            {},
-            barrier);
-      }
-      frames_[i].commandBuffer.end();
-    }
+    flyweight_->getContext()->getDevice().allocateCommandBuffers(
+        &allocateInfo, &frame.commandBuffer);
   }
 
-  void Scene::initSemaphores() {
-    for (auto i = std::size_t{}; i < frames_.size(); ++i) {
-      frames_[i].semaphore =
-          flyweight_->getContext()->getDevice().createSemaphore({});
-    }
+  void Scene::updateCommandBuffer(Frame &frame) const {
+    auto commandBufferBegin = vk::CommandBufferBeginInfo{};
+    frame.commandBuffer.begin(commandBufferBegin);
+    auto renderPassBegin = vk::RenderPassBeginInfo{};
+    renderPassBegin.renderPass = flyweight_->getTransmittanceRenderPass();
+    renderPassBegin.framebuffer = frame.transmittanceFramebuffer;
+    renderPassBegin.renderArea.extent.width =
+        frame.transmittanceImage.getExtent().width;
+    renderPassBegin.renderArea.extent.height =
+        frame.transmittanceImage.getExtent().height;
+    frame.commandBuffer.beginRenderPass(
+        renderPassBegin, vk::SubpassContents::eInline);
+    frame.commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eGraphics,
+        flyweight_->getTransmittancePipeline());
+    auto viewport = vk::Viewport{};
+    viewport.width = renderPassBegin.renderArea.extent.width;
+    viewport.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setViewport(0, viewport);
+    auto scissor = vk::Rect2D{};
+    scissor.extent.width = renderPassBegin.renderArea.extent.width;
+    scissor.extent.height = renderPassBegin.renderArea.extent.height;
+    frame.commandBuffer.setScissor(0, scissor);
+    frame.commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        flyweight_->getTransmittancePipelineLayout(),
+        0,
+        frame.transmittanceDescriptorSet,
+        {});
+    frame.commandBuffer.draw(3, 1, 0, 0);
+    frame.commandBuffer.endRenderPass();
+    frame.commandBuffer.end();
+  }
+
+  void Scene::initSemaphore(Frame &frame) const {
+    frame.semaphore = flyweight_->getContext()->getDevice().createSemaphore({});
   }
 
   Scene::~Scene() {
     auto device = flyweight_->getContext()->getDevice();
     for (auto &frame : frames_) {
       device.destroy(frame.semaphore);
+      device.destroy(frame.commandPool);
+      device.destroy(frame.transmittanceFramebuffer);
       device.destroy(frame.transmittanceImageView);
     }
-    device.waitForFences(
-        transitionFence_, false, std::numeric_limits<std::uint64_t>::max());
-    device.destroyFence(transitionFence_);
-    device.destroySemaphore(transitionSemaphore_);
-    device.destroyCommandPool(commandPool_);
     device.destroyDescriptorPool(descriptorPool_);
   }
 
   void Scene::render(std::size_t i) {
     auto &frame = frames_[i];
     updateUniformBuffer(i);
-    auto waitSemaphore = transitionSemaphore_;
-    auto waitStage =
-        vk::PipelineStageFlags{vk::PipelineStageFlagBits::eTopOfPipe};
     auto submitInfo = vk::SubmitInfo{};
-    if (firstFrame_) {
-      submitInfo.waitSemaphoreCount = 1;
-      submitInfo.pWaitSemaphores = &waitSemaphore;
-      submitInfo.pWaitDstStageMask = &waitStage;
-    }
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &frame.commandBuffer;
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &frame.semaphore;
-    flyweight_->getContext()->getComputeQueue().submit(submitInfo);
+    /*submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &frame.semaphore;*/
+    flyweight_->getContext()->getGraphicsQueue().submit(submitInfo);
     firstFrame_ = false;
   }
 
@@ -417,8 +408,8 @@ namespace imp {
     return uniformBuffer_;
   }
 
-  GpuImage const &Scene::getTransmittanceImage() const noexcept {
-    return transmittanceImage_;
+  GpuImage const &Scene::getTransmittanceImage(std::size_t i) const noexcept {
+    return frames_[i].transmittanceImage;
   }
 
   vk::ImageView Scene::getTransmittanceImageView(std::size_t i) const noexcept {

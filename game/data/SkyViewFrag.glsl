@@ -1,7 +1,10 @@
 #version 450 core
 
+layout(location = 0) in vec2 textureCoord;
+layout(location = 0) out vec4 skyView;
+
+#include "Constants.glsl"
 #include "Intersections.glsl"
-#include "Numeric.glsl"
 
 #define SCENE_SET     0
 #define SCENE_BINDING 0
@@ -15,8 +18,6 @@ const float STEPS = 20.0f;
 const float INV_STEPS = 1.0f / STEPS;
 
 layout(set = 0, binding = 2) uniform sampler2D transmittanceLut;
-layout(set = 0, binding = 3, rgba16f) restrict writeonly uniform image2D
-    skyViewLut;
 
 vec3 planetPosition = vec3(0.0f, 0.0f, -scene.planet.groundRadius);
 
@@ -116,21 +117,19 @@ vec4 calcSkyView(vec3 x, vec3 v, bool sky) {
   vec3 direct = sky ? vec3(0.0f)
                     : transmittance * scene.planet.albedo * INV_PI *
                           max(dot(n, sceneView.sunDirection), 0.0f);
-  vec3 radiance = (indirect + direct) * scene.sun.irradiance;
-  return vec4(radiance, sky ? 1.0f : 0.0f);
+  vec3 total = (indirect + direct) * scene.sun.irradiance;
+  return vec4(total, sky ? 1.0f : 0.0f);
 }
 
 void main() {
-  vec2 paramsNumer = vec2(gl_GlobalInvocationID.xy) + 0.5f;
-  vec2 paramsDenom = vec2(gl_NumWorkGroups.xy * gl_WorkGroupSize.xy);
-  vec2 params = paramsNumer / paramsDenom;
   float horizonY =
-      (sceneView.groundLat + 0.5f * PI) / (sceneView.atmosphereLat + 0.5f * PI);
-  float t = params.y < horizonY ? 1.0f - params.y / horizonY
-                                : (params.y - horizonY) / (1.0f - horizonY);
+      (sceneView.groundLat + 0.5 * PI) / (sceneView.atmosphereLat + 0.5 * PI);
+  float t = horizonY >= textureCoord.y
+                ? (textureCoord.y - horizonY) / horizonY
+                : (textureCoord.y - horizonY) / (1.0 - horizonY);
   float t2 = t * t;
-  float longitude = 2.0f * PI * params.x - PI;
-  float latitude = params.y < horizonY
+  float longitude = 2.0f * PI * textureCoord.x - PI;
+  float latitude = horizonY >= textureCoord.y
                        ? mix(sceneView.groundLat, -0.5 * PI, t2)
                        : mix(sceneView.groundLat, sceneView.atmosphereLat, t2);
   float cosLat = cos(latitude);
@@ -139,6 +138,5 @@ void main() {
   float sinLong = sin(longitude);
   vec3 x = vec3(0.0f, 0.0f, sceneView.altitude);
   vec3 v = vec3(cosLat * cosLong, cosLat * sinLong, sinLat);
-  vec4 skyView = calcSkyView(x, v, params.y >= horizonY);
-  imageStore(skyViewLut, ivec2(gl_GlobalInvocationID.xy), skyView);
+  skyView = calcSkyView(x, v, textureCoord.y >= horizonY);
 }

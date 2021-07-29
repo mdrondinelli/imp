@@ -77,5 +77,6 @@ void main() {
   vec3 sunRadiance =
       scene.sun.irradiance / (2.0f * PI * (1.0f - scene.sun.cosAngularRadius));
   vec3 color = expose(skyRadiance + sunVisibility(v) * sunTransmittance * sunRadiance);
+  color = vec4(texture(skyViewLut, textureCoord).rgb, 1.0);
   imageStore(renderImage, ivec2(gl_GlobalInvocationID.xy), vec4(color, 1.0f));
 }

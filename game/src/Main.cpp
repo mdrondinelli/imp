@@ -25,13 +25,13 @@ int main() {
     auto earth = imp::gsl::not_null{std::make_shared<imp::Planet>()};
     earth->setPosition({0.0f, -earth->getGroundRadius(), 0.0f});
     auto sun = imp::gsl::not_null{std::make_shared<imp::DirectionalLight>(
-        imp::Spectrum{169.0f},
+        imp::Spectrum{0.42f * 1367.0f / 3.0f},
         Eigen::Vector3f{0.0f, -1.0f, 1.0f}.normalized())};
     scene->setPlanet(earth);
     scene->setSunLight(sun);
     auto groundView = imp::gsl::not_null{std::make_shared<imp::SceneView>(
         renderer.getSceneViewFlyweight(), scene, imp::Extent2u{1920, 1080})};
-    groundView->setExposure(1.0f / 8.0f);
+    groundView->setExposure(1.0f / 16.0f);
     auto skyView = imp::gsl::not_null{std::make_shared<imp::SceneView>(
         renderer.getSceneViewFlyweight(), scene, imp::Extent2u{1920, 1080})};
     skyView->setExposure(1.0f / 8.0f);
@@ -51,7 +51,7 @@ int main() {
       skyView->setViewMatrix(viewMatrix);
     }
     {
-      auto tanHalfFovY = 0.342f;
+      auto tanHalfFovY = 0.514f;
       auto focalLength = 1.0f / tanHalfFovY;
       auto aspectRatio = float(groundView->getExtent().width) /
                          float(groundView->getExtent().height);

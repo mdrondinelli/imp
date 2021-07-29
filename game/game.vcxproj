@@ -183,9 +183,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\graphics\AerialPerspectiveLut.h" />
+    <ClInclude Include="src\graphics\Composition.h" />
     <ClInclude Include="src\graphics\Planet.h" />
-    <ClInclude Include="src\graphics\Camera.h" />
     <ClInclude Include="src\graphics\DirectionalLight.h" />
     <ClInclude Include="src\graphics\Frame.h" />
     <ClInclude Include="src\graphics\Renderer.h" />
@@ -214,9 +213,7 @@
     <ClInclude Include="src\util\Math.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\graphics\AerialPerspectiveLut.cpp" />
     <ClCompile Include="src\graphics\Planet.cpp" />
-    <ClCompile Include="src\graphics\Camera.cpp" />
     <ClCompile Include="src\graphics\DirectionalLight.cpp" />
     <ClCompile Include="src\graphics\Frame.cpp" />
     <ClCompile Include="src\graphics\Renderer.cpp" />

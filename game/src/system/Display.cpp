@@ -122,11 +122,20 @@ namespace imp {
     subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachment;
+    auto dependency = vk::SubpassDependency {};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.srcAccessMask = {};
+    dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
     auto createInfo = vk::RenderPassCreateInfo{};
     createInfo.attachmentCount = 1;
     createInfo.pAttachments = &attachment;
     createInfo.subpassCount = 1;
     createInfo.pSubpasses = &subpass;
+    createInfo.dependencyCount = 1;
+    createInfo.pDependencies = &dependency;
     return context_->getDevice().createRenderPass(createInfo);
   }
 
