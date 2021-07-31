@@ -11,7 +11,7 @@ namespace imp {
     explicit DirectionalLight(
         Spectrum const &irradiance,
         Eigen::Vector3f const &direction,
-        float cosAngularRadius = 0.99995666f) noexcept;
+        float cosAngularRadius = 0.999989f) noexcept;
 
     void store(char *dst) const noexcept;
 

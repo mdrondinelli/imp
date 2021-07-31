@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include <Eigen/Dense>
 #include <absl/container/flat_hash_map.h>
@@ -8,6 +9,7 @@
 #include "../system/GpuBuffer.h"
 #include "../system/GpuImage.h"
 #include "../util/Align.h"
+#include "Spectrum.h"
 
 namespace imp {
   class GpuContext;
@@ -19,7 +21,7 @@ namespace imp {
     static constexpr auto UNIFORM_BUFFER_SIZE = std::size_t{92};
     static constexpr auto UNIFORM_BUFFER_STRIDE =
         align(std::size_t{256}, UNIFORM_BUFFER_SIZE);
-    static constexpr auto SKY_VIEW_IMAGE_EXTENT = Extent3u{128, 128, 1};
+    static constexpr auto SKY_VIEW_IMAGE_EXTENT = Extent3u{128, 256, 1};
 
     class Flyweight {
     public:
@@ -97,43 +99,28 @@ namespace imp {
     };
 
     struct Frame {
-      GpuImage renderImage;
-      GpuImage smallBloomImageArray;
-      GpuImage mediumBloomImageArray;
-      GpuImage largeBloomImageArray;
+      GpuImage skyViewImage;
+      GpuImage primaryImage;
+      std::vector<GpuImage> bloomImages;
       vk::ImageView skyViewImageView;
-      vk::ImageView renderImageView;
-      vk::ImageView halfRenderImageView;
-      vk::ImageView fourthRenderImageView;
-      vk::ImageView eighthRenderImageView;
-      vk::ImageView smallBloomImageViews[2];
-      vk::ImageView mediumBloomImageViews[2];
-      vk::ImageView largeBloomImageViews[2];
+      std::vector<vk::ImageView> primaryImageViews;
+      std::vector<vk::ImageView> bloomImageViews;
       vk::Framebuffer skyViewFramebuffer;
-      vk::Framebuffer primaryFramebuffer;
-      vk::Framebuffer halfPrimaryFramebuffer;
-      vk::Framebuffer fourthPrimaryFramebuffer;
-      vk::Framebuffer eighthPrimaryFramebuffer;
-      vk::Framebuffer smallBloomFramebuffers[2];
-      vk::Framebuffer mediumBloomFramebuffers[2];
-      vk::Framebuffer largeBloomFramebuffers[2];
+      std::vector<vk::Framebuffer> primaryFramebuffers;
+      std::vector<vk::Framebuffer> bloomFramebuffers;
       vk::DescriptorSet skyViewDescriptorSet;
       vk::DescriptorSet primaryDescriptorSet;
-      vk::DescriptorSet identityDescriptorSets[3];
-      vk::DescriptorSet smallBlurDescriptorSets[2];
-      vk::DescriptorSet mediumBlurDescriptorSets[2];
-      vk::DescriptorSet largeBlurDescriptorSets[2];
-      vk::DescriptorSet bloomDescriptorSets[3];
+      std::vector<vk::DescriptorSet> primaryTextureDescriptorSets;
+      std::vector<vk::DescriptorSet> bloomTextureDescriptorSets;
       vk::CommandPool commandPool;
       vk::CommandBuffer commandBuffer;
       vk::Semaphore semaphore;
       std::shared_ptr<Scene> scene;
 
       explicit Frame(
+          GpuImage &&skyViewImage,
           GpuImage &&renderImage,
-          GpuImage &&smallBloomImageArray,
-          GpuImage &&mediumBloomImageArray,
-          GpuImage &&largeBloomImageArray);
+          std::vector<GpuImage> &&bloomImages);
     };
 
     explicit SceneView(
@@ -144,36 +131,21 @@ namespace imp {
   private:
     vk::DescriptorPool createDescriptorPool() const;
     GpuBuffer createUniformBuffer() const;
-    GpuImage createSkyViewImage() const;
     std::vector<Frame> createFrames() const;
-    GpuImage createRenderImage() const;
-    GpuImage createSmallBloomImageArray() const;
-    GpuImage createMediumBloomImageArray() const;
-    GpuImage createLargeBloomImageArray() const;
-    void initSkyViewImageView(std::size_t i);
-    void initRenderImageView(std::size_t i);
-    void initHalfRenderImageView(std::size_t i);
-    void initFourthRenderImageView(std::size_t i);
-    void initEighthRenderImageView(std::size_t i);
-    void initSmallBloomImageViews(std::size_t i);
-    void initMediumBloomImageViews(std::size_t i);
-    void initLargeBloomImageViews(std::size_t i);
+    GpuImage createSkyViewImage() const;
+    GpuImage createPrimaryImage() const;
+    std::vector<GpuImage> createBloomImages() const;
+    void initSkyViewImageView(Frame &frame) const;
+    void initPrimaryImageViews(Frame &frame) const;
+    void initBloomImageViews(Frame &frame) const;
     void initSkyViewFramebuffer(Frame &frame) const;
-    void initPrimaryFramebuffer(Frame &frame) const;
-    void initHalfPrimaryFramebuffer(Frame &frame) const;
-    void initFourthPrimaryFramebuffer(Frame &frame) const;
-    void initEighthPrimaryFramebuffer(Frame &frame) const;
-    void initSmallBloomFramebuffers(Frame &frame) const;
-    void initMediumBloomFramebuffers(Frame &frame) const;
-    void initLargeBloomFramebuffers(Frame &frame) const;
+    void initPrimaryFramebuffers(Frame &frame) const;
+    void initBloomFramebuffers(Frame &frame) const;
     void allocateDescriptorSets(std::size_t i);
     void initSkyViewDescriptorSet(std::size_t i);
     void initPrimaryDescriptorSet(std::size_t i);
-    void initIdentityDescriptorSets(std::size_t i);
-    void initSmallBlurDescriptorSets(std::size_t i);
-    void initMediumBlurDescriptorSets(std::size_t i);
-    void initLargeBlurDescriptorSets(std::size_t i);
-    void initBloomDescriptorSets(std::size_t i);
+    void initPrimaryImageDescriptorSets(Frame &frame) const;
+    void initBloomTextureDescriptorSets(Frame &frame) const;
     void initCommandPool(std::size_t i);
     void initCommandBuffers(std::size_t i);
     void initSemaphores(std::size_t i);
@@ -192,7 +164,10 @@ namespace imp {
     void computeSkyViewImage(std::size_t i);
     void computeRenderImage(std::size_t i);
     void computeRenderImageMips(std::size_t i);
-    void computeBloomImageArray(Frame &frame);
+    void renderBloom(Frame &frame) const;
+    void renderLargeBloom(Frame &frame) const;
+    void renderMediumBloom(Frame &frame) const;
+    void renderSmallBloom(Frame &frame) const;
     void applyBloom(std::size_t i);
 
   public:
@@ -202,7 +177,7 @@ namespace imp {
     Extent2u const &getExtent() const noexcept;
     void setExtent(Extent2u const &extent) noexcept;
     GpuBuffer const &getUniformBuffer() const noexcept;
-    GpuImage const &getSkyViewImage() const noexcept;
+    GpuImage const &getSkyViewImage(std::size_t i) const noexcept;
     GpuImage const &getRenderImage(std::size_t i) const noexcept;
     vk::ImageView getSkyViewImageView(std::size_t i) const noexcept;
     vk::ImageView getFullRenderImageView(std::size_t i) const noexcept;
@@ -220,19 +195,15 @@ namespace imp {
     Extent2u extent_;
     vk::DescriptorPool descriptorPool_;
     GpuBuffer uniformBuffer_;
-    GpuImage skyViewImage_;
     std::vector<Frame> frames_;
     Eigen::Matrix4f viewMatrix_;
     Eigen::Matrix4f invViewMatrix_;
     Eigen::Matrix4f projectionMatrix_;
     Eigen::Matrix4f invProjectionMatrix_;
     float exposure_;
-    std::uint32_t smallBloomKernel_;
-    std::uint32_t mediumBloomKernel_;
-    std::uint32_t largeBloomKernel_;
-    float smallBloomWeight_;
-    float mediumBloomWeight_;
-    float largeBloomWeight_;
+    std::vector<unsigned> bloomPasses_;
+    std::vector<unsigned> bloomSizes_;
+    std::vector<Spectrum> bloomSpectra_;
     bool firstFrame_;
   };
 } // namespace imp

@@ -14,7 +14,7 @@ layout(location = 0) out vec4 skyView;
 #define SCENE_VIEW_BINDING 1
 #include "SceneView.glsl"
 
-const float STEPS = 20.0f;
+const float STEPS = 30.0f;
 const float INV_STEPS = 1.0f / STEPS;
 
 layout(set = 0, binding = 2) uniform sampler2D transmittanceLut;
@@ -47,13 +47,16 @@ vec2 rayAtmosphere(vec3 ro, vec3 rd) {
   return raySphere(ro, rd, planetPosition, scene.planet.atmosphereRadius);
 }
 
-vec2 rayScene(vec3 ro, vec3 rd, bool sky) {
+vec3 rayScene(vec3 ro, vec3 rd) {
   vec2 t = rayAtmosphere(ro, rd);
-  t.x = max(t.x, 0.0f);
-  if (!sky) {
-    t.y = min(t.y, rayGround(ro, rd).x);
+  if (t == vec2(-1.0)) {
+    return vec3(-1.0);
   }
-  return t;
+  vec2 t2 = rayGround(ro, rd);
+  t.x = max(t.x, 0.0);
+  t.y = t2.x > 0.0 ? min(t2.x, t.y) : t.y;
+  float z = t2.x > 0.0 ? 1.0 : 0.0;
+  return vec3(t, z);
 }
 
 vec2 calcDensity(float h) {
@@ -71,8 +74,11 @@ vec3 loadTransmittance(float h, float mu) {
   return texture(transmittanceLut, params).rgb;
 }
 
-vec4 calcSkyView(vec3 x, vec3 v, bool sky) {
-  vec2 t = rayScene(x, v, sky);
+vec4 calcSkyView(vec3 x, vec3 v) {
+  vec3 t = rayScene(x, v);
+  if (t == vec3(-1.0)) {
+    return vec4(0.0);
+  }
   float ds = (t.y - t.x) * INV_STEPS;
   vec3 p0 = x + t.x * v;
   vec3 p1 = x + t.y * v;
@@ -80,7 +86,8 @@ vec4 calcSkyView(vec3 x, vec3 v, bool sky) {
   float r = length(p);
   float h = r - scene.planet.groundRadius;
   vec3 n = p / r;
-  vec3 eyeTransmittance = loadTransmittance(h, dot(n, sky ? v : -v));
+  vec3 eyeTransmittanceDir = t.z != 0.0 ? -v : v;
+  vec3 eyeTransmittance = loadTransmittance(h, dot(n, eyeTransmittanceDir));
   vec3 sunTransmittance = loadTransmittance(h, dot(n, sceneView.sunDirection));
   vec3 transmittance;
   vec2 density = calcDensity(h);
@@ -92,8 +99,8 @@ vec4 calcSkyView(vec3 x, vec3 v, bool sky) {
     h = r - scene.planet.groundRadius;
     n = p / r;
     sunTransmittance = loadTransmittance(h, dot(n, sceneView.sunDirection));
-    transmittance = loadTransmittance(h, dot(n, sky ? v : -v));
-    transmittance = sky ? sunTransmittance * eyeTransmittance / transmittance
+    transmittance = loadTransmittance(h, dot(n, eyeTransmittanceDir));
+    transmittance = t.z == 0.0 ? sunTransmittance * eyeTransmittance / transmittance
                         : sunTransmittance * transmittance / eyeTransmittance;
     density = calcDensity(h);
     rayleighSum += density.r * transmittance;
@@ -104,8 +111,8 @@ vec4 calcSkyView(vec3 x, vec3 v, bool sky) {
   h = r - scene.planet.groundRadius;
   n = p / r;
   sunTransmittance = loadTransmittance(h, dot(n, sceneView.sunDirection));
-  transmittance = loadTransmittance(h, dot(n, sky ? v : -v));
-  transmittance = sky ? sunTransmittance * eyeTransmittance / transmittance
+  transmittance = loadTransmittance(h, dot(n, eyeTransmittanceDir));
+  transmittance = t.z == 0.0 ? sunTransmittance * eyeTransmittance / transmittance
                       : sunTransmittance * transmittance / eyeTransmittance;
   density = calcDensity(h);
   rayleighSum += 0.5f * density.r * transmittance;
@@ -114,29 +121,23 @@ vec4 calcSkyView(vec3 x, vec3 v, bool sky) {
   rayleighSum *= scene.planet.rayleighScattering * phaseR(mu);
   mieSum *= scene.planet.mieScattering * phaseM(mu);
   vec3 indirect = (rayleighSum + mieSum) * ds;
-  vec3 direct = sky ? vec3(0.0f)
+  vec3 direct = t.z == 0.0 ? vec3(0.0f)
                     : transmittance * scene.planet.albedo * INV_PI *
                           max(dot(n, sceneView.sunDirection), 0.0f);
   vec3 total = (indirect + direct) * scene.sun.irradiance;
-  return vec4(total, sky ? 1.0f : 0.0f);
+  return vec4(total, t.z);
 }
 
 void main() {
-  float horizonY =
-      (sceneView.groundLat + 0.5 * PI) / (sceneView.atmosphereLat + 0.5 * PI);
-  float t = horizonY >= textureCoord.y
-                ? (textureCoord.y - horizonY) / horizonY
-                : (textureCoord.y - horizonY) / (1.0 - horizonY);
+  float t = 2.0 * textureCoord.y - 1.0;
   float t2 = t * t;
   float longitude = 2.0f * PI * textureCoord.x - PI;
-  float latitude = horizonY >= textureCoord.y
-                       ? mix(sceneView.groundLat, -0.5 * PI, t2)
-                       : mix(sceneView.groundLat, sceneView.atmosphereLat, t2);
+  float latitude = 0.5 * PI * sign(t) * t2;
   float cosLat = cos(latitude);
   float sinLat = sin(latitude);
   float cosLong = cos(longitude);
   float sinLong = sin(longitude);
   vec3 x = vec3(0.0f, 0.0f, sceneView.altitude);
   vec3 v = vec3(cosLat * cosLong, cosLat * sinLong, sinLat);
-  skyView = calcSkyView(x, v, textureCoord.y >= horizonY);
+  skyView = calcSkyView(x, v);
 }

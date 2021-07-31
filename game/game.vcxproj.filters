@@ -51,9 +51,6 @@
     <ClInclude Include="src\graphics\Scene.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\SkyViewLut.h">
-      <Filter>Header Files\graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\Spectrum.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>

@@ -28,17 +28,11 @@ vec3 loadTransmittance(float h, float mu) {
 vec4 loadSkyView(vec3 v) {
   float longitude = atan(v.y, v.x);
   float latitude = asin(v.z);
-  float t2 =
-      (latitude - sceneView.groundLat) /
-      ((latitude < sceneView.groundLat ? -0.5f * PI : sceneView.atmosphereLat) -
-       sceneView.groundLat);
-  float t = sqrt(t2);
-  float horizonY =
-      (sceneView.groundLat + 0.5f * PI) / (sceneView.atmosphereLat + 0.5f * PI);
+  float t2 = abs(latitude) / (0.5 * PI);
+  float t = sign(latitude) * sqrt(t2);
   vec2 params;
   params.x = 0.5f * longitude / PI + 0.5f;
-  params.y = latitude < sceneView.groundLat ? mix(horizonY, 0.0f, t)
-                                            : mix(horizonY, 1.0f, t);
+  params.y = 0.5 * t + 0.5;
   return texture(skyViewLut, params);
 }
 
@@ -58,10 +52,14 @@ void main() {
   vec4 skyView = loadSkyView(v);
   vec3 skyRadiance = skyView.rgb;
   vec3 sunTransmittance =
-      skyView.a *
+      (1.0 - skyView.a) *
       step(scene.sun.cosAngularRadius, dot(v, sceneView.sunDirection)) *
       loadTransmittance(sceneView.altitude, v.z);
   vec3 sunRadiance =
       scene.sun.irradiance / (2.0f * PI * (1.0f - scene.sun.cosAngularRadius));
-  color = vec4(expose(skyRadiance + sunTransmittance * sunRadiance), 1.0);
+  vec3 radiance = skyRadiance + sunTransmittance * sunRadiance;
+  vec3 forward = sceneView.viewDirections[0] + sceneView.viewDirections[1] +
+                 sceneView.viewDirections[2] + sceneView.viewDirections[3];
+  vec3 irradiance = radiance * dot(v, normalize(forward));
+  color = vec4(expose(irradiance), 1.0);
 }
