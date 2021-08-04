@@ -37,10 +37,15 @@ int main() {
           scene,
           imp::Extent2u{1920 / 4, 1080}));
     }
-    views[0]->setExposure(1.0f / 20.0f);
-    views[1]->setExposure(1.0f / 20.0f);
-    views[2]->setExposure(1.0f / 20.0f);
-    views[3]->setExposure(1.0f / 20.0f);
+    views[3]->setAntiAliasingEnabled(false);
+    views[0]->setExposure(1.0f / 24.0f);
+    views[1]->setExposure(1.0f / 24.0f);
+    views[2]->setExposure(1.0f / 24.0f);
+    views[3]->setExposure(1.0f / 24.0f);
+    views[0]->setBloomEnabled(true);
+    views[1]->setBloomEnabled(true);
+    views[2]->setBloomEnabled(true);
+    views[3]->setBloomEnabled(true);
     {
       auto viewMatrix = Eigen::Matrix4f::Identity().eval();
       viewMatrix(1, 3) = -64.0f;
@@ -87,7 +92,7 @@ int main() {
     auto frame_count = 0;
     while (!window.shouldClose()) {
       imp::Display::poll();
-      auto theta = float(glfwGetTime()) * 0.0034906585f * 5.0f - 0.1f;
+      auto theta = float(glfwGetTime()) * 0.0034906585f * 1.5f - 0.1f;
       auto cosTheta = std::cos(theta);
       auto sinTheta = std::sin(theta);
       Eigen::Vector3f cosAxis = {0.0f, 0.0f, -1.0f};

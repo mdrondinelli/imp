@@ -9,6 +9,10 @@
 #include "Scene.h"
 
 namespace imp {
+  using Eigen::Matrix4f;
+  using Eigen::Vector3f;
+  using Eigen::Vector4f;
+
   SceneView::Flyweight::Flyweight(
       gsl::not_null<GpuContext *> context, std::size_t frameCount):
       context_{context},
@@ -26,7 +30,7 @@ namespace imp {
       blurPipelineLayout_{createBlurPipelineLayout()},
       bloomPipelineLayout_{createBloomPipelineLayout()},
       skyViewPipeline_{createSkyViewPipeline()},
-      primaryPipeline_{createPrimaryPipeline()},
+      primaryPipelines_{createPrimaryPipelines()},
       identityPipeline_{createIdentityPipeline()},
       blurPipelines_{createBlurPipelines()},
       bloomPipeline_{createBloomPipeline()},
@@ -34,23 +38,22 @@ namespace imp {
       skyViewSampler_{createSkyViewSampler()} {}
 
   vk::RenderPass SceneView::Flyweight::createRenderPass() const {
-    auto attachment = vk::AttachmentDescription{};
-    attachment.format = vk::Format::eR16G16B16A16Sfloat;
-    attachment.samples = vk::SampleCountFlagBits::e1;
-    attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
-    attachment.storeOp = vk::AttachmentStoreOp::eStore;
-    attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-    attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-    attachment.initialLayout = vk::ImageLayout::eUndefined;
-    attachment.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    auto colorAttachment = vk::AttachmentReference{};
-    colorAttachment.attachment = 0;
-    colorAttachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
-    auto subpass = vk::SubpassDescription{};
+    auto attachmentDesc = GpuAttachmentDescription{};
+    attachmentDesc.format = vk::Format::eR16G16B16A16Sfloat;
+    attachmentDesc.samples = vk::SampleCountFlagBits::e1;
+    attachmentDesc.loadOp = vk::AttachmentLoadOp::eDontCare;
+    attachmentDesc.storeOp = vk::AttachmentStoreOp::eStore;
+    attachmentDesc.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    attachmentDesc.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    attachmentDesc.initialLayout = vk::ImageLayout::eUndefined;
+    attachmentDesc.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto attachmentRef = GpuAttachmentReference{};
+    attachmentRef.attachment = 0;
+    attachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+    auto subpass = GpuSubpassDescription{};
     subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorAttachment;
-    auto dependencies = std::array<vk::SubpassDependency, 2>{};
+    subpass.colorAttachments = {&attachmentRef, 1};
+    auto dependencies = std::array<GpuSubpassDependency, 2>{};
     dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
     dependencies[0].dstSubpass = 0;
     dependencies[0].srcStageMask =
@@ -65,35 +68,30 @@ namespace imp {
     dependencies[1].dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
     dependencies[1].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
     dependencies[1].dstAccessMask = vk::AccessFlagBits::eShaderRead;
-    auto createInfo = vk::RenderPassCreateInfo{};
-    createInfo.attachmentCount = 1;
-    createInfo.pAttachments = &attachment;
-    createInfo.subpassCount = 1;
-    createInfo.pSubpasses = &subpass;
-    createInfo.dependencyCount =
-        static_cast<std::uint32_t>(dependencies.size());
-    createInfo.pDependencies = dependencies.data();
-    return context_->getDevice().createRenderPass(createInfo);
+    auto createInfo = GpuRenderPassCreateInfo{};
+    createInfo.attachments = {&attachmentDesc, 1};
+    createInfo.subpasses = {&subpass, 1};
+    createInfo.dependencies = dependencies;
+    return context_->createRenderPass(createInfo);
   }
 
   vk::RenderPass SceneView::Flyweight::createNonDestructiveRenderPass() const {
-    auto attachment = vk::AttachmentDescription{};
-    attachment.format = vk::Format::eR16G16B16A16Sfloat;
-    attachment.samples = vk::SampleCountFlagBits::e1;
-    attachment.loadOp = vk::AttachmentLoadOp::eLoad;
-    attachment.storeOp = vk::AttachmentStoreOp::eStore;
-    attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-    attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-    attachment.initialLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    attachment.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    auto colorAttachment = vk::AttachmentReference{};
-    colorAttachment.attachment = 0;
-    colorAttachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
-    auto subpass = vk::SubpassDescription{};
+    auto attachmentDesc = GpuAttachmentDescription{};
+    attachmentDesc.format = vk::Format::eR16G16B16A16Sfloat;
+    attachmentDesc.samples = vk::SampleCountFlagBits::e1;
+    attachmentDesc.loadOp = vk::AttachmentLoadOp::eLoad;
+    attachmentDesc.storeOp = vk::AttachmentStoreOp::eStore;
+    attachmentDesc.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    attachmentDesc.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    attachmentDesc.initialLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    attachmentDesc.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto attachmentRef = GpuAttachmentReference{};
+    attachmentRef.attachment = 0;
+    attachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+    auto subpass = GpuSubpassDescription{};
     subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorAttachment;
-    auto dependencies = std::array<vk::SubpassDependency, 2>{};
+    subpass.colorAttachments = {&attachmentRef, 1};
+    auto dependencies = std::array<GpuSubpassDependency, 2>{};
     dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
     dependencies[0].dstSubpass = 0;
     dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eFragmentShader;
@@ -108,15 +106,11 @@ namespace imp {
     dependencies[1].dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
     dependencies[1].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
     dependencies[1].dstAccessMask = vk::AccessFlagBits::eShaderRead;
-    auto createInfo = vk::RenderPassCreateInfo{};
-    createInfo.attachmentCount = 1;
-    createInfo.pAttachments = &attachment;
-    createInfo.subpassCount = 1;
-    createInfo.pSubpasses = &subpass;
-    createInfo.dependencyCount =
-        static_cast<std::uint32_t>(dependencies.size());
-    createInfo.pDependencies = dependencies.data();
-    return context_->getDevice().createRenderPass(createInfo);
+    auto createInfo = GpuRenderPassCreateInfo{};
+    createInfo.attachments = {&attachmentDesc, 1};
+    createInfo.subpasses = {&subpass, 1};
+    createInfo.dependencies = dependencies;
+    return context_->createRenderPass(createInfo);
   }
 
   vk::DescriptorSetLayout
@@ -296,7 +290,8 @@ namespace imp {
     return context_->getDevice().createGraphicsPipeline({}, createInfo).value;
   }
 
-  vk::Pipeline SceneView::Flyweight::createPrimaryPipeline() const {
+  std::unordered_map<bool, vk::Pipeline>
+  SceneView::Flyweight::createPrimaryPipelines() const {
     auto vertModule = vk::UniqueShaderModule{};
     {
       auto code = std::vector<char>{};
@@ -327,6 +322,15 @@ namespace imp {
       createInfo.pCode = reinterpret_cast<std::uint32_t *>(code.data());
       fragModule = context_->getDevice().createShaderModuleUnique(createInfo);
     }
+    auto mapEntry = vk::SpecializationMapEntry{};
+    mapEntry.constantID = 0;
+    mapEntry.offset = 0;
+    mapEntry.size = 4;
+    auto specializationInfo = vk::SpecializationInfo{};
+    specializationInfo.mapEntryCount = 1;
+    specializationInfo.pMapEntries = &mapEntry;
+    specializationInfo.dataSize = 4;
+    specializationInfo.pData = nullptr;
     auto stages = std::array<vk::PipelineShaderStageCreateInfo, 2>{};
     stages[0].stage = vk::ShaderStageFlagBits::eVertex;
     stages[0].module = *vertModule;
@@ -371,7 +375,14 @@ namespace imp {
     createInfo.renderPass = renderPass_;
     createInfo.subpass = 0;
     createInfo.basePipelineIndex = -1;
-    return context_->getDevice().createGraphicsPipeline({}, createInfo).value;
+    auto pipelines = std::unordered_map<bool, vk::Pipeline>{};
+    for (auto kernelSize : std::vector<std::int32_t>{0, 1}) {
+      specializationInfo.pData = &kernelSize;
+      pipelines.emplace(
+          kernelSize,
+          context_->getDevice().createGraphicsPipeline({}, createInfo).value);
+    }
+    return pipelines;
   }
 
   vk::Pipeline SceneView::Flyweight::createIdentityPipeline() const {
@@ -452,7 +463,7 @@ namespace imp {
     return context_->getDevice().createGraphicsPipeline({}, createInfo).value;
   }
 
-  absl::flat_hash_map<int, vk::Pipeline>
+  std::unordered_map<int, vk::Pipeline>
   SceneView::Flyweight::createBlurPipelines() const {
     auto vertModule = vk::UniqueShaderModule{};
     {
@@ -538,7 +549,7 @@ namespace imp {
     createInfo.renderPass = renderPass_;
     createInfo.subpass = 0;
     createInfo.basePipelineIndex = -1;
-    auto pipelines = absl::flat_hash_map<int, vk::Pipeline>{};
+    auto pipelines = std::unordered_map<int, vk::Pipeline>{};
     for (auto kernelSize : std::vector<std::int32_t>{
              3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33}) {
       specializationInfo.pData = &kernelSize;
@@ -663,10 +674,10 @@ namespace imp {
       device.destroy(pipeline);
     }
     device.destroy(identityPipeline_);
-    device.destroy(primaryPipeline_);
+    for (auto [_, pipeline] : primaryPipelines_) {
+      device.destroy(pipeline);
+    }
     device.destroy(skyViewPipeline_);
-    device.destroy(nonDestructiveRenderPass_);
-    device.destroy(renderPass_);
   }
 
   gsl::not_null<GpuContext *>
@@ -741,8 +752,9 @@ namespace imp {
     return skyViewPipeline_;
   }
 
-  vk::Pipeline SceneView::Flyweight::getPrimaryPipeline() const noexcept {
-    return primaryPipeline_;
+  vk::Pipeline SceneView::Flyweight::getPrimaryPipeline(
+      bool antiAliasingEnabled) const noexcept {
+    return primaryPipelines_.at(antiAliasingEnabled);
   }
 
   vk::Pipeline SceneView::Flyweight::getIdentityPipeline() const noexcept {
@@ -784,14 +796,18 @@ namespace imp {
       descriptorPool_{createDescriptorPool()},
       uniformBuffer_{createUniformBuffer()},
       frames_{createFrames()},
-      viewMatrix_{Eigen::Matrix4f::Identity()},
-      invViewMatrix_{Eigen::Matrix4f::Identity()},
-      projectionMatrix_{Eigen::Matrix4f::Identity()},
-      invProjectionMatrix_{Eigen::Matrix4f::Identity()},
+      viewMatrix_{Matrix4f::Identity()},
+      projectionMatrix_{Matrix4f::Identity()},
+      prevViewMatrix_{Matrix4f::Identity()},
+      prevProjectionMatrix_{Matrix4f::Identity()},
       exposure_{1.0f},
-      bloomPasses_{1, 2, 3, 4},
-      bloomSizes_{17, 23, 27, 33},
-      bloomSpectra_{{0.0001f}, {0.0001f}, {0.0003f}, {0.0009f}},
+      antiAliasingEnabled_{false},
+      antiAliasingAlpha_{0.25f},
+      antiAliasingJitter_{0.0f, 0.0f},
+      bloomEnabled_{false},
+      bloomBlurCounts_{1, 2, 3, 4},
+      bloomBlurSizes_{17, 23, 27, 33},
+      bloomSpectra_{{0.0001f}, {0.00015f}, {0.0003f}, {0.0009f}},
       firstFrame_{true} {
     for (auto i = std::size_t{}; i < frames_.size(); ++i) {
       auto &frame = frames_[i];
@@ -1184,6 +1200,9 @@ namespace imp {
     }
     device.resetCommandPool(frame.commandPool);
     submitCommands(i);
+    prevViewMatrix_ = viewMatrix_;
+    prevProjectionMatrix_ = projectionMatrix_;
+    antiAliasingJitter_ = nextLds(antiAliasingJitter_);
     firstFrame_ = false;
   }
 
@@ -1213,10 +1232,14 @@ namespace imp {
   }
 
   void SceneView::updateUniformBuffer(std::size_t frameIndex) {
-    using Eigen::Matrix4f;
-    using Eigen::Vector3f;
-    using Eigen::Vector4f;
-    Vector3f position = invViewMatrix_.col(3).head<3>();
+    Matrix4f invViewMatrix = viewMatrix_.inverse();
+    Matrix4f invProjectionMatrix = projectionMatrix_.inverse();
+    Matrix4f invJitterMatrix = Matrix4f::Identity();
+    invJitterMatrix(0, 3) =
+        (2.0f * antiAliasingJitter_(0) - 1.0f) / extent_.width;
+    invJitterMatrix(1, 3) =
+        (2.0f * antiAliasingJitter_(1) - 1.0f) / extent_.height;
+    Vector3f position = invViewMatrix.col(3).head<3>();
     Vector3f zenith = position - scene_->getPlanet()->getPosition();
     auto radius = zenith.norm();
     auto altitude = radius - scene_->getPlanet()->getGroundRadius();
@@ -1234,40 +1257,44 @@ namespace imp {
     skyViewMatrix.col(2).head<3>() = zenith;
     skyViewMatrix.col(3).head<3>() = position;
     skyViewMatrix = skyViewMatrix.inverse().eval();
-    Matrix4f viewDirectionMatrix = Eigen::Matrix4f::Identity();
-    viewDirectionMatrix.topLeftCorner<3, 3>() =
-        skyViewMatrix.topLeftCorner<3, 3>() *
-        invViewMatrix_.topLeftCorner<3, 3>();
-    viewDirectionMatrix *= invProjectionMatrix_;
-    auto viewDirections = std::array{
+    Matrix4f skyViewDirectionMatrix =
+        skyViewMatrix * invViewMatrix * invProjectionMatrix * invJitterMatrix;
+    Matrix4f antiAliasingPositionMatrix = prevProjectionMatrix_ *
+                                          prevViewMatrix_ * invViewMatrix *
+                                          invProjectionMatrix;
+    auto clipPositions = std::array{
         Vector4f{-1.0f, 1.0f, 1.0f, 1.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
         Vector4f{-1.0f, -1.0f, 1.0f, 1.0f},
         Vector4f{1.0f, -1.0f, 1.0f, 1.0f}};
-    for (auto &viewDirection : viewDirections) {
-      viewDirection = viewDirectionMatrix * viewDirection;
-      viewDirection *= 1.0f / viewDirection.w();
-      viewDirection.head<3>().normalize();
+    auto skyViewDirections = std::array<Vector4f, 4>{};
+    auto antiAliasingPositions = std::array<Vector4f, 4>{};
+    for (auto i = 0; i < 4; ++i) {
+      skyViewDirections[i] = skyViewDirectionMatrix * clipPositions[i];
+      skyViewDirections[i] /= skyViewDirections[i].w();
+      skyViewDirections[i].w() = 0.0f;
+      skyViewDirections[i].normalize();
+      antiAliasingPositions[i] = antiAliasingPositionMatrix * clipPositions[i];
+      antiAliasingPositions[i] /= antiAliasingPositions[i].w();
+      antiAliasingPositions[i].z() = 0.0f;
+      antiAliasingPositions[i].w() = 0.0f;
     }
-    Vector3f sunDirection = skyViewMatrix.topLeftCorner<3, 3>() *
-                            scene_->getSunLight()->getDirection();
-    auto groundLat =
-        -std::acos(scene_->getPlanet()->getGroundRadius() / radius);
-    auto atmosphereLat =
-        scene_->getPlanet()->getAtmosphereRadius() < radius
-            ? -std::acos(scene_->getPlanet()->getAtmosphereRadius() / radius)
-            : 0.5f * PI<float>;
+    Vector3f skyViewSunDirection = skyViewMatrix.topLeftCorner<3, 3>() *
+                                   scene_->getSunLight()->getDirection();
     auto offset = UNIFORM_BUFFER_STRIDE * frameIndex;
     auto data = uniformBuffer_.getMappedData() + offset;
-    std::memcpy(data + 0, &viewDirections[0], 12);
-    std::memcpy(data + 16, &viewDirections[1], 12);
-    std::memcpy(data + 32, &viewDirections[2], 12);
-    std::memcpy(data + 48, &viewDirections[3], 12);
-    std::memcpy(data + 64, &sunDirection, 12);
-    std::memcpy(data + 76, &altitude, 4);
-    std::memcpy(data + 80, &groundLat, 4);
-    std::memcpy(data + 84, &atmosphereLat, 4);
-    std::memcpy(data + 88, &exposure_, 4);
+    std::memcpy(data + 0, &skyViewDirections[0], 12);
+    std::memcpy(data + 16, &skyViewDirections[1], 12);
+    std::memcpy(data + 32, &skyViewDirections[2], 12);
+    std::memcpy(data + 48, &skyViewDirections[3], 12);
+    std::memcpy(data + 64, &skyViewSunDirection, 12);
+    std::memcpy(data + 80, &antiAliasingPositions[0], 8);
+    std::memcpy(data + 96, &antiAliasingPositions[1], 8);
+    std::memcpy(data + 112, &antiAliasingPositions[2], 8);
+    std::memcpy(data + 128, &antiAliasingPositions[3], 8);
+    std::memcpy(data + 144, &antiAliasingAlpha_, 4);
+    std::memcpy(data + 148, &altitude, 4);
+    std::memcpy(data + 152, &exposure_, 4);
     uniformBuffer_.flush(offset, UNIFORM_BUFFER_SIZE);
   }
 
@@ -1334,11 +1361,10 @@ namespace imp {
     computeSkyViewImage(i);
     computeRenderImage(i);
     computeRenderImageMips(i);
-    renderBloom(frame);
-    /*renderLargeBloom(frame);
-    renderMediumBloom(frame);
-    renderSmallBloom(frame);*/
-    applyBloom(i);
+    if (bloomEnabled_) {
+      renderBloom(frame);
+      applyBloom(i);
+    }
     frame.commandBuffer.end();
     auto submitInfo = vk::SubmitInfo{};
     submitInfo.commandBufferCount = 1;
@@ -1395,7 +1421,8 @@ namespace imp {
     frame.commandBuffer.beginRenderPass(
         renderPassBegin, vk::SubpassContents::eInline);
     frame.commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eGraphics, flyweight_->getPrimaryPipeline());
+        vk::PipelineBindPoint::eGraphics,
+        flyweight_->getPrimaryPipeline(!firstFrame_ && antiAliasingEnabled_));
     auto viewport = vk::Viewport{};
     viewport.width = renderPassBegin.renderArea.extent.width;
     viewport.height = renderPassBegin.renderArea.extent.height;
@@ -1478,13 +1505,13 @@ namespace imp {
       viewport.height = height;
       scissor.extent.width = width;
       scissor.extent.height = height;
-      for (auto j = 0; j < bloomPasses_[i]; ++j) {
+      for (auto j = 0; j < bloomBlurCounts_[i]; ++j) {
         renderPassBegin.framebuffer = frame.bloomFramebuffers[2 * i];
         frame.commandBuffer.beginRenderPass(
             renderPassBegin, vk::SubpassContents::eInline);
         frame.commandBuffer.bindPipeline(
             vk::PipelineBindPoint::eGraphics,
-            flyweight_->getBlurPipeline(bloomSizes_[i]));
+            flyweight_->getBlurPipeline(bloomBlurSizes_[i]));
         frame.commandBuffer.setViewport(0, viewport);
         frame.commandBuffer.setScissor(0, scissor);
         frame.commandBuffer.bindDescriptorSets(
@@ -1512,7 +1539,7 @@ namespace imp {
             renderPassBegin, vk::SubpassContents::eInline);
         frame.commandBuffer.bindPipeline(
             vk::PipelineBindPoint::eGraphics,
-            flyweight_->getBlurPipeline(bloomSizes_[i]));
+            flyweight_->getBlurPipeline(bloomBlurSizes_[i]));
         frame.commandBuffer.setViewport(0, viewport);
         frame.commandBuffer.setScissor(0, scissor);
         frame.commandBuffer.bindDescriptorSets(
@@ -1533,7 +1560,7 @@ namespace imp {
             sizeof(pushConstants),
             &pushConstants);
         frame.commandBuffer.draw(3, 1, 0, 0);
-        if (i != 3 && j + 1 == bloomPasses_[i]) {
+        if (i != 3 && j + 1 == bloomBlurCounts_[i]) {
           frame.commandBuffer.bindPipeline(
               vk::PipelineBindPoint::eGraphics, flyweight_->getBloomPipeline());
           frame.commandBuffer.setViewport(0, viewport);
@@ -1550,280 +1577,6 @@ namespace imp {
       }
     }
   }
-
-  // void SceneView::renderLargeBloom(Frame &frame) const {
-  //  auto clearValue = vk::ClearValue{};
-  //  auto renderPassBegin = vk::RenderPassBeginInfo{};
-  //  renderPassBegin.renderPass = flyweight_->getRenderPass();
-  //  renderPassBegin.renderArea.extent.width =
-  //      frame.largeBloomImageArray.getExtent().width;
-  //  renderPassBegin.renderArea.extent.height =
-  //      frame.largeBloomImageArray.getExtent().height;
-  //  renderPassBegin.clearValueCount = 1;
-  //  renderPassBegin.pClearValues = &clearValue;
-  //  auto viewport = vk::Viewport{};
-  //  viewport.width = renderPassBegin.renderArea.extent.width;
-  //  viewport.height = renderPassBegin.renderArea.extent.height;
-  //  auto scissor = vk::Rect2D{};
-  //  scissor.extent.width = renderPassBegin.renderArea.extent.width;
-  //  scissor.extent.height = renderPassBegin.renderArea.extent.height;
-  //  for (auto i = 0u; i < largeBloomPasses_; ++i) {
-  //    renderPassBegin.framebuffer = frame.largeBloomFramebuffers[0];
-  //    frame.commandBuffer.beginRenderPass(
-  //        renderPassBegin, vk::SubpassContents::eInline);
-  //    frame.commandBuffer.bindPipeline(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipeline(largeBloomSize_));
-  //    frame.commandBuffer.setViewport(0, viewport);
-  //    frame.commandBuffer.setScissor(0, scissor);
-  //    frame.commandBuffer.bindDescriptorSets(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipelineLayout(),
-  //        0,
-  //        i != 0 ? frame.largeBloomDescriptorSets[1]
-  //               : frame.primaryImageDescriptorSets[3],
-  //        {});
-  //    pushConstants.factorR = i != 0 ? 1.0f : largeBloomWeight_;
-  //    pushConstants.factorG = i != 0 ? 1.0f : largeBloomWeight_;
-  //    pushConstants.factorB = i != 0 ? 1.0f : largeBloomWeight_;
-  //    pushConstants.factorA = i != 0 ? 1.0f : largeBloomWeight_;
-  //    pushConstants.dx = 1.0f / frame.largeBloomImageArray.getExtent().width;
-  //    pushConstants.dy = 0.0f;
-  //    frame.commandBuffer.pushConstants(
-  //        flyweight_->getBlurPipelineLayout(),
-  //        vk::ShaderStageFlagBits::eFragment,
-  //        0,
-  //        sizeof(pushConstants),
-  //        &pushConstants);
-  //    frame.commandBuffer.draw(3, 1, 0, 0);
-  //    frame.commandBuffer.endRenderPass();
-  //    renderPassBegin.framebuffer = frame.largeBloomFramebuffers[1];
-  //    frame.commandBuffer.beginRenderPass(
-  //        renderPassBegin, vk::SubpassContents::eInline);
-  //    frame.commandBuffer.bindPipeline(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipeline(largeBloomSize_));
-  //    frame.commandBuffer.setViewport(0, viewport);
-  //    frame.commandBuffer.setScissor(0, scissor);
-  //    frame.commandBuffer.bindDescriptorSets(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipelineLayout(),
-  //        0,
-  //        frame.largeBloomDescriptorSets[0],
-  //        {});
-  //    pushConstants.factorR = 1.0f;
-  //    pushConstants.factorG = 1.0f;
-  //    pushConstants.factorB = 1.0f;
-  //    pushConstants.factorA = 1.0f;
-  //    pushConstants.dx = 0.0f;
-  //    pushConstants.dy = 1.0f / frame.largeBloomImageArray.getExtent().height;
-  //    frame.commandBuffer.pushConstants(
-  //        flyweight_->getBlurPipelineLayout(),
-  //        vk::ShaderStageFlagBits::eFragment,
-  //        0,
-  //        sizeof(pushConstants),
-  //        &pushConstants);
-  //    frame.commandBuffer.draw(3, 1, 0, 0);
-  //    frame.commandBuffer.endRenderPass();
-  //  }
-  //}
-
-  // void SceneView::renderMediumBloom(Frame &frame) const {
-  //  auto clearValue = vk::ClearValue{};
-  //  auto renderPassBegin = vk::RenderPassBeginInfo{};
-  //  renderPassBegin.renderPass = flyweight_->getRenderPass();
-  //  renderPassBegin.renderArea.extent.width =
-  //      frame.mediumBloomImageArray.getExtent().width;
-  //  renderPassBegin.renderArea.extent.height =
-  //      frame.mediumBloomImageArray.getExtent().height;
-  //  renderPassBegin.clearValueCount = 1;
-  //  renderPassBegin.pClearValues = &clearValue;
-  //  auto viewport = vk::Viewport{};
-  //  viewport.width = renderPassBegin.renderArea.extent.width;
-  //  viewport.height = renderPassBegin.renderArea.extent.height;
-  //  auto scissor = vk::Rect2D{};
-  //  scissor.extent.width = renderPassBegin.renderArea.extent.width;
-  //  scissor.extent.height = renderPassBegin.renderArea.extent.height;
-  //  struct {
-  //    float factorR;
-  //    float factorG;
-  //    float factorB;
-  //    float factorA;
-  //    float dx;
-  //    float dy;
-  //  } pushConstants;
-  //  for (auto i = 0u; i < mediumBloomPasses_; ++i) {
-  //    renderPassBegin.framebuffer = frame.mediumBloomFramebuffers[0];
-  //    frame.commandBuffer.beginRenderPass(
-  //        renderPassBegin, vk::SubpassContents::eInline);
-  //    frame.commandBuffer.bindPipeline(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipeline(mediumBloomSize_));
-  //    frame.commandBuffer.setViewport(0, viewport);
-  //    frame.commandBuffer.setScissor(0, scissor);
-  //    frame.commandBuffer.bindDescriptorSets(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipelineLayout(),
-  //        0,
-  //        i != 0 ? frame.mediumBloomDescriptorSets[1]
-  //               : frame.primaryImageDescriptorSets[2],
-  //        {});
-  //    pushConstants.factorR = i != 0 ? 1.0f : mediumBloomWeight_;
-  //    pushConstants.factorG = i != 0 ? 1.0f : mediumBloomWeight_;
-  //    pushConstants.factorB = i != 0 ? 1.0f : mediumBloomWeight_;
-  //    pushConstants.factorA = i != 0 ? 1.0f : mediumBloomWeight_;
-  //    pushConstants.dx = 1.0f / frame.mediumBloomImageArray.getExtent().width;
-  //    pushConstants.dy = 0.0f;
-  //    frame.commandBuffer.pushConstants(
-  //        flyweight_->getBlurPipelineLayout(),
-  //        vk::ShaderStageFlagBits::eFragment,
-  //        0,
-  //        sizeof(pushConstants),
-  //        &pushConstants);
-  //    frame.commandBuffer.draw(3, 1, 0, 0);
-  //    frame.commandBuffer.endRenderPass();
-  //    renderPassBegin.framebuffer = frame.mediumBloomFramebuffers[1];
-  //    frame.commandBuffer.beginRenderPass(
-  //        renderPassBegin, vk::SubpassContents::eInline);
-  //    frame.commandBuffer.bindPipeline(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipeline(mediumBloomSize_));
-  //    frame.commandBuffer.setViewport(0, viewport);
-  //    frame.commandBuffer.setScissor(0, scissor);
-  //    frame.commandBuffer.bindDescriptorSets(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipelineLayout(),
-  //        0,
-  //        frame.mediumBloomDescriptorSets[0],
-  //        {});
-  //    pushConstants.factorR = 1.0f;
-  //    pushConstants.factorG = 1.0f;
-  //    pushConstants.factorB = 1.0f;
-  //    pushConstants.factorA = 1.0f;
-  //    pushConstants.dx = 0.0f;
-  //    pushConstants.dy = 1.0f /
-  //    frame.mediumBloomImageArray.getExtent().height;
-  //    frame.commandBuffer.pushConstants(
-  //        flyweight_->getBlurPipelineLayout(),
-  //        vk::ShaderStageFlagBits::eFragment,
-  //        0,
-  //        sizeof(pushConstants),
-  //        &pushConstants);
-  //    frame.commandBuffer.draw(3, 1, 0, 0);
-  //    if (i + 1 == mediumBloomPasses_) {
-  //      frame.commandBuffer.bindPipeline(
-  //          vk::PipelineBindPoint::eGraphics, flyweight_->getBloomPipeline());
-  //      frame.commandBuffer.setViewport(0, viewport);
-  //      frame.commandBuffer.setScissor(0, scissor);
-  //      frame.commandBuffer.bindDescriptorSets(
-  //          vk::PipelineBindPoint::eGraphics,
-  //          flyweight_->getBloomPipelineLayout(),
-  //          0,
-  //          frame.largeBloomDescriptorSets[1],
-  //          {});
-  //      frame.commandBuffer.draw(3, 1, 0, 0);
-  //    }
-  //    frame.commandBuffer.endRenderPass();
-  //  }
-  //}
-
-  // void SceneView::renderSmallBloom(Frame &frame) const {
-  //  auto clearValue = vk::ClearValue{};
-  //  auto renderPassBegin = vk::RenderPassBeginInfo{};
-  //  renderPassBegin.renderPass = flyweight_->getRenderPass();
-  //  renderPassBegin.renderArea.extent.width =
-  //      frame.smallBloomImageArray.getExtent().width;
-  //  renderPassBegin.renderArea.extent.height =
-  //      frame.smallBloomImageArray.getExtent().height;
-  //  renderPassBegin.clearValueCount = 1;
-  //  renderPassBegin.pClearValues = &clearValue;
-  //  auto viewport = vk::Viewport{};
-  //  viewport.width = renderPassBegin.renderArea.extent.width;
-  //  viewport.height = renderPassBegin.renderArea.extent.height;
-  //  auto scissor = vk::Rect2D{};
-  //  scissor.extent.width = renderPassBegin.renderArea.extent.width;
-  //  scissor.extent.height = renderPassBegin.renderArea.extent.height;
-  //  struct {
-  //    float factorR;
-  //    float factorG;
-  //    float factorB;
-  //    float factorA;
-  //    float dx;
-  //    float dy;
-  //  } pushConstants;
-  //  for (auto i = 0u; i < smallBloomPasses_; ++i) {
-  //    renderPassBegin.framebuffer = frame.smallBloomFramebuffers[0];
-  //    frame.commandBuffer.beginRenderPass(
-  //        renderPassBegin, vk::SubpassContents::eInline);
-  //    frame.commandBuffer.bindPipeline(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipeline(smallBloomSize_));
-  //    frame.commandBuffer.setViewport(0, viewport);
-  //    frame.commandBuffer.setScissor(0, scissor);
-  //    frame.commandBuffer.bindDescriptorSets(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipelineLayout(),
-  //        0,
-  //        i != 0 ? frame.smallBloomDescriptorSets[1]
-  //               : frame.primaryImageDescriptorSets[1],
-  //        {});
-  //    pushConstants.factorR = i != 0 ? 1.0f : smallBloomWeight_;
-  //    pushConstants.factorG = i != 0 ? 1.0f : smallBloomWeight_;
-  //    pushConstants.factorB = i != 0 ? 1.0f : smallBloomWeight_;
-  //    pushConstants.factorA = i != 0 ? 1.0f : smallBloomWeight_;
-  //    pushConstants.dx = 1.0f / frame.smallBloomImageArray.getExtent().width;
-  //    pushConstants.dy = 0.0f;
-  //    frame.commandBuffer.pushConstants(
-  //        flyweight_->getBlurPipelineLayout(),
-  //        vk::ShaderStageFlagBits::eFragment,
-  //        0,
-  //        sizeof(pushConstants),
-  //        &pushConstants);
-  //    frame.commandBuffer.draw(3, 1, 0, 0);
-  //    frame.commandBuffer.endRenderPass();
-  //    renderPassBegin.framebuffer = frame.smallBloomFramebuffers[1];
-  //    frame.commandBuffer.beginRenderPass(
-  //        renderPassBegin, vk::SubpassContents::eInline);
-  //    frame.commandBuffer.bindPipeline(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipeline(smallBloomSize_));
-  //    frame.commandBuffer.setViewport(0, viewport);
-  //    frame.commandBuffer.setScissor(0, scissor);
-  //    frame.commandBuffer.bindDescriptorSets(
-  //        vk::PipelineBindPoint::eGraphics,
-  //        flyweight_->getBlurPipelineLayout(),
-  //        0,
-  //        frame.smallBloomDescriptorSets[0],
-  //        {});
-  //    pushConstants.factorR = 1.0f;
-  //    pushConstants.factorG = 1.0f;
-  //    pushConstants.factorB = 1.0f;
-  //    pushConstants.factorA = 1.0f;
-  //    pushConstants.dx = 0.0f;
-  //    pushConstants.dy = 1.0f / frame.smallBloomImageArray.getExtent().height;
-  //    frame.commandBuffer.pushConstants(
-  //        flyweight_->getBlurPipelineLayout(),
-  //        vk::ShaderStageFlagBits::eFragment,
-  //        0,
-  //        sizeof(pushConstants),
-  //        &pushConstants);
-  //    frame.commandBuffer.draw(3, 1, 0, 0);
-  //    if (i + 1 == smallBloomPasses_) {
-  //      frame.commandBuffer.bindPipeline(
-  //          vk::PipelineBindPoint::eGraphics, flyweight_->getBloomPipeline());
-  //      frame.commandBuffer.setViewport(0, viewport);
-  //      frame.commandBuffer.setScissor(0, scissor);
-  //      frame.commandBuffer.bindDescriptorSets(
-  //          vk::PipelineBindPoint::eGraphics,
-  //          flyweight_->getBloomPipelineLayout(),
-  //          0,
-  //          frame.mediumBloomDescriptorSets[1],
-  //          {});
-  //      frame.commandBuffer.draw(3, 1, 0, 0);
-  //    }
-  //    frame.commandBuffer.endRenderPass();
-  //  }
-  //}
 
   void SceneView::applyBloom(std::size_t i) {
     auto &frame = frames_[i];
@@ -1857,65 +1610,6 @@ namespace imp {
         {});
     frame.commandBuffer.draw(3, 1, 0, 0);
     frame.commandBuffer.endRenderPass();
-    /*
-    auto &frame = frames_[i];
-    frame.commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eCompute, flyweight_->getBloomPipeline());
-    frame.commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute,
-        flyweight_->getBloomPipelineLayout(),
-        0,
-        frame.bloomDescriptorSet,
-        {});
-    {
-      auto barrier = vk::ImageMemoryBarrier{};
-      barrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite;
-      barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-      barrier.oldLayout = vk::ImageLayout::eGeneral;
-      barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-      barrier.image = frame.smallBloomImageArray.get();
-      barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-      barrier.subresourceRange.baseMipLevel = 0;
-      barrier.subresourceRange.levelCount = 1;
-      barrier.subresourceRange.baseArrayLayer = 1;
-      barrier.subresourceRange.layerCount = 1;
-      frame.commandBuffer.pipelineBarrier(
-          vk::PipelineStageFlagBits::eComputeShader,
-          vk::PipelineStageFlagBits::eComputeShader,
-          {},
-          {},
-          {},
-          barrier);
-    }
-    {
-      auto barrier = vk::ImageMemoryBarrier{};
-      barrier.srcAccessMask = vk::AccessFlagBits::eShaderRead;
-      barrier.dstAccessMask =
-          vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite;
-      barrier.oldLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      barrier.newLayout = vk::ImageLayout::eGeneral;
-      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-      barrier.image = frame.renderImage.get();
-      barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-      barrier.subresourceRange.baseMipLevel = 0;
-      barrier.subresourceRange.levelCount = 1;
-      barrier.subresourceRange.baseArrayLayer = 0;
-      barrier.subresourceRange.layerCount = 1;
-      frame.commandBuffer.pipelineBarrier(
-          vk::PipelineStageFlagBits::eComputeShader,
-          vk::PipelineStageFlagBits::eComputeShader,
-          {},
-          {},
-          {},
-          barrier);
-    }
-    frame.commandBuffer.dispatch(
-        (frame.renderImage.getExtent().width + 7) / 8,
-        (frame.renderImage.getExtent().height + 7) / 8,
-        1);*/
   }
 
   gsl::not_null<SceneView::Flyweight const *>
@@ -1971,7 +1665,6 @@ namespace imp {
 
   void SceneView::setViewMatrix(Eigen::Matrix4f const &m) noexcept {
     viewMatrix_ = m;
-    invViewMatrix_ = m.inverse();
   }
 
   Eigen::Matrix4f const &SceneView::getProjectionMatrix() const noexcept {
@@ -1980,7 +1673,6 @@ namespace imp {
 
   void SceneView::setProjectionMatrix(Eigen::Matrix4f const &m) noexcept {
     projectionMatrix_ = m;
-    invProjectionMatrix_ = m.inverse();
   }
 
   float SceneView::getExposure() const noexcept {
@@ -1989,5 +1681,53 @@ namespace imp {
 
   void SceneView::setExposure(float exposure) noexcept {
     exposure_ = exposure;
+  }
+
+  bool SceneView::isAntiAliasingEnabled() const noexcept {
+    return antiAliasingEnabled_;
+  }
+
+  void SceneView::setAntiAliasingEnabled(bool antiAliasingEnabled) noexcept {
+    antiAliasingEnabled_ = antiAliasingEnabled;
+  }
+
+  bool SceneView::isBloomEnabled() const noexcept {
+    return bloomEnabled_;
+  }
+
+  void SceneView::setBloomEnabled(bool bloomEnabled) noexcept {
+    bloomEnabled_ = bloomEnabled;
+  }
+
+  unsigned SceneView::getBloomBlurCount(unsigned level) const noexcept {
+    gsl_Expects(level < 4);
+    return bloomBlurCounts_[level];
+  }
+
+  void
+  SceneView::setBloomBlurCount(unsigned level, unsigned blurCount) noexcept {
+    gsl_Expects(level < 4);
+    bloomBlurCounts_[level] = blurCount;
+  }
+
+  unsigned SceneView::getBloomBlurSize(unsigned level) const noexcept {
+    gsl_Expects(level < 4);
+    return bloomBlurSizes_[level];
+  }
+
+  void SceneView::setBloomBlurSize(unsigned level, unsigned blurSize) noexcept {
+    gsl_Expects(level < 4);
+    bloomBlurSizes_[level] = blurSize;
+  }
+
+  Spectrum const &SceneView::getBloomSpectrum(unsigned level) const noexcept {
+    gsl_Expects(level < 4);
+    return bloomSpectra_[level];
+  }
+
+  void SceneView::setBloomSpectrum(
+      unsigned level, Spectrum const &spectrum) noexcept {
+    gsl_Expects(level < 4);
+    bloomSpectra_[level] = spectrum;
   }
 } // namespace imp

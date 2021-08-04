@@ -10,11 +10,11 @@
 #endif
 
 layout(set = SCENE_VIEW_SET, binding = SCENE_VIEW_BINDING) uniform SceneView {
-  vec3 viewDirections[4];
-  vec3 sunDirection;
+  vec3 skyViewEyeDirections[4];
+  vec3 skyViewSunDirection;
+  vec2 antiAliasingPositions[4];
+  float antiAliasingAlpha;
   float altitude;
-  float groundLat;
-  float atmosphereLat;
   float exposure;
 }
 sceneView;

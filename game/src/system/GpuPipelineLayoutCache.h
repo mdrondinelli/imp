@@ -1,57 +1,48 @@
 #pragma once
 
 #include <algorithm>
+#include <list>
+#include <mutex>
+#include <span>
 #include <vector>
 
+#include <boost/container_hash/hash.hpp>
 #include <vulkan/vulkan.hpp>
-
-#include "../util/Gsl.h"
 
 namespace imp {
   struct GpuPushConstantRange {
     vk::ShaderStageFlags stageFlags;
     std::uint32_t offset;
     std::uint32_t size;
+
+    friend bool operator==(
+        GpuPushConstantRange const &lhs,
+        GpuPushConstantRange const &rhs) = default;
   };
+
+  inline std::size_t hash_value(GpuPushConstantRange const &range) noexcept {
+    auto seed = std::size_t{};
+    boost::hash_combine(seed, static_cast<VkFlags>(range.stageFlags));
+    boost::hash_combine(seed, range.offset);
+    boost::hash_combine(seed, range.size);
+    return seed;
+  }
 
   struct GpuPipelineLayoutCreateInfo {
-    gsl::span<vk::DescriptorSetLayout const> setLayouts;
-    gsl::span<GpuPushConstantRange const> pushConstantRanges;
-  };
-
-  struct GpuPipelineLayoutInfo {
-    std::vector<vk::DescriptorSetLayout> setLayouts;
-    std::vector<GpuPushConstantRange> pushConstantRanges;
+    std::span<vk::DescriptorSetLayout const> setLayouts;
+    std::span<GpuPushConstantRange const> pushConstantRanges;
   };
 
   inline bool operator==(
-      GpuPushConstantRange const &lhs,
-      GpuPushConstantRange const &rhs) noexcept {
-    return lhs.stageFlags == rhs.stageFlags && lhs.offset == rhs.offset &&
-           lhs.size == rhs.size;
-  }
-
-  inline bool operator!=(
-      GpuPushConstantRange const &lhs,
-      GpuPushConstantRange const &rhs) noexcept {
-    return !(lhs == rhs);
-  }
-
-  inline bool operator==(
       GpuPipelineLayoutCreateInfo const &lhs,
       GpuPipelineLayoutCreateInfo const &rhs) noexcept {
-    return lhs.setLayouts.size() == rhs.setLayouts.size() &&
-           lhs.pushConstantRanges.size() == rhs.pushConstantRanges.size() &&
-           (lhs.setLayouts.data() == rhs.setLayouts.data() ||
-            std::equal(
-                lhs.setLayouts.begin(),
-                lhs.setLayouts.end(),
-                rhs.setLayouts.begin())) &&
-           (lhs.pushConstantRanges.data() == rhs.pushConstantRanges.data() ||
-            std::equal(
-                lhs.pushConstantRanges.begin(),
-                lhs.pushConstantRanges.end(),
-                rhs.pushConstantRanges.begin()));
+    return (lhs.setLayouts.data() == rhs.setLayouts.data() &&
+                lhs.setLayouts.size() == rhs.setLayouts.size() ||
+            std::ranges::equal(lhs.setLayouts, rhs.setLayouts)) &&
+           (lhs.pushConstantRanges.data() == rhs.pushConstantRanges.data() &&
+                lhs.pushConstantRanges.size() ==
+                    rhs.pushConstantRanges.size() ||
+            std::ranges::equal(lhs.pushConstantRanges, rhs.pushConstantRanges));
   }
 
   inline bool operator!=(
@@ -60,102 +51,35 @@ namespace imp {
     return !(lhs == rhs);
   }
 
-  inline bool operator==(
-      GpuPipelineLayoutInfo const &lhs,
-      GpuPipelineLayoutInfo const &rhs) noexcept {
-    return lhs.setLayouts == rhs.setLayouts &&
-           lhs.pushConstantRanges == rhs.pushConstantRanges;
+  inline std::size_t
+  hash_value(GpuPipelineLayoutCreateInfo const &createInfo) noexcept {
+    auto seed = std::size_t{};
+    auto setLayoutsBegin = reinterpret_cast<VkDescriptorSetLayout const *>(
+        createInfo.setLayouts.data());
+    auto setLayoutsEnd = setLayoutsBegin + createInfo.setLayouts.size();
+    boost::hash_range(seed, setLayoutsBegin, setLayoutsEnd);
+    boost::hash_range(
+        seed,
+        createInfo.pushConstantRanges.begin(),
+        createInfo.pushConstantRanges.end());
+    return seed;
   }
-
-  inline bool operator!=(
-      GpuPipelineLayoutInfo const &lhs,
-      GpuPipelineLayoutInfo const &rhs) noexcept {
-    return !(lhs == rhs);
-  }
-
-  inline bool operator==(
-      GpuPipelineLayoutCreateInfo const &lhs,
-      GpuPipelineLayoutInfo const &rhs) noexcept {
-    return lhs.setLayouts.size() == rhs.setLayouts.size() &&
-           lhs.pushConstantRanges.size() == rhs.pushConstantRanges.size() &&
-           (lhs.setLayouts.data() == rhs.setLayouts.data() ||
-            std::equal(
-                lhs.setLayouts.begin(),
-                lhs.setLayouts.end(),
-                rhs.setLayouts.begin())) &&
-           (lhs.pushConstantRanges.data() == rhs.pushConstantRanges.data() ||
-            std::equal(
-                lhs.pushConstantRanges.begin(),
-                lhs.pushConstantRanges.end(),
-                rhs.pushConstantRanges.begin()));
-  }
-
-  inline bool operator!=(
-      GpuPipelineLayoutCreateInfo const &lhs,
-      GpuPipelineLayoutInfo const &rhs) noexcept {
-    return !(lhs == rhs);
-  }
-
-  inline bool operator==(
-      GpuPipelineLayoutInfo const &lhs,
-      GpuPipelineLayoutCreateInfo const &rhs) noexcept {
-    return rhs == lhs;
-  }
-
-  inline bool operator!=(
-      GpuPipelineLayoutInfo const &lhs,
-      GpuPipelineLayoutCreateInfo const &rhs) noexcept {
-    return !(rhs == lhs);
-  }
-
-  template<typename H>
-  H AbslHashValue(H state, GpuPushConstantRange const &range) noexcept {
-    return H::combine(
-        std::move(state),
-        static_cast<VkShaderStageFlags>(range.stageFlags),
-        range.offset,
-        range.size);
-  }
-
-  template<typename H>
-  H AbslHashValue(H state, GpuPipelineLayoutCreateInfo const &info) noexcept {
-    state = H::combine_contiguous(
-        std::move(state), info.setLayouts.data(), info.setLayouts.size());
-    state = H::combine_contiguous(
-        std::move(state),
-        info.pushConstantRanges.data(),
-        info.pushConstantRanges.size());
-    return state;
-  }
-
-  template<typename H>
-  H AbslHashValue(H state, GpuPipelineLayoutInfo const &info) noexcept {
-    state = H::combine_contiguous(
-        std::move(state), info.setLayouts.data(), info.setLayouts.size());
-    state = H::combine_contiguous(
-        std::move(state),
-        info.pushConstantRanges.data(),
-        info.pushConstantRanges.size());
-    return state;
-  }
-
-  class GpuContext;
 
   class GpuPipelineLayoutCache {
   public:
-    explicit GpuPipelineLayoutCache(gsl::not_null<GpuContext *> context);
+    explicit GpuPipelineLayoutCache(vk::Device device);
 
     vk::PipelineLayout create(GpuPipelineLayoutCreateInfo const &createInfo);
 
   private:
-    struct Node {
-      std::unique_ptr<Node> next;
-      GpuPipelineLayoutInfo key;
-      vk::UniquePipelineLayout value;
-    };
-
-    gsl::not_null<GpuContext *> context_;
-    std::vector<std::unique_ptr<Node>> buckets_;
-    std::size_t size_;
+    vk::Device device_;
+    std::list<std::vector<vk::DescriptorSetLayout>> setLayouts_;
+    std::list<std::vector<GpuPushConstantRange>> pushConstantRanges_;
+    std::unordered_map<
+        GpuPipelineLayoutCreateInfo,
+        vk::UniquePipelineLayout,
+        boost::hash<GpuPipelineLayoutCreateInfo>>
+        pipelineLayouts_;
+    std::mutex mutex_;
   };
 } // namespace imp

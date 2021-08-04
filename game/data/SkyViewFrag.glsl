@@ -88,7 +88,7 @@ vec4 calcSkyView(vec3 x, vec3 v) {
   vec3 n = p / r;
   vec3 eyeTransmittanceDir = t.z != 0.0 ? -v : v;
   vec3 eyeTransmittance = loadTransmittance(h, dot(n, eyeTransmittanceDir));
-  vec3 sunTransmittance = loadTransmittance(h, dot(n, sceneView.sunDirection));
+  vec3 sunTransmittance = loadTransmittance(h, dot(n, sceneView.skyViewSunDirection));
   vec3 transmittance;
   vec2 density = calcDensity(h);
   vec3 rayleighSum = 0.5f * density.r * sunTransmittance;
@@ -98,7 +98,7 @@ vec4 calcSkyView(vec3 x, vec3 v) {
     r = length(p);
     h = r - scene.planet.groundRadius;
     n = p / r;
-    sunTransmittance = loadTransmittance(h, dot(n, sceneView.sunDirection));
+    sunTransmittance = loadTransmittance(h, dot(n, sceneView.skyViewSunDirection));
     transmittance = loadTransmittance(h, dot(n, eyeTransmittanceDir));
     transmittance = t.z == 0.0 ? sunTransmittance * eyeTransmittance / transmittance
                         : sunTransmittance * transmittance / eyeTransmittance;
@@ -110,20 +110,20 @@ vec4 calcSkyView(vec3 x, vec3 v) {
   r = length(p);
   h = r - scene.planet.groundRadius;
   n = p / r;
-  sunTransmittance = loadTransmittance(h, dot(n, sceneView.sunDirection));
+  sunTransmittance = loadTransmittance(h, dot(n, sceneView.skyViewSunDirection));
   transmittance = loadTransmittance(h, dot(n, eyeTransmittanceDir));
   transmittance = t.z == 0.0 ? sunTransmittance * eyeTransmittance / transmittance
                       : sunTransmittance * transmittance / eyeTransmittance;
   density = calcDensity(h);
   rayleighSum += 0.5f * density.r * transmittance;
   mieSum += 0.5f * density.g * transmittance;
-  float mu = dot(v, sceneView.sunDirection);
+  float mu = dot(v, sceneView.skyViewSunDirection);
   rayleighSum *= scene.planet.rayleighScattering * phaseR(mu);
   mieSum *= scene.planet.mieScattering * phaseM(mu);
   vec3 indirect = (rayleighSum + mieSum) * ds;
   vec3 direct = t.z == 0.0 ? vec3(0.0f)
                     : transmittance * scene.planet.albedo * INV_PI *
-                          max(dot(n, sceneView.sunDirection), 0.0f);
+                          max(dot(n, sceneView.skyViewSunDirection), 0.0f);
   vec3 total = (indirect + direct) * scene.sun.irradiance;
   return vec4(total, t.z);
 }

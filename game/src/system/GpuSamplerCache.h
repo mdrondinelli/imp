@@ -1,6 +1,9 @@
 #pragma once
 
-#include <absl/container/flat_hash_map.h>
+#include <mutex>
+#include <unordered_map>
+
+#include <boost/container_hash/hash.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace imp {
@@ -21,58 +24,64 @@ namespace imp {
     float minLod;
     float maxLod;
     vk::BorderColor borderColor;
+
+    explicit operator vk::SamplerCreateInfo() const noexcept {
+      return vk::SamplerCreateInfo{
+          {},
+          magFilter,
+          minFilter,
+          mipmapMode,
+          addressModeU,
+          addressModeV,
+          addressModeW,
+          mipLodBias,
+          anisotropyEnable,
+          maxAnisotropy,
+          compareEnable,
+          compareOp,
+          minLod,
+          maxLod,
+          borderColor};
+    }
+
+    friend bool operator==(
+        GpuSamplerCreateInfo const &lhs,
+        GpuSamplerCreateInfo const &rhs) = default;
   };
 
-  inline bool operator==(
-      GpuSamplerCreateInfo const &lhs,
-      GpuSamplerCreateInfo const &rhs) noexcept {
-    return lhs.magFilter == rhs.magFilter && lhs.minFilter == rhs.minFilter &&
-           lhs.mipmapMode == rhs.mipmapMode &&
-           lhs.addressModeU == rhs.addressModeU &&
-           lhs.addressModeV == rhs.addressModeV &&
-           lhs.addressModeW == rhs.addressModeW &&
-           lhs.mipLodBias == rhs.mipLodBias &&
-           lhs.anisotropyEnable == rhs.anisotropyEnable &&
-           lhs.maxAnisotropy == rhs.maxAnisotropy &&
-           lhs.compareEnable == rhs.compareEnable &&
-           lhs.compareOp == rhs.compareOp && lhs.minLod == rhs.minLod &&
-           lhs.maxLod == rhs.maxLod && lhs.borderColor == rhs.borderColor;
-  }
-
-  inline bool operator!=(
-      GpuSamplerCreateInfo const &lhs,
-      GpuSamplerCreateInfo const &rhs) noexcept {
-    return !(lhs == rhs);
-  }
-
-  template<typename H>
-  H AbslHashValue(H state, GpuSamplerCreateInfo const &createInfo) noexcept {
-    return H::combine(
-        std::move(state),
-        createInfo.magFilter,
-        createInfo.minFilter,
-        createInfo.mipmapMode,
-        createInfo.addressModeU,
-        createInfo.addressModeV,
-        createInfo.addressModeW,
-        createInfo.mipLodBias,
-        createInfo.anisotropyEnable,
-        createInfo.maxAnisotropy,
-        createInfo.compareEnable,
-        createInfo.compareOp,
-        createInfo.minLod,
-        createInfo.maxLod,
-        createInfo.borderColor);
+  inline std::size_t
+  hash_value(GpuSamplerCreateInfo const &createInfo) noexcept {
+    auto seed = std::size_t{};
+    boost::hash_combine(seed, createInfo.magFilter);
+    boost::hash_combine(seed, createInfo.minFilter);
+    boost::hash_combine(seed, createInfo.mipmapMode);
+    boost::hash_combine(seed, createInfo.addressModeU);
+    boost::hash_combine(seed, createInfo.addressModeV);
+    boost::hash_combine(seed, createInfo.addressModeW);
+    boost::hash_combine(seed, createInfo.mipLodBias);
+    boost::hash_combine(seed, createInfo.anisotropyEnable);
+    boost::hash_combine(seed, createInfo.maxAnisotropy);
+    boost::hash_combine(seed, createInfo.compareEnable);
+    boost::hash_combine(seed, createInfo.compareOp);
+    boost::hash_combine(seed, createInfo.minLod);
+    boost::hash_combine(seed, createInfo.maxLod);
+    boost::hash_combine(seed, createInfo.borderColor);
+    return seed;
   }
 
   class GpuSamplerCache {
   public:
-    explicit GpuSamplerCache(GpuContext &context);
+    explicit GpuSamplerCache(vk::Device device);
 
     vk::Sampler create(GpuSamplerCreateInfo const &createInfo);
 
   private:
-    GpuContext *context_;
-    absl::flat_hash_map<GpuSamplerCreateInfo, vk::UniqueSampler> samplers_;
+    vk::Device device_;
+    std::unordered_map<
+        GpuSamplerCreateInfo,
+        vk::UniqueSampler,
+        boost::hash<GpuSamplerCreateInfo>>
+        samplers_;
+    std::mutex mutex_;
   };
 } // namespace imp

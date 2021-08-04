@@ -4,7 +4,6 @@
 #include <vector>
 
 #include <Eigen/Dense>
-#include <absl/container/flat_hash_map.h>
 
 #include "../system/GpuBuffer.h"
 #include "../system/GpuImage.h"
@@ -18,7 +17,7 @@ namespace imp {
 
   class SceneView {
   public:
-    static constexpr auto UNIFORM_BUFFER_SIZE = std::size_t{92};
+    static constexpr auto UNIFORM_BUFFER_SIZE = std::size_t{156};
     static constexpr auto UNIFORM_BUFFER_STRIDE =
         align(std::size_t{256}, UNIFORM_BUFFER_SIZE);
     static constexpr auto SKY_VIEW_IMAGE_EXTENT = Extent3u{128, 256, 1};
@@ -42,9 +41,9 @@ namespace imp {
       vk::PipelineLayout createBlurPipelineLayout() const;
       vk::PipelineLayout createBloomPipelineLayout() const;
       vk::Pipeline createSkyViewPipeline() const;
-      vk::Pipeline createPrimaryPipeline() const;
+      std::unordered_map<bool, vk::Pipeline> createPrimaryPipelines() const;
       vk::Pipeline createIdentityPipeline() const;
-      absl::flat_hash_map<int, vk::Pipeline> createBlurPipelines() const;
+      std::unordered_map<int, vk::Pipeline> createBlurPipelines() const;
       vk::Pipeline createBloomPipeline() const;
       vk::Sampler createSkyViewSampler() const;
       vk::Sampler createGeneralSampler() const;
@@ -67,7 +66,7 @@ namespace imp {
       vk::PipelineLayout getBlurPipelineLayout() const noexcept;
       vk::PipelineLayout getBloomPipelineLayout() const noexcept;
       vk::Pipeline getSkyViewPipeline() const noexcept;
-      vk::Pipeline getPrimaryPipeline() const noexcept;
+      vk::Pipeline getPrimaryPipeline(bool antiAliasingEnabled) const noexcept;
       vk::Pipeline getIdentityPipeline() const noexcept;
       vk::Pipeline getBlurPipeline(int kernelSize) const noexcept;
       vk::Pipeline getBloomPipeline() const noexcept;
@@ -90,9 +89,9 @@ namespace imp {
       vk::PipelineLayout blurPipelineLayout_;
       vk::PipelineLayout bloomPipelineLayout_;
       vk::Pipeline skyViewPipeline_;
-      vk::Pipeline primaryPipeline_;
+      std::unordered_map<bool, vk::Pipeline> primaryPipelines_;
       vk::Pipeline identityPipeline_;
-      absl::flat_hash_map<int, vk::Pipeline> blurPipelines_;
+      std::unordered_map<int, vk::Pipeline> blurPipelines_;
       vk::Pipeline bloomPipeline_;
       vk::Sampler generalSampler_;
       vk::Sampler skyViewSampler_;
@@ -165,9 +164,6 @@ namespace imp {
     void computeRenderImage(std::size_t i);
     void computeRenderImageMips(std::size_t i);
     void renderBloom(Frame &frame) const;
-    void renderLargeBloom(Frame &frame) const;
-    void renderMediumBloom(Frame &frame) const;
-    void renderSmallBloom(Frame &frame) const;
     void applyBloom(std::size_t i);
 
   public:
@@ -188,6 +184,16 @@ namespace imp {
     void setProjectionMatrix(Eigen::Matrix4f const &m) noexcept;
     float getExposure() const noexcept;
     void setExposure(float exposure) noexcept;
+    bool isAntiAliasingEnabled() const noexcept;
+    void setAntiAliasingEnabled(bool antiAliasingEnabled) noexcept;
+    bool isBloomEnabled() const noexcept;
+    void setBloomEnabled(bool bloomEnabled) noexcept;
+    unsigned getBloomBlurCount(unsigned level) const noexcept;
+    void setBloomBlurCount(unsigned level, unsigned blurCount) noexcept;
+    unsigned getBloomBlurSize(unsigned level) const noexcept;
+    void setBloomBlurSize(unsigned level, unsigned blurSize) noexcept;
+    Spectrum const &getBloomSpectrum(unsigned level) const noexcept;
+    void setBloomSpectrum(unsigned level, Spectrum const &spectrum) noexcept;
 
   private:
     gsl::not_null<Flyweight const *> flyweight_;
@@ -197,12 +203,16 @@ namespace imp {
     GpuBuffer uniformBuffer_;
     std::vector<Frame> frames_;
     Eigen::Matrix4f viewMatrix_;
-    Eigen::Matrix4f invViewMatrix_;
     Eigen::Matrix4f projectionMatrix_;
-    Eigen::Matrix4f invProjectionMatrix_;
+    Eigen::Matrix4f prevViewMatrix_;
+    Eigen::Matrix4f prevProjectionMatrix_;
     float exposure_;
-    std::vector<unsigned> bloomPasses_;
-    std::vector<unsigned> bloomSizes_;
+    bool antiAliasingEnabled_;
+    float antiAliasingAlpha_;
+    Eigen::Vector2f antiAliasingJitter_;
+    bool bloomEnabled_;
+    std::vector<unsigned> bloomBlurCounts_;
+    std::vector<unsigned> bloomBlurSizes_;
     std::vector<Spectrum> bloomSpectra_;
     bool firstFrame_;
   };

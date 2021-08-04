@@ -1,11 +1,10 @@
 #pragma once
 
-#include <absl/container/flat_hash_map.h>
-#include <absl/container/flat_hash_set.h>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "Scene.h"
 #include "SceneView.h"
-//#include "Atmosphere.h"
 
 namespace imp {
   class Display;
@@ -89,10 +88,6 @@ namespace imp {
     getSceneViewFlyweight() const noexcept;
 
   private:
-    void storePosition(std::uint16_t i, Eigen::Vector2f const &x) noexcept;
-    void storeVertexIndex(std::uint16_t i, std::uint32_t x) noexcept;
-    void storeTextureIndex(std::uint16_t i, std::uint32_t x) noexcept;
-    void storeIndex(std::size_t i, std::uint16_t x) noexcept;
 
     gsl::not_null<Display *> window_;
     Scene::Flyweight sceneFlyweight_;
@@ -115,9 +110,8 @@ namespace imp {
     std::uint32_t ditherSeed_;
     std::size_t frameIndex_;
 
-    absl::flat_hash_set<gsl::not_null<std::shared_ptr<Scene>>> scenes_;
-    absl::
-        flat_hash_map<gsl::not_null<std::shared_ptr<SceneView>>, std::uint32_t>
-            sceneViews_;
+    std::unordered_set<gsl::not_null<std::shared_ptr<Scene>>> scenes_;
+    std::unordered_map<gsl::not_null<std::shared_ptr<SceneView>>, std::uint32_t>
+        sceneViews_;
   };
 } // namespace imp

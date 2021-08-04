@@ -18,21 +18,28 @@ namespace imp {
     return x - std::floor(x);
   }
 
-  inline Eigen::Array2f lds2(float n) noexcept {
+  inline Eigen::Vector2f lds2(float n) noexcept {
+    using Eigen::Vector2f;
     auto const PHI = 1.32471795724474602596f;
     auto const PHI2 = PHI * PHI;
-    auto const ALPHA = Eigen::Array2f{1.0f / PHI, 1.0f / PHI2};
-    auto x = (ALPHA * n + 0.5f).eval();
-    return x - x.floor();
+    auto const ALPHA = Vector2f{1.0f / PHI, 1.0f / PHI2};
+    Vector2f x = ALPHA * n + Vector2f{0.5f, 0.5f};
+    x(0) -= std::floor(x(0));
+    x(1) -= std::floor(x(1));
+    return x;
   }
 
-  inline Eigen::Array3f lds3(float n) noexcept {
+  inline Eigen::Vector3f lds3(float n) noexcept {
+    using Eigen::Vector3f;
     auto const PHI = 1.22074408460575947536f;
     auto const PHI2 = PHI * PHI;
     auto const PHI3 = PHI2 * PHI;
-    auto const ALPHA = Eigen::Array3f{1.0f / PHI, 1.0f / PHI2, 1.0f / PHI3};
-    auto x = (ALPHA * n + 0.5f).eval();
-    return x - x.floor();
+    auto const ALPHA = Vector3f{1.0f / PHI, 1.0f / PHI2, 1.0f / PHI3};
+    Vector3f x = ALPHA * n + Vector3f{0.5f, 0.5f, 0.5f};
+    x(0) -= std::floor(x(0));
+    x(1) -= std::floor(x(1));
+    x(2) -= std::floor(x(2));
+    return x;
   }
 
   inline float nextLds(float x) noexcept {
@@ -42,21 +49,28 @@ namespace imp {
     return x - std::floor(x);
   }
 
-  inline Eigen::Array3f nextLds(Eigen::Array3f const &x_) noexcept {
+  inline Eigen::Vector2f nextLds(Eigen::Vector2f const &x_) noexcept {
+    using Eigen::Vector2f;
+    auto const PHI = 1.32471795724474602596f;
+    auto const PHI2 = PHI * PHI;
+    auto const ALPHA = Eigen::Vector2f{1.0f / PHI, 1.0f / PHI2};
+    Vector2f x = x_ + ALPHA;
+    x(0) -= std::floor(x(0));
+    x(1) -= std::floor(x(1));
+    return x;
+  }
+
+  inline Eigen::Vector3f nextLds(Eigen::Vector3f const &x_) noexcept {
+    using Eigen::Vector3f;
     auto const PHI = 1.22074408460575947536f;
     auto const PHI2 = PHI * PHI;
     auto const PHI3 = PHI2 * PHI;
-    auto const ALPHA = Eigen::Array3f{1.0f / PHI, 1.0f / PHI2, 1.0f / PHI3};
-    auto x = (x_ + ALPHA).eval();
-    return x - x.floor();
-  }
-
-  inline Eigen::Array2f nextLds(Eigen::Array2f const &x_) noexcept {
-    auto const PHI = 1.32471795724474602596f;
-    auto const PHI2 = PHI * PHI;
-    auto const ALPHA = Eigen::Array2f{1.0f / PHI, 1.0f / PHI2};
-    auto x = (x_ + ALPHA).eval();
-    return x - x.floor();
+    auto const ALPHA = Vector3f{1.0f / PHI, 1.0f / PHI2, 1.0f / PHI3};
+    Vector3f x = x_ + ALPHA;
+    x(0) -= std::floor(x(0));
+    x(1) -= std::floor(x(1));
+    x(2) -= std::floor(x(2));
+    return x;
   }
 
   inline std::uint32_t

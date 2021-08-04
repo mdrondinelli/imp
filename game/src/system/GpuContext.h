@@ -7,6 +7,7 @@
 #include "../util/Gsl.h"
 #include "GpuDescriptorSetLayoutCache.h"
 #include "GpuPipelineLayoutCache.h"
+#include "GpuRenderPassCache.h"
 #include "GpuSamplerCache.h"
 #include "vk_mem_alloc.h"
 
@@ -36,6 +37,8 @@ namespace imp {
     vk::Queue getPresentQueue() const noexcept;
     gsl::not_null<VmaAllocator> getAllocator() const noexcept;
 
+    vk::RenderPass createRenderPass(GpuRenderPassCreateInfo const &createInfo);
+
     vk::DescriptorSetLayout createDescriptorSetLayout(
         GpuDescriptorSetLayoutCreateInfo const &createInfo);
 
@@ -59,12 +62,10 @@ namespace imp {
     vk::Queue transferQueue_;
     vk::Queue presentQueue_;
     gsl::not_null<VmaAllocator> allocator_;
+    GpuRenderPassCache renderPasses_;
     GpuDescriptorSetLayoutCache descriptorSetLayouts_;
     GpuPipelineLayoutCache pipelineLayouts_;
     GpuSamplerCache samplers_;
-    std::mutex descriptorSetLayoutsMutex_;
-    std::mutex pipelineLayoutsMutex_;
-    std::mutex samplersMutex_;
 
     vk::UniqueInstance createInstance();
     vk::PhysicalDevice selectPhysicalDevice();

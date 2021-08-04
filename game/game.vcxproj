@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,7 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -156,7 +156,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,7 +172,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -186,7 +186,6 @@
     <ClInclude Include="src\graphics\Composition.h" />
     <ClInclude Include="src\graphics\Planet.h" />
     <ClInclude Include="src\graphics\DirectionalLight.h" />
-    <ClInclude Include="src\graphics\Frame.h" />
     <ClInclude Include="src\graphics\Renderer.h" />
     <ClInclude Include="src\graphics\Scene.h" />
     <ClInclude Include="src\graphics\SceneView.h" />
@@ -198,6 +197,7 @@
     <ClInclude Include="src\system\GpuDescriptorSetLayoutCache.h" />
     <ClInclude Include="src\system\GpuImage.h" />
     <ClInclude Include="src\system\GpuPipelineLayoutCache.h" />
+    <ClInclude Include="src\system\GpuRenderPassCache.h" />
     <ClInclude Include="src\system\GpuSamplerCache.h" />
     <ClInclude Include="src\system\vk_mem_alloc.h" />
     <ClInclude Include="src\system\WorkerThread.h" />
@@ -227,6 +227,7 @@
     <ClCompile Include="src\system\GpuDescriptorSetLayoutCache.cpp" />
     <ClCompile Include="src\system\GpuImage.cpp" />
     <ClCompile Include="src\system\GpuPipelineLayoutCache.cpp" />
+    <ClCompile Include="src\system\GpuRenderPassCache.cpp" />
     <ClCompile Include="src\system\GpuSamplerCache.cpp" />
     <ClCompile Include="src\system\vk_mem_alloc.cpp" />
     <ClCompile Include="src\system\WorkerThread.cpp" />

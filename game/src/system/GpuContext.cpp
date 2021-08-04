@@ -2,9 +2,10 @@
 
 #include <optional>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <GLFW/glfw3.h>
-#include <absl/container/flat_hash_map.h>
 
 namespace imp {
   GpuContext::GpuContext(GpuContextCreateInfo const &createInfo):
@@ -22,9 +23,10 @@ namespace imp {
       transferQueue_{selectTransferQueue()},
       presentQueue_{selectPresentQueue()},
       allocator_{createAllocator()},
-      descriptorSetLayouts_{*this},
-      pipelineLayouts_{gsl::not_null{this}},
-      samplers_{*this} {}
+      renderPasses_{*device_},
+      descriptorSetLayouts_{*device_},
+      pipelineLayouts_{*device_},
+      samplers_{*device_} {}
 
   GpuContext::~GpuContext() {
     device_->waitIdle();
@@ -87,21 +89,23 @@ namespace imp {
     return allocator_;
   }
 
+  vk::RenderPass
+  GpuContext::createRenderPass(GpuRenderPassCreateInfo const &createInfo) {
+    return renderPasses_.create(createInfo);
+  }
+
   vk::DescriptorSetLayout GpuContext::createDescriptorSetLayout(
       GpuDescriptorSetLayoutCreateInfo const &createInfo) {
-    auto lock = std::scoped_lock{descriptorSetLayoutsMutex_};
     return descriptorSetLayouts_.create(createInfo);
   }
 
   vk::PipelineLayout GpuContext::createPipelineLayout(
-    GpuPipelineLayoutCreateInfo const& createInfo) {
-    auto lock = std::scoped_lock{pipelineLayoutsMutex_};
+      GpuPipelineLayoutCreateInfo const &createInfo) {
     return pipelineLayouts_.create(createInfo);
   }
 
   vk::Sampler
   GpuContext::createSampler(GpuSamplerCreateInfo const &createInfo) {
-    auto lock = std::scoped_lock{samplersMutex_};
     return samplers_.create(createInfo);
   }
 
@@ -270,7 +274,7 @@ namespace imp {
   }
 
   vk::UniqueDevice GpuContext::createDevice() {
-    auto queueCounts = absl::flat_hash_map<std::uint32_t, std::uint32_t>{};
+    auto queueCounts = std::unordered_map<std::uint32_t, std::uint32_t>{};
     auto maxQueueCounts = 0u;
     maxQueueCounts = std::max(maxQueueCounts, ++queueCounts[graphicsFamily_]);
     maxQueueCounts = std::max(maxQueueCounts, ++queueCounts[computeFamily_]);

@@ -18,37 +18,33 @@ namespace imp {
       transmittanceSampler_{createTransmittanceSampler()} {}
 
   vk::RenderPass Scene::Flyweight::createTransmittanceRenderPass() const {
-    auto attachment = vk::AttachmentDescription{};
-    attachment.format = vk::Format::eR16G16B16A16Sfloat;
-    attachment.samples = vk::SampleCountFlagBits::e1;
-    attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
-    attachment.storeOp = vk::AttachmentStoreOp::eStore;
-    attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-    attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-    attachment.initialLayout = vk::ImageLayout::eUndefined;
-    attachment.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    auto colorAttachment = vk::AttachmentReference{};
-    colorAttachment.attachment = 0;
-    colorAttachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
-    auto subpass = vk::SubpassDescription{};
+    auto attachmentDesc = GpuAttachmentDescription{};
+    attachmentDesc.format = vk::Format::eR16G16B16A16Sfloat;
+    attachmentDesc.samples = vk::SampleCountFlagBits::e1;
+    attachmentDesc.loadOp = vk::AttachmentLoadOp::eDontCare;
+    attachmentDesc.storeOp = vk::AttachmentStoreOp::eStore;
+    attachmentDesc.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    attachmentDesc.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    attachmentDesc.initialLayout = vk::ImageLayout::eUndefined;
+    attachmentDesc.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto attachmentRef = GpuAttachmentReference{};
+    attachmentRef.attachment = 0;
+    attachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+    auto subpass = GpuSubpassDescription{};
     subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorAttachment;
-    auto dependency = vk::SubpassDependency{};
+    subpass.colorAttachments = {&attachmentRef, 1};
+    auto dependency = GpuSubpassDependency{};
     dependency.srcSubpass = 0;
     dependency.dstSubpass = VK_SUBPASS_EXTERNAL;
     dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
     dependency.dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
     dependency.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
     dependency.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-    auto createInfo = vk::RenderPassCreateInfo{};
-    createInfo.attachmentCount = 1;
-    createInfo.pAttachments = &attachment;
-    createInfo.subpassCount = 1;
-    createInfo.pSubpasses = &subpass;
-    createInfo.dependencyCount = 1;
-    createInfo.pDependencies = &dependency;
-    return context_->getDevice().createRenderPass(createInfo);
+    auto createInfo = GpuRenderPassCreateInfo{};
+    createInfo.attachments = {&attachmentDesc, 1};
+    createInfo.subpasses = {&subpass, 1};
+    createInfo.dependencies = {&dependency, 1};
+    return context_->createRenderPass(createInfo);
   }
 
   vk::DescriptorSetLayout
@@ -159,9 +155,7 @@ namespace imp {
   }
 
   Scene::Flyweight::~Flyweight() {
-    auto device = context_->getDevice();
-    device.destroyPipeline(transmittancePipeline_);
-    device.destroyRenderPass(transmittanceRenderPass_);
+    context_->getDevice().destroy(transmittancePipeline_);
   }
 
   gsl::not_null<GpuContext *> Scene::Flyweight::getContext() const noexcept {

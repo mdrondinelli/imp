@@ -1,5 +1,7 @@
 #version 450 core
 
+layout(constant_id = 0) const bool antiAliasingEnabled = false;
+
 layout(location = 0) in vec2 textureCoord;
 layout(location = 0) out vec4 color;
 
@@ -42,24 +44,21 @@ vec3 expose(vec3 x) {
 
 void main() {
   vec3 v = normalize(
-      mix(mix(sceneView.viewDirections[0],
-              sceneView.viewDirections[1],
+      mix(mix(sceneView.skyViewEyeDirections[0],
+              sceneView.skyViewEyeDirections[1],
               textureCoord.x),
-          mix(sceneView.viewDirections[2],
-              sceneView.viewDirections[3],
+          mix(sceneView.skyViewEyeDirections[2],
+              sceneView.skyViewEyeDirections[3],
               textureCoord.x),
           textureCoord.y));
   vec4 skyView = loadSkyView(v);
   vec3 skyRadiance = skyView.rgb;
   vec3 sunTransmittance =
       (1.0 - skyView.a) *
-      step(scene.sun.cosAngularRadius, dot(v, sceneView.sunDirection)) *
+      step(scene.sun.cosAngularRadius, dot(v, sceneView.skyViewSunDirection)) *
       loadTransmittance(sceneView.altitude, v.z);
   vec3 sunRadiance =
       scene.sun.irradiance / (2.0f * PI * (1.0f - scene.sun.cosAngularRadius));
   vec3 radiance = skyRadiance + sunTransmittance * sunRadiance;
-  vec3 forward = sceneView.viewDirections[0] + sceneView.viewDirections[1] +
-                 sceneView.viewDirections[2] + sceneView.viewDirections[3];
-  vec3 irradiance = radiance * dot(v, normalize(forward));
-  color = vec4(expose(irradiance), 1.0);
+  color = vec4(expose(radiance), 1.0);
 }
