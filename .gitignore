@@ -366,3 +366,6 @@ FodyWeavers.xsd
 
 # glslc output
 *.spv
+
+# doxygen output
+engine/docs/

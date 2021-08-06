@@ -18,35 +18,49 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\GpuAttachmentDescription.cpp" />
+    <ClCompile Include="src\GpuAttachmentReference.cpp" />
+    <ClCompile Include="src\GpuDescriptorSetLayoutBinding.cpp" />
+    <ClCompile Include="src\GpuDescriptorSetLayoutCache.cpp" />
+    <ClCompile Include="src\GpuDescriptorSetLayoutCreateInfo.cpp" />
+    <ClCompile Include="src\GpuRenderPass.cpp" />
+    <ClCompile Include="src\GpuRenderPassCache.cpp" />
+    <ClCompile Include="src\GpuRenderPassCreateInfo.cpp" />
+    <ClCompile Include="src\GpuSubpassDependency.cpp" />
+    <ClCompile Include="src\GpuSubpassDescription.cpp" />
+    <ClCompile Include="src\mobula.engine.ixx" />
+    <ClCompile Include="src\mobula.engine.gpu.ixx" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{21e53bc2-00f3-4fbc-8c55-4b7676f2486c}</ProjectGuid>
-    <RootNamespace>game</RootNamespace>
+    <ProjectGuid>{efafddc1-0f85-4f47-baf0-d6e1770362d1}</ProjectGuid>
+    <RootNamespace>engine</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -74,62 +88,41 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(Configuration)-$(Platform)\</IntDir>
-    <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(VULKAN_SDK)\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>$(VULKAN_SDK)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(Configuration)-$(Platform)\</IntDir>
-    <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(VULKAN_SDK)\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>$(VULKAN_SDK)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(Configuration)-$(Platform)\</IntDir>
-    <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(VULKAN_SDK)\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>$(VULKAN_SDK)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(Configuration)-$(Platform)\</IntDir>
-    <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(VULKAN_SDK)\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>$(VULKAN_SDK)\lib;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <VcpkgInstalledDir>
-    </VcpkgInstalledDir>
-  </PropertyGroup>
-  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <VcpkgInstalledDir>
-    </VcpkgInstalledDir>
-  </PropertyGroup>
-  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <VcpkgInstalledDir>
-    </VcpkgInstalledDir>
-  </PropertyGroup>
-  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <VcpkgInstalledDir>
-    </VcpkgInstalledDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>
+      </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vulkan-1.lib;glfw3dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,30 +131,36 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>
+      </SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vulkan-1.lib;glfw3dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_LIB;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>
+      </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vulkan-1.lib;glfw3dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -170,73 +169,21 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;GLFW_DLL;GLFW_VULKAN_STATIC;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_LIB;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>
+      </SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vulkan-1.lib;glfw3dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="src\graphics\Composition.h" />
-    <ClInclude Include="src\graphics\Planet.h" />
-    <ClInclude Include="src\graphics\DirectionalLight.h" />
-    <ClInclude Include="src\graphics\Renderer.h" />
-    <ClInclude Include="src\graphics\Scene.h" />
-    <ClInclude Include="src\graphics\SceneView.h" />
-    <ClInclude Include="src\graphics\Spectrum.h" />
-    <ClInclude Include="src\system\Display.h" />
-    <ClInclude Include="src\system\GpuBuffer.h" />
-    <ClInclude Include="src\system\GpuBufferError.h" />
-    <ClInclude Include="src\system\GpuContext.h" />
-    <ClInclude Include="src\system\GpuDescriptorSetLayoutCache.h" />
-    <ClInclude Include="src\system\GpuImage.h" />
-    <ClInclude Include="src\system\GpuPipelineLayoutCache.h" />
-    <ClInclude Include="src\system\GpuRenderPassCache.h" />
-    <ClInclude Include="src\system\GpuSamplerCache.h" />
-    <ClInclude Include="src\system\vk_mem_alloc.h" />
-    <ClInclude Include="src\system\WorkerThread.h" />
-    <ClInclude Include="src\ui\BoxWidget.h" />
-    <ClInclude Include="src\ui\ColumnWidget.h" />
-    <ClInclude Include="src\ui\ContainerWidget.h" />
-    <ClInclude Include="src\ui\RowWidget.h" />
-    <ClInclude Include="src\ui\Widget.h" />
-    <ClInclude Include="src\util\Align.h" />
-    <ClInclude Include="src\util\Extent.h" />
-    <ClInclude Include="src\util\Gsl.h" />
-    <ClInclude Include="src\util\Math.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\graphics\Planet.cpp" />
-    <ClCompile Include="src\graphics\DirectionalLight.cpp" />
-    <ClCompile Include="src\graphics\Frame.cpp" />
-    <ClCompile Include="src\graphics\Renderer.cpp" />
-    <ClCompile Include="src\graphics\Scene.cpp" />
-    <ClCompile Include="src\graphics\SceneView.cpp" />
-    <ClCompile Include="src\graphics\SkyViewLut.cpp" />
-    <ClCompile Include="src\graphics\Spectrum.cpp" />
-    <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\system\Display.cpp" />
-    <ClCompile Include="src\system\GpuBuffer.cpp" />
-    <ClCompile Include="src\system\GpuContext.cpp" />
-    <ClCompile Include="src\system\GpuDescriptorSetLayoutCache.cpp" />
-    <ClCompile Include="src\system\GpuImage.cpp" />
-    <ClCompile Include="src\system\GpuPipelineLayoutCache.cpp" />
-    <ClCompile Include="src\system\GpuRenderPassCache.cpp" />
-    <ClCompile Include="src\system\GpuSamplerCache.cpp" />
-    <ClCompile Include="src\system\vk_mem_alloc.cpp" />
-    <ClCompile Include="src\system\WorkerThread.cpp" />
-    <ClCompile Include="src\ui\BoxWidget.cpp" />
-    <ClCompile Include="src\ui\ColumnWidget.cpp" />
-    <ClCompile Include="src\ui\ContainerWidget.cpp" />
-    <ClCompile Include="src\ui\RowWidget.cpp" />
-    <ClCompile Include="src\ui\Widget.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
