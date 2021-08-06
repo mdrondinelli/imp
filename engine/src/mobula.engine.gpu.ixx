@@ -127,8 +127,6 @@ namespace mobula {
    */
   export class GpuRenderPass {
   public:
-    friend class GpuRenderPassCache;
-
     /**
      * @param createInfo the createInfo used to create the render pass.
      * @param handle the handle to the render pass.
