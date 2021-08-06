@@ -138,7 +138,7 @@ namespace mobula {
         vk::UniqueRenderPass handle) noexcept;
 
     GpuRenderPass(GpuRenderPass &&rhs) = delete;
-    GpuRenderPass &operator=(GpuRenderPass &&rhs) = delete;
+    auto operator=(GpuRenderPass &&rhs) -> GpuRenderPass & = delete;
 
     /**
      * @return the attachments used to create this render pass.
