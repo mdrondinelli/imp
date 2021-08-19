@@ -75,7 +75,7 @@
     <ClCompile Include="src\PipelineLayoutCache.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\PipelineShaderState.ixx">
+    <ClCompile Include="src\PipelineShaderStageState.ixx">
       <Filter>Interface</Filter>
     </ClCompile>
     <ClCompile Include="src\ComputePipelineParams.ixx">

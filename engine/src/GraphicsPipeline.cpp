@@ -15,56 +15,6 @@ static_assert(sizeof(std::int32_t) == 4);
 static_assert(sizeof(std::uint32_t) == 4);
 
 namespace mobula {
-  namespace {
-    void writeStage(
-        vk::PipelineShaderStageCreateInfo &dstStage,
-        vk::SpecializationInfo &dstSpecializationInfo,
-        std::vector<vk::SpecializationMapEntry> &dstMapEntries,
-        std::vector<std::byte> &dstData,
-        ShaderModuleCache &shaderModuleCache,
-        vk::ShaderStageFlagBits shaderStage,
-        PipelineShaderState const &shaderState) {
-      dstStage.stage = shaderStage;
-      dstStage.module =
-          shaderModuleCache.create(shaderState.modulePath)->getHandle();
-      dstStage.pName = shaderState.entryPoint.c_str();
-      if (!shaderState.specializationConstants.empty()) {
-        dstMapEntries.clear();
-        dstMapEntries.reserve(shaderState.specializationConstants.size());
-        dstData.clear();
-        dstData.reserve(4 * shaderState.specializationConstants.size());
-        auto offset = std::uint32_t{};
-        for (auto &[id, value] : shaderState.specializationConstants) {
-          dstMapEntries.emplace_back(id, offset, 4);
-          dstData.resize(offset + 4);
-          switch (value.index()) {
-          case 0: {
-            auto b = vk::Bool32{std::get<0>(value) ? 1u : 0u};
-            std::memcpy(&dstData[offset], &b, 4);
-            break;
-          }
-          case 1:
-            std::memcpy(&dstData[offset], &std::get<1>(value), 4);
-            break;
-          case 2:
-            std::memcpy(&dstData[offset], &std::get<2>(value), 4);
-            break;
-          case 3:
-            std::memcpy(&dstData[offset], &std::get<3>(value), 4);
-            break;
-          }
-          offset += 4;
-        }
-        dstSpecializationInfo.mapEntryCount =
-            static_cast<std::uint32_t>(dstMapEntries.size());
-        dstSpecializationInfo.pMapEntries = dstMapEntries.data();
-        dstSpecializationInfo.dataSize = dstData.size();
-        dstSpecializationInfo.pData = dstData.data();
-        dstStage.pSpecializationInfo = &dstSpecializationInfo;
-      }
-    }
-  } // namespace
-
   GraphicsPipeline::GraphicsPipeline(
       vk::Device device,
       ShaderModuleCache &shaderModuleCache,
@@ -74,20 +24,20 @@ namespace mobula {
     auto stages = std::vector<vk::PipelineShaderStageCreateInfo>{};
     stages.reserve(
         1 + 2 * params.tessellationState.has_value() +
-        params.geometryShaderState.has_value() +
+        params.geometryStageState.has_value() +
         params.rasterizationState.has_value());
     auto vertexStageSpecializationInfo = vk::SpecializationInfo{};
     auto vertexStageSpecializationMapEntries =
         std::vector<vk::SpecializationMapEntry>{};
     auto vertexStageSpecializationData = std::vector<std::byte>{};
-    writeStage(
+    copyPipelineShaderStageState(
         stages.emplace_back(),
         vertexStageSpecializationInfo,
         vertexStageSpecializationMapEntries,
         vertexStageSpecializationData,
         shaderModuleCache,
         vk::ShaderStageFlagBits::eVertex,
-        params.vertexShaderState);
+        params.vertexStageState);
     auto tessellationControlStageSpecializationInfo = vk::SpecializationInfo{};
     auto tessellationControlStageSpecializationMapEntries =
         std::vector<vk::SpecializationMapEntry>{};
@@ -99,50 +49,50 @@ namespace mobula {
     auto tessellationEvaluationStageSpecializationData =
         std::vector<std::byte>{};
     if (params.tessellationState) {
-      writeStage(
+      copyPipelineShaderStageState(
           stages.emplace_back(),
           tessellationControlStageSpecializationInfo,
           tessellationControlStageSpecializationMapEntries,
           tessellationControlStageSpecializationData,
           shaderModuleCache,
           vk::ShaderStageFlagBits::eTessellationControl,
-          params.tessellationState->controlShaderState);
-      writeStage(
+          params.tessellationState->controlStageState);
+      copyPipelineShaderStageState(
           stages.emplace_back(),
           tessellationEvaluationStageSpecializationInfo,
           tessellationEvaluationStageSpecializationMapEntries,
           tessellationEvaluationStageSpecializationData,
           shaderModuleCache,
           vk::ShaderStageFlagBits::eTessellationEvaluation,
-          params.tessellationState->evaluationShaderState);
+          params.tessellationState->evaluationStageState);
     }
     auto geometryStageSpecializationInfo = vk::SpecializationInfo{};
     auto geometryStageSpecializationMapEntries =
         std::vector<vk::SpecializationMapEntry>{};
     auto geometryStageSpecializationData = std::vector<std::byte>{};
-    if (params.geometryShaderState) {
-      writeStage(
+    if (params.geometryStageState) {
+      copyPipelineShaderStageState(
           stages.emplace_back(),
           geometryStageSpecializationInfo,
           geometryStageSpecializationMapEntries,
           geometryStageSpecializationData,
           shaderModuleCache,
           vk::ShaderStageFlagBits::eGeometry,
-          *params.geometryShaderState);
+          *params.geometryStageState);
     }
     auto fragmentStageSpecializationInfo = vk::SpecializationInfo{};
     auto fragmentStageSpecializationMapEntries =
         std::vector<vk::SpecializationMapEntry>{};
     auto fragmentStageSpecializationData = std::vector<std::byte>{};
     if (params.rasterizationState) {
-      writeStage(
+      copyPipelineShaderStageState(
           stages.emplace_back(),
           fragmentStageSpecializationInfo,
           fragmentStageSpecializationMapEntries,
           fragmentStageSpecializationData,
           shaderModuleCache,
           vk::ShaderStageFlagBits::eFragment,
-          params.rasterizationState->fragmentShaderState);
+          params.rasterizationState->fragmentStageState);
     }
     createInfo.stageCount = static_cast<std::uint32_t>(stages.size());
     createInfo.pStages = stages.data();

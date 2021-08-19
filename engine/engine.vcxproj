@@ -47,7 +47,7 @@
     <ClCompile Include="src\RenderPassCache.cpp" />
     <ClCompile Include="src\RenderPassCache.ixx" />
     <ClCompile Include="src\RenderPassParams.ixx" />
-    <ClCompile Include="src\PipelineShaderState.ixx" />
+    <ClCompile Include="src\PipelineShaderStageState.ixx" />
     <ClCompile Include="src\ShaderModule.cpp" />
     <ClCompile Include="src\ShaderModule.ixx" />
     <ClCompile Include="src\ShaderModuleCache.cpp" />

@@ -11,7 +11,7 @@ export import :DescriptorSetLayoutParams;
 export import :PipelineLayout;
 export import :PipelineLayoutCache;
 export import :PipelineLayoutParams;
-export import :PipelineShaderState;
+export import :PipelineShaderStageState;
 export import :RenderPass;
 export import :RenderPassCache;
 export import :RenderPassParams;

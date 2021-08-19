@@ -9,7 +9,7 @@ import <variant>;
 import <vector>;
 import mobula.engine.util;
 import :PipelineLayout;
-import :PipelineShaderState;
+import :PipelineShaderStageState;
 import :RenderPass;
 // clang-format on
 
@@ -45,8 +45,8 @@ namespace mobula {
 
     struct TessellationState {
       std::uint32_t patchControlPoints;
-      PipelineShaderState controlShaderState;
-      PipelineShaderState evaluationShaderState;
+      PipelineShaderStageState controlStageState;
+      PipelineShaderStageState evaluationStageState;
 
       friend bool operator==(
           TessellationState const &lhs, TessellationState const &rhs) = default;
@@ -161,7 +161,7 @@ namespace mobula {
           PolygonModePointState>
           polygonModeState;
       std::optional<DepthBiasState> depthBiasState;
-      PipelineShaderState fragmentShaderState;
+      PipelineShaderStageState fragmentStageState;
       std::optional<DepthTestState> depthTestState;
       std::optional<DepthBoundsTestState> depthBoundsTestState;
       std::optional<StencilTestState> stencilTestState;
@@ -173,9 +173,9 @@ namespace mobula {
     RenderPass const *renderPass;
     std::uint32_t subpass;
     InputAssemblyState inputAssemblyState;
-    PipelineShaderState vertexShaderState;
+    PipelineShaderStageState vertexStageState;
     std::optional<TessellationState> tessellationState;
-    std::optional<PipelineShaderState> geometryShaderState;
+    std::optional<PipelineShaderStageState> geometryStageState;
     std::optional<RasterizationState> rasterizationState;
   };
 
@@ -216,8 +216,8 @@ namespace mobula {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, state.patchControlPoints);
-    hash_combine(seed, state.controlShaderState);
-    hash_combine(seed, state.evaluationShaderState);
+    hash_combine(seed, state.controlStageState);
+    hash_combine(seed, state.evaluationStageState);
     return seed;
   }
 
@@ -347,7 +347,7 @@ namespace mobula {
     hash_combine(seed, state.depthClampEnable);
     hash_combine(seed, state.polygonModeState);
     hash_combine(seed, state.depthBiasState);
-    hash_combine(seed, state.fragmentShaderState);
+    hash_combine(seed, state.fragmentStageState);
     if (renderPass.getParams().subpasses[subpass].depthStencilAttachment) {
       hash_combine(seed, state.depthTestState);
       hash_combine(seed, state.depthBoundsTestState);
@@ -365,9 +365,9 @@ namespace mobula {
     if (lhs.flags != rhs.flags || lhs.layout != rhs.layout ||
         lhs.renderPass != rhs.renderPass || lhs.subpass != rhs.subpass ||
         lhs.inputAssemblyState != rhs.inputAssemblyState ||
-        lhs.vertexShaderState != rhs.vertexShaderState ||
+        lhs.vertexStageState != rhs.vertexStageState ||
         lhs.tessellationState != rhs.tessellationState ||
-        lhs.geometryShaderState != rhs.geometryShaderState) {
+        lhs.geometryStageState != rhs.geometryStageState) {
       return false;
     }
     return lhs.rasterizationState.has_value() ==
@@ -383,8 +383,8 @@ namespace mobula {
                     rhs.rasterizationState->polygonModeState &&
                 lhs.rasterizationState->depthBiasState ==
                     rhs.rasterizationState->depthBiasState &&
-                lhs.rasterizationState->fragmentShaderState ==
-                    rhs.rasterizationState->fragmentShaderState &&
+                lhs.rasterizationState->fragmentStageState ==
+                    rhs.rasterizationState->fragmentStageState &&
                 (!lhs.renderPass->getParams()
                       .subpasses[lhs.subpass]
                       .depthStencilAttachment ||
@@ -409,9 +409,9 @@ namespace mobula {
     hash_combine(seed, params.renderPass);
     hash_combine(seed, params.subpass);
     hash_combine(seed, params.inputAssemblyState);
-    hash_combine(seed, params.vertexShaderState);
+    hash_combine(seed, params.vertexStageState);
     hash_combine(seed, params.tessellationState);
-    hash_combine(seed, params.geometryShaderState);
+    hash_combine(seed, params.geometryStageState);
     if (params.rasterizationState) {
       hash_combine(
           seed,
