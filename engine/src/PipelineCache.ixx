@@ -13,7 +13,7 @@ import :ShaderModuleCache;
 
 namespace mobula {
   /**
-   * A class that creates and caches pipelines.
+   * \brief Cache for graphics and compute pipelines.
    */
   export class PipelineCache {
   public:

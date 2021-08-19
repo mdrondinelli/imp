@@ -12,7 +12,7 @@ export import :PipelineCache;
 export import :PipelineLayout;
 export import :PipelineLayoutCache;
 export import :PipelineLayoutParams;
-export import :PipelineShaderStageState;
+export import :PipelineShaderStageParams;
 export import :RenderPass;
 export import :RenderPassCache;
 export import :RenderPassParams;

@@ -10,7 +10,7 @@ import :DescriptorSetLayoutParams;
 
 namespace mobula {
   /**
-   * A class that creates and caches descriptor set layouts.
+   * \brief Cache for descriptor set layouts.
    */
   export class DescriptorSetLayoutCache {
   public:

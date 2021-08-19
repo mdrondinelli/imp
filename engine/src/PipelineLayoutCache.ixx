@@ -10,7 +10,7 @@ import :PipelineLayoutParams;
 
 namespace mobula {
   /**
-   * A class that creates and caches pipeline layouts.
+   * \brief Cache for pipeline layouts.
    */
   export class PipelineLayoutCache {
   public:

@@ -7,7 +7,7 @@ import :DescriptorSetLayoutParams;
 
 namespace mobula {
   /**
-   * A class that wraps a vulkan descriptor set layout.
+   * \brief Wrapper around a vulkan descriptor set layout.
    */
   export class DescriptorSetLayout {
   public:

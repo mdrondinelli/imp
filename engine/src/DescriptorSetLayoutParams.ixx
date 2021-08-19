@@ -7,6 +7,9 @@ import <vector>;
 // clang-format on
 
 namespace mobula {
+  /**
+   * \brief Holds the parameters of a descriptor set layout.
+   */
   export struct DescriptorSetLayoutParams {
     struct Binding {
       vk::DescriptorType descriptorType;

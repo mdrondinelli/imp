@@ -4,14 +4,17 @@ module;
 #include <vulkan/vulkan.hpp>
 export module mobula.engine.gpu:ComputePipelineParams;
 import :PipelineLayout;
-import :PipelineShaderStageState;
+import :PipelineShaderStageParams;
 // clang-format on
 
 namespace mobula {
+  /**
+   * \brief Holds the parameters of a compute pipeline.
+   */
   export struct ComputePipelineParams {
     vk::PipelineCreateFlags flags;
     PipelineLayout const *layout;
-    PipelineShaderStageState computeStageState;
+    PipelineShaderStageParams computeStage;
 
     bool operator==(ComputePipelineParams const &rhs) const = default;
   };
@@ -21,7 +24,7 @@ namespace mobula {
     auto seed = std::size_t{};
     hash_combine(seed, static_cast<VkFlags>(params.flags));
     hash_combine(seed, params.layout);
-    hash_combine(seed, params.computeStageState);
+    hash_combine(seed, params.computeStage);
     return seed;
   }
 } // namespace mobula

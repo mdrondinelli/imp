@@ -9,102 +9,102 @@ import <variant>;
 import <vector>;
 import mobula.engine.util;
 import :PipelineLayout;
-import :PipelineShaderStageState;
+import :PipelineShaderStageParams;
 import :RenderPass;
 // clang-format on
 
 namespace mobula {
   export struct GraphicsPipelineParams {
-    struct VertexBinding {
+    struct VertexBindingParams {
       std::uint32_t stride;
       vk::VertexInputRate inputRate;
 
-      bool operator==(VertexBinding const &rhs) const = default;
+      bool operator==(VertexBindingParams const &rhs) const = default;
     };
 
-    struct VertexAttribute {
+    struct VertexAttributeParams {
       std::uint32_t binding;
       vk::Format format;
       std::uint32_t offset;
 
-      bool operator==(VertexAttribute const &rhs) const = default;
+      bool operator==(VertexAttributeParams const &rhs) const = default;
     };
 
-    struct InputAssemblyState {
+    struct InputAssemblyParams {
       vk::PrimitiveTopology topology;
       bool primitiveRestartEnable;
-      std::vector<VertexBinding> vertexBindings;
-      std::vector<VertexAttribute> vertexAttributes;
+      std::vector<VertexBindingParams> vertexBindings;
+      std::vector<VertexAttributeParams> vertexAttributes;
 
-      bool operator==(InputAssemblyState const &rhs) const = default;
+      bool operator==(InputAssemblyParams const &rhs) const = default;
     };
 
-    struct TessellationState {
+    struct TessellationParams {
       std::uint32_t patchControlPoints;
-      PipelineShaderStageState controlStageState;
-      PipelineShaderStageState evaluationStageState;
+      PipelineShaderStageParams controlStage;
+      PipelineShaderStageParams evaluationStage;
 
-      bool operator==(TessellationState const &rhs) const = default;
+      bool operator==(TessellationParams const &rhs) const = default;
     };
 
-    struct PolygonModeFillState {
+    struct PolygonModeFillParams {
       vk::CullModeFlags cullMode;
       vk::FrontFace frontFace;
 
-      bool operator==(PolygonModeFillState const &rhs) const = default;
+      bool operator==(PolygonModeFillParams const &rhs) const = default;
     };
 
-    struct PolygonModeLineState {
+    struct PolygonModeLineParams {
       float lineWidth;
 
-      bool operator==(PolygonModeLineState const &rhs) const = default;
+      bool operator==(PolygonModeLineParams const &rhs) const = default;
     };
 
-    struct PolygonModePointState {
-      bool operator==(PolygonModePointState const &rhs) const = default;
+    struct PolygonModePointParams {
+      bool operator==(PolygonModePointParams const &rhs) const = default;
     };
 
-    struct DepthBiasState {
+    struct DepthBiasParams {
       float constantFactor;
       float slopeFactor;
       float clamp;
 
-      bool operator==(DepthBiasState const &rhs) const = default;
+      bool operator==(DepthBiasParams const &rhs) const = default;
     };
 
-    struct DepthTestState {
+    struct DepthTestParams {
       bool writeEnable;
       vk::CompareOp compareOp;
 
-      bool operator==(DepthTestState const &rhs) const = default;
+      bool operator==(DepthTestParams const &rhs) const = default;
     };
 
-    struct DepthBoundsTestState {
+    struct DepthBoundsTestParams {
       AlignedBox1f bounds;
 
-      bool operator==(DepthBoundsTestState const &rhs) const = default;
+      bool operator==(DepthBoundsTestParams const &rhs) const = default;
     };
 
-    struct StencilOpState {
+    struct StencilOpParams {
       vk::StencilOp failOp;
       vk::StencilOp passOp;
       vk::StencilOp depthFailOp;
       vk::CompareOp compareOp;
 
-      bool operator==(StencilOpState const &rhs) const = default;
+      bool operator==(StencilOpParams const &rhs) const = default;
     };
 
-    struct StencilTestState {
-      StencilOpState front;
-      StencilOpState back;
+    struct StencilTestParams {
+      StencilOpParams front;
+      StencilOpParams back;
       std::array<std::uint32_t, 2> compareMasks;
       std::array<std::uint32_t, 2> writeMasks;
       std::array<std::uint32_t, 2> references;
 
-      bool operator==(StencilTestState const &rhs) const = default;
+      bool operator==(StencilTestParams const &rhs) const = default;
     };
 
-    struct ColorAttachmentBlendState {
+    struct ColorAttachmentBlendingParams {
       vk::BlendFactor srcColorFactor;
       vk::BlendFactor dstColorFactor;
       vk::BlendOp colorOp;
@@ -112,53 +112,53 @@ namespace mobula {
       vk::BlendFactor dstAlphaFactor;
       vk::BlendOp alphaOp;
 
-      bool operator==(ColorAttachmentBlendState const &rhs) const = default;
+      bool operator==(ColorAttachmentBlendingParams const &rhs) const = default;
     };
 
-    struct ColorAttachmentState {
-      std::optional<ColorAttachmentBlendState> blendState;
+    struct ColorAttachmentParams {
+      std::optional<ColorAttachmentBlendingParams> blending;
       vk::ColorComponentFlags writeMask;
 
-      bool operator==(ColorAttachmentState const &rhs) const = default;
+      bool operator==(ColorAttachmentParams const &rhs) const = default;
     };
 
-    struct ColorBlendState {
-      std::vector<ColorAttachmentState> attachmentStates;
+    struct BlendingParams {
+      std::vector<ColorAttachmentParams> attachments;
       std::array<float, 4> blendConstants;
 
-      bool operator==(ColorBlendState const &rhs) const = default;
+      bool operator==(BlendingParams const &rhs) const = default;
     };
 
-    struct RasterizationState {
+    struct RasterizationParams {
       std::variant<std::uint32_t, std::vector<AlignedBox3f>> viewports;
       std::variant<std::uint32_t, std::vector<AlignedBox2i>> scissors;
       bool depthClampEnable;
       std::variant<
-          PolygonModeFillState,
-          PolygonModeLineState,
-          PolygonModePointState>
-          polygonModeState;
-      std::optional<DepthBiasState> depthBiasState;
-      PipelineShaderStageState fragmentStageState;
-      std::optional<DepthTestState> depthTestState;
-      std::optional<DepthBoundsTestState> depthBoundsTestState;
-      std::optional<StencilTestState> stencilTestState;
-      std::optional<ColorBlendState> colorBlendState;
+          PolygonModeFillParams,
+          PolygonModeLineParams,
+          PolygonModePointParams>
+          polygonMode;
+      std::optional<DepthBiasParams> depthBias;
+      PipelineShaderStageParams fragmentStage;
+      std::optional<DepthTestParams> depthTest;
+      std::optional<DepthBoundsTestParams> depthBoundsTest;
+      std::optional<StencilTestParams> stencilTest;
+      std::optional<BlendingParams> blending;
     };
 
     vk::PipelineCreateFlagBits flags;
     PipelineLayout const *layout;
     RenderPass const *renderPass;
     std::uint32_t subpass;
-    InputAssemblyState inputAssemblyState;
-    PipelineShaderStageState vertexStageState;
-    std::optional<TessellationState> tessellationState;
-    std::optional<PipelineShaderStageState> geometryStageState;
-    std::optional<RasterizationState> rasterizationState;
+    InputAssemblyParams inputAssembly;
+    PipelineShaderStageParams vertexStage;
+    std::optional<TessellationParams> tessellation;
+    std::optional<PipelineShaderStageParams> geometryStage;
+    std::optional<RasterizationParams> rasterization;
   };
 
-  export std::size_t
-  hash_value(GraphicsPipelineParams::VertexBinding const &binding) noexcept {
+  export std::size_t hash_value(
+      GraphicsPipelineParams::VertexBindingParams const &binding) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, binding.stride);
@@ -167,7 +167,7 @@ namespace mobula {
   }
 
   export std::size_t hash_value(
-      GraphicsPipelineParams::VertexAttribute const &attribute) noexcept {
+      GraphicsPipelineParams::VertexAttributeParams const &attribute) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, attribute.binding);
@@ -176,31 +176,29 @@ namespace mobula {
     return seed;
   }
 
-  export std::size_t
-  hash_value(GraphicsPipelineParams::InputAssemblyState const &state) noexcept {
+  export std::size_t hash_value(
+      GraphicsPipelineParams::InputAssemblyParams const &params) noexcept {
     using boost::hash_combine;
-    using boost::hash_range;
     auto seed = std::size_t{};
-    hash_combine(seed, state.topology);
-    hash_combine(seed, state.primitiveRestartEnable);
-    hash_range(seed, begin(state.vertexBindings), end(state.vertexBindings));
-    hash_range(
-        seed, begin(state.vertexAttributes), end(state.vertexAttributes));
+    hash_combine(seed, params.topology);
+    hash_combine(seed, params.primitiveRestartEnable);
+    hash_combine(seed, params.vertexBindings);
+    hash_combine(seed, params.vertexAttributes);
     return seed;
   }
 
   export std::size_t
-  hash_value(GraphicsPipelineParams::TessellationState const &state) noexcept {
+  hash_value(GraphicsPipelineParams::TessellationParams const &state) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, state.patchControlPoints);
-    hash_combine(seed, state.controlStageState);
-    hash_combine(seed, state.evaluationStageState);
+    hash_combine(seed, state.controlStage);
+    hash_combine(seed, state.evaluationStage);
     return seed;
   }
 
   export std::size_t hash_value(
-      GraphicsPipelineParams::PolygonModeFillState const &state) noexcept {
+      GraphicsPipelineParams::PolygonModeFillParams const &state) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, static_cast<VkFlags>(state.cullMode));
@@ -209,19 +207,19 @@ namespace mobula {
   }
 
   export std::size_t hash_value(
-      GraphicsPipelineParams::PolygonModeLineState const &state) noexcept {
+      GraphicsPipelineParams::PolygonModeLineParams const &state) noexcept {
     auto seed = std::size_t{};
     boost::hash_combine(seed, state.lineWidth);
     return seed;
   }
 
   export std::size_t hash_value(
-      GraphicsPipelineParams::PolygonModePointState const &state) noexcept {
+      GraphicsPipelineParams::PolygonModePointParams const &state) noexcept {
     return 0;
   }
 
   export std::size_t
-  hash_value(GraphicsPipelineParams::DepthBiasState const &state) noexcept {
+  hash_value(GraphicsPipelineParams::DepthBiasParams const &state) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, state.constantFactor);
@@ -231,7 +229,7 @@ namespace mobula {
   }
 
   export std::size_t
-  hash_value(GraphicsPipelineParams::DepthTestState const &state) noexcept {
+  hash_value(GraphicsPipelineParams::DepthTestParams const &state) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, state.writeEnable);
@@ -240,12 +238,12 @@ namespace mobula {
   }
 
   export std::size_t hash_value(
-      GraphicsPipelineParams::DepthBoundsTestState const &state) noexcept {
+      GraphicsPipelineParams::DepthBoundsTestParams const &state) noexcept {
     return hash_value(state.bounds);
   }
 
   export std::size_t
-  hash_value(GraphicsPipelineParams::StencilOpState const &state) noexcept {
+  hash_value(GraphicsPipelineParams::StencilOpParams const &state) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, state.passOp);
@@ -256,7 +254,7 @@ namespace mobula {
   }
 
   export std::size_t
-  hash_value(GraphicsPipelineParams::StencilTestState const &state) noexcept {
+  hash_value(GraphicsPipelineParams::StencilTestParams const &state) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, state.front);
@@ -267,8 +265,9 @@ namespace mobula {
     return seed;
   }
 
-  export std::size_t hash_value(
-      GraphicsPipelineParams::ColorAttachmentBlendState const &state) noexcept {
+  export std::size_t
+  hash_value(GraphicsPipelineParams::ColorAttachmentBlendingParams const
+                 &state) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
     hash_combine(seed, state.srcColorFactor);
@@ -281,20 +280,19 @@ namespace mobula {
   }
 
   export std::size_t hash_value(
-      GraphicsPipelineParams::ColorAttachmentState const &state) noexcept {
+      GraphicsPipelineParams::ColorAttachmentParams const &state) noexcept {
     using boost::hash_combine;
     auto seed = std::size_t{};
-    hash_combine(seed, state.blendState);
+    hash_combine(seed, state.blending);
     hash_combine(seed, static_cast<VkFlags>(state.writeMask));
     return seed;
   }
 
   export std::size_t
-  hash_value(GraphicsPipelineParams::ColorBlendState const &state) noexcept {
+  hash_value(GraphicsPipelineParams::BlendingParams const &state) noexcept {
     using boost::hash_range;
     auto seed = std::size_t{};
-    hash_range(
-        seed, begin(state.attachmentStates), end(state.attachmentStates));
+    hash_range(seed, begin(state.attachments), end(state.attachments));
     hash_range(
         seed,
         state.blendConstants.data(),
@@ -303,7 +301,7 @@ namespace mobula {
   }
 
   export std::size_t hash_value(
-      GraphicsPipelineParams::RasterizationState const &state,
+      GraphicsPipelineParams::RasterizationParams const &state,
       RenderPass const &renderPass,
       std::uint32_t subpass) noexcept {
     using boost::hash_combine;
@@ -323,16 +321,16 @@ namespace mobula {
       }
     }
     hash_combine(seed, state.depthClampEnable);
-    hash_combine(seed, state.polygonModeState);
-    hash_combine(seed, state.depthBiasState);
-    hash_combine(seed, state.fragmentStageState);
+    hash_combine(seed, state.polygonMode);
+    hash_combine(seed, state.depthBias);
+    hash_combine(seed, state.fragmentStage);
     if (renderPass.getParams().subpasses[subpass].depthStencilAttachment) {
-      hash_combine(seed, state.depthTestState);
-      hash_combine(seed, state.depthBoundsTestState);
-      hash_combine(seed, state.stencilTestState);
+      hash_combine(seed, state.depthTest);
+      hash_combine(seed, state.depthBoundsTest);
+      hash_combine(seed, state.stencilTest);
     }
     if (!renderPass.getParams().subpasses[subpass].colorAttachments.empty()) {
-      hash_combine(seed, state.colorBlendState);
+      hash_combine(seed, state.blending);
     }
     return seed;
   }
@@ -342,41 +340,41 @@ namespace mobula {
       GraphicsPipelineParams const &rhs) noexcept {
     if (lhs.flags != rhs.flags || lhs.layout != rhs.layout ||
         lhs.renderPass != rhs.renderPass || lhs.subpass != rhs.subpass ||
-        lhs.inputAssemblyState != rhs.inputAssemblyState ||
-        lhs.vertexStageState != rhs.vertexStageState ||
-        lhs.tessellationState != rhs.tessellationState ||
-        lhs.geometryStageState != rhs.geometryStageState) {
+        lhs.inputAssembly != rhs.inputAssembly ||
+        lhs.vertexStage != rhs.vertexStage ||
+        lhs.tessellation != rhs.tessellation ||
+        lhs.geometryStage != rhs.geometryStage) {
       return false;
     }
-    return lhs.rasterizationState.has_value() ==
-               rhs.rasterizationState.has_value() &&
-           (!lhs.rasterizationState.has_value() ||
-            lhs.rasterizationState->viewports ==
-                    rhs.rasterizationState->viewports &&
-                lhs.rasterizationState->scissors ==
-                    rhs.rasterizationState->scissors &&
-                lhs.rasterizationState->depthClampEnable ==
-                    rhs.rasterizationState->depthClampEnable &&
-                lhs.rasterizationState->polygonModeState ==
-                    rhs.rasterizationState->polygonModeState &&
-                lhs.rasterizationState->depthBiasState ==
-                    rhs.rasterizationState->depthBiasState &&
-                lhs.rasterizationState->fragmentStageState ==
-                    rhs.rasterizationState->fragmentStageState &&
+    return lhs.rasterization.has_value() ==
+               rhs.rasterization.has_value() &&
+           (!lhs.rasterization.has_value() ||
+            lhs.rasterization->viewports ==
+                    rhs.rasterization->viewports &&
+                lhs.rasterization->scissors ==
+                    rhs.rasterization->scissors &&
+                lhs.rasterization->depthClampEnable ==
+                    rhs.rasterization->depthClampEnable &&
+                lhs.rasterization->polygonMode ==
+                    rhs.rasterization->polygonMode &&
+                lhs.rasterization->depthBias ==
+                    rhs.rasterization->depthBias &&
+                lhs.rasterization->fragmentStage ==
+                    rhs.rasterization->fragmentStage &&
                 (!lhs.renderPass->getParams()
                       .subpasses[lhs.subpass]
                       .depthStencilAttachment ||
-                 lhs.rasterizationState->depthTestState ==
-                         rhs.rasterizationState->depthTestState &&
-                     lhs.rasterizationState->depthBoundsTestState ==
-                         rhs.rasterizationState->depthBoundsTestState &&
-                     lhs.rasterizationState->stencilTestState ==
-                         rhs.rasterizationState->stencilTestState) &&
+                 lhs.rasterization->depthTest ==
+                         rhs.rasterization->depthTest &&
+                     lhs.rasterization->depthBoundsTest ==
+                         rhs.rasterization->depthBoundsTest &&
+                     lhs.rasterization->stencilTest ==
+                         rhs.rasterization->stencilTest) &&
                 (lhs.renderPass->getParams()
                      .subpasses[lhs.subpass]
                      .colorAttachments.empty() ||
-                 lhs.rasterizationState->colorBlendState ==
-                     rhs.rasterizationState->colorBlendState));
+                 lhs.rasterization->blending ==
+                     rhs.rasterization->blending));
   }
 
   export std::size_t hash_value(GraphicsPipelineParams const &params) noexcept {
@@ -386,15 +384,15 @@ namespace mobula {
     hash_combine(seed, params.layout);
     hash_combine(seed, params.renderPass);
     hash_combine(seed, params.subpass);
-    hash_combine(seed, params.inputAssemblyState);
-    hash_combine(seed, params.vertexStageState);
-    hash_combine(seed, params.tessellationState);
-    hash_combine(seed, params.geometryStageState);
-    if (params.rasterizationState) {
+    hash_combine(seed, params.inputAssembly);
+    hash_combine(seed, params.vertexStage);
+    hash_combine(seed, params.tessellation);
+    hash_combine(seed, params.geometryStage);
+    if (params.rasterization) {
       hash_combine(
           seed,
           hash_value(
-              *params.rasterizationState, *params.renderPass, params.subpass));
+              *params.rasterization, *params.renderPass, params.subpass));
     }
     return seed;
   }

@@ -7,7 +7,7 @@ import :PipelineLayoutParams;
 
 namespace mobula {
   /**
-   * A class that wraps a vk::PipelineLayout.
+   *\brief Wrapper around a vulkan pipeline layout.
    */
   export class PipelineLayout {
   public:

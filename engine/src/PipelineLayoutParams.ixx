@@ -8,6 +8,9 @@ import :DescriptorSetLayout;
 // clang-format on
 
 namespace mobula {
+  /**
+   * \brief Holds the parameters of a pipeline layout.
+   */
   export struct PipelineLayoutParams {
     struct PushConstantRange {
       vk::ShaderStageFlags stageFlags;

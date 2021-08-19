@@ -17,14 +17,14 @@ namespace mobula {
     auto specializationInfo = vk::SpecializationInfo{};
     auto mapEntries = std::vector<vk::SpecializationMapEntry>{};
     auto data = std::vector<std::byte>{};
-    copyPipelineShaderStageState(
+    copyPipelineShaderStageParams(
         createInfo.stage,
         specializationInfo,
         mapEntries,
         data,
         shaderModuleCache,
         vk::ShaderStageFlagBits::eCompute,
-        params.computeStageState);
+        params.computeStage);
     createInfo.layout = params.layout->getHandle();
     handle_ = device.createComputePipelineUnique({}, createInfo).value;
   }

@@ -8,7 +8,7 @@ import :ShaderModuleCache;
 
 namespace mobula {
   /**
-   * A class that wraps a vulkan compute pipeline.
+   * \brief Wrapper around a vulkan compute pipeline.
    */
   export class ComputePipeline {
   public:

@@ -24,7 +24,7 @@ namespace mobula {
      *
      * \param path the path to a shader module.
      *
-     * \return a pointer to the shader module at path \a path.
+     * \return a pointer to the shader module at \c path.
      */
     ShaderModule const *get(std::filesystem::path const &path);
 
