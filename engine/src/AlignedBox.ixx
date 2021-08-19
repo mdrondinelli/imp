@@ -43,8 +43,7 @@ namespace mobula {
       return max_ - min_;
     }
 
-    friend bool
-    operator==(AlignedBox const &lhs, AlignedBox const &rhs) = default;
+    bool operator==(AlignedBox const &rhs) const = default;
 
   private:
     VectorType min_;

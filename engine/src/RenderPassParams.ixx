@@ -18,18 +18,14 @@ namespace mobula {
       vk::ImageLayout initialLayout;
       vk::ImageLayout finalLayout;
 
-      friend bool operator==(
-          AttachmentDescription const &lhs,
-          AttachmentDescription const &rhs) = default;
+      bool operator==(AttachmentDescription const &rhs) const = default;
     };
 
     struct AttachmentReference {
       std::uint32_t attachment;
       vk::ImageLayout layout;
 
-      friend bool operator==(
-          AttachmentReference const &lhs,
-          AttachmentReference const &rhs) = default;
+      bool operator==(AttachmentReference const &rhs) const = default;
     };
 
     struct SubpassDescription {
@@ -39,9 +35,7 @@ namespace mobula {
       std::optional<AttachmentReference> depthStencilAttachment;
       std::vector<std::uint32_t> preserveAttachments;
 
-      friend bool operator==(
-          SubpassDescription const &lhs,
-          SubpassDescription const &rhs) = default;
+      bool operator==(SubpassDescription const &rhs) const = default;
     };
 
     struct SubpassDependency {
@@ -53,16 +47,14 @@ namespace mobula {
       vk::AccessFlags srcAccessMask;
       vk::AccessFlags dstAccessMask;
 
-      friend bool operator==(
-          SubpassDependency const &lhs, SubpassDependency const &rhs) = default;
+      bool operator==(SubpassDependency const &rhs) const = default;
     };
 
     std::vector<AttachmentDescription> attachments;
     std::vector<SubpassDescription> subpasses;
     std::vector<SubpassDependency> dependencies;
 
-    friend constexpr bool operator==(
-        RenderPassParams const &lhs, RenderPassParams const &rhs) = default;
+    bool operator==(RenderPassParams const &rhs) const = default;
   };
 
   export std::size_t

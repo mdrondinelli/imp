@@ -23,10 +23,12 @@ namespace mobula {
      * previous invocation, it returns the same render pass as the first
      * invocation. Otherwise, this function creates and returns a new render
      * pass.
-     * \param params a description of the render pass.
+     *
+     * \param params the parameters of a render pass.
+     *
      * \return a pointer to the render pass described by params.
      */
-    RenderPass const *create(RenderPassParams const &params);
+    RenderPass const *get(RenderPassParams const &params);
 
   private:
     struct Hash {

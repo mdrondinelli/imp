@@ -19,17 +19,11 @@
     <Filter Include="Implementation">
       <UniqueIdentifier>{a1c1e720-7ab9-44de-ba23-35fd8c549bc0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules">
+      <UniqueIdentifier>{ed5e85a7-c881-455e-98e7-c88defad8bc8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\mobula.engine.ixx">
-      <Filter>Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mobula.engine.gpu.ixx">
-      <Filter>Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mobula.engine.util.ixx">
-      <Filter>Interface</Filter>
-    </ClCompile>
     <ClCompile Include="src\RenderPass.ixx">
       <Filter>Interface</Filter>
     </ClCompile>
@@ -99,12 +93,6 @@
     <ClCompile Include="src\ComputePipeline.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\ComputePipelineCache.ixx">
-      <Filter>Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ComputePipelineCache.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
     <ClCompile Include="src\GraphicsPipelineParams.ixx">
       <Filter>Interface</Filter>
     </ClCompile>
@@ -122,6 +110,21 @@
     </ClCompile>
     <ClCompile Include="src\Vector.ixx">
       <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuBuffer.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mobula.engine.gpu.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mobula.engine.util.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PipelineCache.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PipelineCache.cpp">
+      <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

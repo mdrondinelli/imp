@@ -7,28 +7,29 @@ import :DescriptorSetLayoutParams;
 
 namespace mobula {
   /**
-   * A class that wraps a vk::DescriptorSetLayout.
+   * A class that wraps a vulkan descriptor set layout.
    */
   export class DescriptorSetLayout {
   public:
     /**
-     * \param device the device to be used to create this descriptor set layout.
-     * \param params a DescriptorSetLayoutParams describing this descriptor set
+     * \param device a vulkan device to be used to create this descriptor set
+     * layout.
+     *
+     * \param params a struct describing the parameters of this descriptor set
      * layout.
      */
     explicit DescriptorSetLayout(
         vk::Device device, DescriptorSetLayoutParams const &params);
 
     /**
-     * \return the underlying vk::DescriptorSetLayout.
+     * \return the underlying vulkan handle.
      */
     vk::DescriptorSetLayout getHandle() const noexcept {
       return *handle_;
     }
 
     /**
-     * \return the DescriptorSetLayoutParams used to create this descriptor
-     * set layout.
+     * \return the parameters of this descriptor set layout.
      */
     DescriptorSetLayoutParams const &getParams() const noexcept {
       return params_;

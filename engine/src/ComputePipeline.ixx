@@ -7,17 +7,34 @@ import :ShaderModuleCache;
 // clang-format on
 
 namespace mobula {
+  /**
+   * A class that wraps a vulkan compute pipeline.
+   */
   export class ComputePipeline {
   public:
+    /**
+     * \param device a vulkan device to be used to create this pipeline.
+     *
+     * \param shaderModules a shader module cache to be queries while creating
+     * this pipeline.
+     *
+     * \param params a struct describing the parameters of this pipeline.
+     */
     explicit ComputePipeline(
         vk::Device device,
-        ShaderModuleCache &shaderModuleCache,
+        ShaderModuleCache &shaderModules,
         ComputePipelineParams const &params);
 
+    /**
+     * \return the underlying vulkan handle.
+     */
     vk::Pipeline getHandle() const noexcept {
       return *handle_;
     }
 
+    /**
+     * \return the parameters of this pipeline.
+     */
     ComputePipelineParams const &getParams() const noexcept {
       return params_;
     }

@@ -15,7 +15,7 @@ namespace mobula {
   export class DescriptorSetLayoutCache {
   public:
     /**
-     * \param device the device to be used by this cache to create descriptor
+     * \param device a device to be used by this cache to create descriptor
      * set layouts.
      */
     explicit DescriptorSetLayoutCache(vk::Device device);
@@ -25,10 +25,12 @@ namespace mobula {
      * invocation, it returns the same descriptor set layout as the first
      * invocation. Otherwise, this function creates and returns a new descriptor
      * set layout.
-     * \param params a description of the descriptor set layout.
-     * \return a pointer to the descriptor set layout described by createInfo.
+     *
+     * \param params the parameters of a descriptor set layout.
+     *
+     * \return a pointer to the descriptor set layout described by params.
      */
-    DescriptorSetLayout const *create(DescriptorSetLayoutParams const &params);
+    DescriptorSetLayout const *get(DescriptorSetLayoutParams const &params);
 
   private:
     struct Hash {

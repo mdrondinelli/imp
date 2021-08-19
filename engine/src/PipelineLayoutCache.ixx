@@ -24,10 +24,12 @@ namespace mobula {
      * If this function is called with params equal to the params of a previous
      * invocation, it returns the same pipeline layout as the first invocation.
      * Otherwise, this function creates and returns a new pipeline layout.
-     * \param params a description of the pipeline layout.
+     * 
+     * \param params the parameters of a pipeline layout.
+     * 
      * \return a pointer to the pipeline layout described by params.
      */
-    PipelineLayout const *create(PipelineLayoutParams const &params);
+    PipelineLayout const *get(PipelineLayoutParams const &params);
 
   private:
     struct Hash {

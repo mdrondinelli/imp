@@ -13,15 +13,13 @@ namespace mobula {
       std::uint32_t descriptorCount;
       vk::ShaderStageFlags stageFlags;
 
-      friend bool operator==(Binding const &lhs, Binding const &rhs) = default;
+      bool operator==(Binding const &rhs) const = default;
     };
 
     vk::DescriptorSetLayoutCreateFlags flags;
     std::vector<Binding> bindings;
 
-    friend constexpr bool operator==(
-        DescriptorSetLayoutParams const &lhs,
-        DescriptorSetLayoutParams const &rhs) = default;
+    bool operator==(DescriptorSetLayoutParams const &rhs) const = default;
   };
 
   export std::size_t

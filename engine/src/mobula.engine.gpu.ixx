@@ -1,13 +1,14 @@
 // clang-format off
 export module mobula.engine.gpu;
 export import :ComputePipeline;
-export import :ComputePipelineCache;
 export import :ComputePipelineParams;
-export import :GraphicsPipeline;
-export import :GraphicsPipelineParams;
 export import :DescriptorSetLayout;
 export import :DescriptorSetLayoutCache;
 export import :DescriptorSetLayoutParams;
+export import :GpuBuffer;
+export import :GraphicsPipeline;
+export import :GraphicsPipelineParams;
+export import :PipelineCache;
 export import :PipelineLayout;
 export import :PipelineLayoutCache;
 export import :PipelineLayoutParams;

@@ -10,13 +10,29 @@ export import :ShaderModule;
 // clang-format on
 
 namespace mobula {
+  /**
+   * A class that creates and caches shader modules.
+   */
   export class ShaderModuleCache {
   public:
     explicit ShaderModuleCache(vk::Device device);
 
+    /**
+     * If this function is called with params equal to the params of a previous
+     * invocation, it returns the same shader module as the first invocation.
+     * Otherwise, this function creates and returns a new shader module.
+     *
+     * \param path the path to a shader module.
+     *
+     * \return a pointer to the shader module at path \a path.
+     */
+    ShaderModule const *get(std::filesystem::path const &path);
+
+    /**
+     * This function clears the cache, freeing up memory but requiring
+     * previously loaded shaders to be reloaded when requested.
+     */
     void clear() noexcept;
-    
-    ShaderModule const *create(std::filesystem::path const &path);
 
   private:
     struct Hash {

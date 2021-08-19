@@ -14,16 +14,13 @@ namespace mobula {
       std::uint32_t offset;
       std::uint32_t size;
 
-      friend bool operator==(
-          PushConstantRange const &lhs, PushConstantRange const &rhs) = default;
+      bool operator==(PushConstantRange const &rhs) const = default;
     };
 
     std::vector<DescriptorSetLayout const *> setLayouts;
     std::vector<PushConstantRange> pushConstantRanges;
 
-    friend constexpr bool operator==(
-        PipelineLayoutParams const &lhs,
-        PipelineLayoutParams const &rhs) = default;
+    bool operator==(PipelineLayoutParams const &rhs) const = default;
   };
 
   export std::size_t hash_value(PipelineLayoutParams::PushConstantRange const

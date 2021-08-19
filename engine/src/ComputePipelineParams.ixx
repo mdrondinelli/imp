@@ -13,9 +13,7 @@ namespace mobula {
     PipelineLayout const *layout;
     PipelineShaderStageState computeStageState;
 
-    friend constexpr bool operator==(
-        ComputePipelineParams const &lhs,
-        ComputePipelineParams const &rhs) = default;
+    bool operator==(ComputePipelineParams const &rhs) const = default;
   };
 
   export std::size_t hash_value(ComputePipelineParams const &params) noexcept {

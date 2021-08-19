@@ -19,8 +19,7 @@ namespace mobula {
       std::uint32_t stride;
       vk::VertexInputRate inputRate;
 
-      friend bool
-      operator==(VertexBinding const &lhs, VertexBinding const &rhs) = default;
+      bool operator==(VertexBinding const &rhs) const = default;
     };
 
     struct VertexAttribute {
@@ -28,8 +27,7 @@ namespace mobula {
       vk::Format format;
       std::uint32_t offset;
 
-      friend bool operator==(
-          VertexAttribute const &lhs, VertexAttribute const &rhs) = default;
+      bool operator==(VertexAttribute const &rhs) const = default;
     };
 
     struct InputAssemblyState {
@@ -38,9 +36,7 @@ namespace mobula {
       std::vector<VertexBinding> vertexBindings;
       std::vector<VertexAttribute> vertexAttributes;
 
-      friend bool operator==(
-          InputAssemblyState const &lhs,
-          InputAssemblyState const &rhs) = default;
+      bool operator==(InputAssemblyState const &rhs) const = default;
     };
 
     struct TessellationState {
@@ -48,31 +44,24 @@ namespace mobula {
       PipelineShaderStageState controlStageState;
       PipelineShaderStageState evaluationStageState;
 
-      friend bool operator==(
-          TessellationState const &lhs, TessellationState const &rhs) = default;
+      bool operator==(TessellationState const &rhs) const = default;
     };
 
     struct PolygonModeFillState {
       vk::CullModeFlags cullMode;
       vk::FrontFace frontFace;
 
-      friend bool operator==(
-          PolygonModeFillState const &lhs,
-          PolygonModeFillState const &rhs) = default;
+      bool operator==(PolygonModeFillState const &rhs) const = default;
     };
 
     struct PolygonModeLineState {
       float lineWidth;
 
-      friend bool operator==(
-          PolygonModeLineState const &lhs,
-          PolygonModeLineState const &rhs) = default;
+      bool operator==(PolygonModeLineState const &rhs) const = default;
     };
 
     struct PolygonModePointState {
-      friend bool operator==(
-          PolygonModePointState const &lhs,
-          PolygonModePointState const &rhs) = default;
+      bool operator==(PolygonModePointState const &rhs) const = default;
     };
 
     struct DepthBiasState {
@@ -80,24 +69,20 @@ namespace mobula {
       float slopeFactor;
       float clamp;
 
-      friend bool operator==(
-          DepthBiasState const &lhs, DepthBiasState const &rhs) = default;
+      bool operator==(DepthBiasState const &rhs) const = default;
     };
 
     struct DepthTestState {
       bool writeEnable;
       vk::CompareOp compareOp;
 
-      friend bool operator==(
-          DepthTestState const &lhs, DepthTestState const &rhs) = default;
+      bool operator==(DepthTestState const &rhs) const = default;
     };
 
     struct DepthBoundsTestState {
       AlignedBox1f bounds;
 
-      friend bool operator==(
-          DepthBoundsTestState const &lhs,
-          DepthBoundsTestState const &rhs) = default;
+      bool operator==(DepthBoundsTestState const &rhs) const = default;
     };
 
     struct StencilOpState {
@@ -106,8 +91,7 @@ namespace mobula {
       vk::StencilOp depthFailOp;
       vk::CompareOp compareOp;
 
-      friend bool operator==(
-          StencilOpState const &lhs, StencilOpState const &rhs) = default;
+      bool operator==(StencilOpState const &rhs) const = default;
     };
 
     struct StencilTestState {
@@ -117,8 +101,7 @@ namespace mobula {
       std::array<std::uint32_t, 2> writeMasks;
       std::array<std::uint32_t, 2> references;
 
-      friend bool operator==(
-          StencilTestState const &lhs, StencilTestState const &rhs) = default;
+      bool operator==(StencilTestState const &rhs) const = default;
     };
 
     struct ColorAttachmentBlendState {
@@ -129,26 +112,21 @@ namespace mobula {
       vk::BlendFactor dstAlphaFactor;
       vk::BlendOp alphaOp;
 
-      friend bool operator==(
-          ColorAttachmentBlendState const &lhs,
-          ColorAttachmentBlendState const &rhs) = default;
+      bool operator==(ColorAttachmentBlendState const &rhs) const = default;
     };
 
     struct ColorAttachmentState {
       std::optional<ColorAttachmentBlendState> blendState;
       vk::ColorComponentFlags writeMask;
 
-      friend bool operator==(
-          ColorAttachmentState const &lhs,
-          ColorAttachmentState const &rhs) = default;
+      bool operator==(ColorAttachmentState const &rhs) const = default;
     };
 
     struct ColorBlendState {
       std::vector<ColorAttachmentState> attachmentStates;
       std::array<float, 4> blendConstants;
 
-      friend bool operator==(
-          ColorBlendState const &lhs, ColorBlendState const &rhs) = default;
+      bool operator==(ColorBlendState const &rhs) const = default;
     };
 
     struct RasterizationState {

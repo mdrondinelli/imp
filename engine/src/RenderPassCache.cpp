@@ -8,7 +8,7 @@ import <mutex>;
 namespace mobula {
   RenderPassCache::RenderPassCache(vk::Device device): device_{device} {}
 
-  RenderPass const *RenderPassCache::create(RenderPassParams const &params) {
+  RenderPass const *RenderPassCache::get(RenderPassParams const &params) {
     auto lock = std::scoped_lock{mutex_};
     if (auto it = cache_.find(params); it != cache_.end()) {
       return &*it;

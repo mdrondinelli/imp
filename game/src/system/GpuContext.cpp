@@ -333,7 +333,7 @@ namespace imp {
     info.physicalDevice = physicalDevice_;
     info.device = *device_;
     info.instance = *instance_;
-    info.vulkanApiVersion = VK_API_VERSION_1_1;
+    info.vulkanApiVersion = VK_API_VERSION_1_2;
     auto allocator = VmaAllocator{};
     if (vmaCreateAllocator(&info, &allocator)) {
       throw std::runtime_error{"failed to create vulkan allocator."};

@@ -12,21 +12,21 @@ namespace mobula {
   export class PipelineLayout {
   public:
     /**
-     * \param device the device to be used to create this pipeline layout.
-     * \param info a PipelineLayoutParams describing this pipeline layout.
+     * \param device a device to be used to create this pipeline layout.
+     * \param params a struct describing the parameters of this pipeline layout.
      */
     explicit PipelineLayout(
         vk::Device device, PipelineLayoutParams const &params);
 
     /**
-     * \return the underlying vk::PipelineLayout.
+     * \return the underlying vulkan handle.
      */
     vk::PipelineLayout getHandle() const noexcept {
       return *handle_;
     }
 
     /**
-     * \return the PipelineLayoutParams used to create this pipeline layout.
+     * \return the parameters of this pipeline layout.
      */
     PipelineLayoutParams const &getParams() const noexcept {
       return params_;

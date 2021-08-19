@@ -20,9 +20,7 @@ namespace mobula {
         std::variant<bool, float, std::int32_t, std::uint32_t>>>
         specializationConstants;
 
-    friend bool operator==(
-        PipelineShaderStageState const &lhs,
-        PipelineShaderStageState const &rhs) = default;
+    bool operator==(PipelineShaderStageState const &rhs) const = default;
   };
 
   export std::size_t
@@ -60,7 +58,7 @@ namespace mobula {
       vk::ShaderStageFlagBits srcStage,
       PipelineShaderStageState const &srcState) {
     dstStage.stage = srcStage;
-    dstStage.module = shaderModuleCache.create(srcState.module)->getHandle();
+    dstStage.module = shaderModuleCache.get(srcState.module)->getHandle();
     dstStage.pName = srcState.entryPoint.c_str();
     if (!srcState.specializationConstants.empty()) {
       dstMapEntries.clear();

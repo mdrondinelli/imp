@@ -10,7 +10,7 @@ namespace mobula {
       device_{device} {}
 
   PipelineLayout const *
-  PipelineLayoutCache::create(PipelineLayoutParams const &params) {
+  PipelineLayoutCache::get(PipelineLayoutParams const &params) {
     auto lock = std::scoped_lock{mutex_};
     if (auto it = pipelineLayouts_.find(params); it != pipelineLayouts_.end()) {
       return &*it;

@@ -10,7 +10,7 @@ namespace mobula {
       device_{device} {}
 
   DescriptorSetLayout const *
-  DescriptorSetLayoutCache::create(DescriptorSetLayoutParams const &params) {
+  DescriptorSetLayoutCache::get(DescriptorSetLayoutParams const &params) {
     auto lock = std::scoped_lock{mutex_};
     if (auto it = cache_.find(params); it != cache_.end()) {
       return &*it;
