@@ -31,34 +31,33 @@ int main() {
     scene->setSunLight(sun);
     auto views =
         std::vector<imp::gsl::not_null<std::shared_ptr<imp::SceneView>>>{};
-    for (auto i = 0; i < 4; ++i) {
+    for (auto i = 0; i < 1; ++i) {
       views.emplace_back(std::make_shared<imp::SceneView>(
           renderer.getSceneViewFlyweight(),
           scene,
-          imp::Extent2u{1920 / 4, 1080}));
+          imp::Extent2u{1920, 1080}));
     }
-    views[3]->setAntiAliasingEnabled(false);
-    views[0]->setExposure(1.0f / 24.0f);
-    views[1]->setExposure(1.0f / 24.0f);
-    views[2]->setExposure(1.0f / 24.0f);
-    views[3]->setExposure(1.0f / 24.0f);
+    views[0]->setExposure(1.0f / 12.0f);
+    //views[1]->setExposure(1.0f / 12.0f);
+    //views[2]->setExposure(1.0f / 12.0f);
+    //views[3]->setExposure(1.0f / 12.0f);
     views[0]->setBloomEnabled(true);
-    views[1]->setBloomEnabled(true);
-    views[2]->setBloomEnabled(true);
-    views[3]->setBloomEnabled(true);
+    //views[1]->setBloomEnabled(true);
+    //views[2]->setBloomEnabled(true);
+    //views[3]->setBloomEnabled(true);
     {
       auto viewMatrix = Eigen::Matrix4f::Identity().eval();
       viewMatrix(1, 3) = -64.0f;
       views[0]->setViewMatrix(viewMatrix);
-      viewMatrix(1, 3) = -256.0f;
+      /*viewMatrix(1, 3) = -256.0f;
       views[1]->setViewMatrix(viewMatrix);
       viewMatrix(1, 3) = -1024.0f;
       views[2]->setViewMatrix(viewMatrix);
       viewMatrix(1, 3) = -4096.0f;
-      views[3]->setViewMatrix(viewMatrix);
+      views[3]->setViewMatrix(viewMatrix);*/
     }
     {
-      auto tanHalfFovY = 0.5f * 0.57735f;
+      auto tanHalfFovY = 1.0f;
       auto focalLength = 1.0f / tanHalfFovY;
       auto aspectRatio = float(views[0]->getExtent().width) /
                          float(views[0]->getExtent().height);
@@ -71,9 +70,9 @@ int main() {
       projectionMatrix(2, 3) = n * f / (f - n);
       projectionMatrix(3, 2) = -1;
       views[0]->setProjectionMatrix(projectionMatrix);
-      views[1]->setProjectionMatrix(projectionMatrix);
-      views[2]->setProjectionMatrix(projectionMatrix);
-      views[3]->setProjectionMatrix(projectionMatrix);
+      //views[1]->setProjectionMatrix(projectionMatrix);
+      //views[2]->setProjectionMatrix(projectionMatrix);
+      //views[3]->setProjectionMatrix(projectionMatrix);
     }
     // Eigen::Matrix4f getProjectionMatrix(Camera const &c) noexcept {
     //  //  auto w = 2 * c.getTanHalfFovX();
@@ -92,7 +91,7 @@ int main() {
     auto frame_count = 0;
     while (!window.shouldClose()) {
       imp::Display::poll();
-      auto theta = float(glfwGetTime()) * 0.0034906585f * 1.5f - 0.1f;
+      auto theta = float(glfwGetTime()) * 0.0034906585f * 4.5f - 0.1f;
       auto cosTheta = std::cos(theta);
       auto sinTheta = std::sin(theta);
       Eigen::Vector3f cosAxis = {0.0f, 0.0f, -1.0f};
@@ -101,8 +100,8 @@ int main() {
       if (window.getFramebufferWidth() != 0 &&
           window.getFramebufferHeight() != 0) {
         renderer.begin();
-        for (auto i = 0; i < 4; ++i) {
-          renderer.draw(views[i], 1920 * i / 4, 0, 1920 / 4, 1080);
+        for (auto i = 0; i < 1; ++i) {
+          renderer.draw(views[i], 0, 0, 1920, 1080);
         }
         // renderer.draw(groundView, 0, 0, 1920, 1080);
         renderer.end();

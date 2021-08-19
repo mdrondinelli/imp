@@ -27,35 +27,101 @@
     <ClCompile Include="src\mobula.engine.gpu.ixx">
       <Filter>Interface</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuAttachmentDescription.cpp">
+    <ClCompile Include="src\mobula.engine.util.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderPass.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderPassParams.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderPass.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuAttachmentReference.cpp">
+    <ClCompile Include="src\RenderPassCache.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderPassCache.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuSubpassDescription.cpp">
+    <ClCompile Include="src\DescriptorSetLayoutParams.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DescriptorSetLayout.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DescriptorSetLayout.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuSubpassDependency.cpp">
+    <ClCompile Include="src\DescriptorSetLayoutCache.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DescriptorSetLayoutCache.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuRenderPassCreateInfo.cpp">
+    <ClCompile Include="src\PipelineLayoutParams.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PipelineLayout.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PipelineLayoutCache.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PipelineLayout.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuRenderPassCache.cpp">
+    <ClCompile Include="src\PipelineLayoutCache.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuDescriptorSetLayoutBinding.cpp">
+    <ClCompile Include="src\PipelineShaderState.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ComputePipelineParams.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShaderModuleCache.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShaderModule.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShaderModule.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuDescriptorSetLayoutCreateInfo.cpp">
+    <ClCompile Include="src\ShaderModuleCache.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuDescriptorSetLayoutCache.cpp">
+    <ClCompile Include="src\ComputePipeline.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ComputePipeline.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuRenderPass.cpp">
+    <ClCompile Include="src\ComputePipelineCache.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ComputePipelineCache.cpp">
       <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GraphicsPipelineParams.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GraphicsPipeline.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GraphicsPipeline.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AlignedBox.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Matrix.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Vector.ixx">
+      <Filter>Interface</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

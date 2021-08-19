@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -19,18 +19,40 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\GpuAttachmentDescription.cpp" />
-    <ClCompile Include="src\GpuAttachmentReference.cpp" />
-    <ClCompile Include="src\GpuDescriptorSetLayoutBinding.cpp" />
-    <ClCompile Include="src\GpuDescriptorSetLayoutCache.cpp" />
-    <ClCompile Include="src\GpuDescriptorSetLayoutCreateInfo.cpp" />
-    <ClCompile Include="src\GpuRenderPass.cpp" />
-    <ClCompile Include="src\GpuRenderPassCache.cpp" />
-    <ClCompile Include="src\GpuRenderPassCreateInfo.cpp" />
-    <ClCompile Include="src\GpuSubpassDependency.cpp" />
-    <ClCompile Include="src\GpuSubpassDescription.cpp" />
+    <ClCompile Include="src\AlignedBox.ixx" />
+    <ClCompile Include="src\ComputePipeline.cpp" />
+    <ClCompile Include="src\ComputePipeline.ixx" />
+    <ClCompile Include="src\ComputePipelineCache.cpp" />
+    <ClCompile Include="src\ComputePipelineCache.ixx" />
+    <ClCompile Include="src\ComputePipelineParams.ixx" />
+    <ClCompile Include="src\DescriptorSetLayout.cpp" />
+    <ClCompile Include="src\DescriptorSetLayout.ixx" />
+    <ClCompile Include="src\DescriptorSetLayoutCache.cpp" />
+    <ClCompile Include="src\DescriptorSetLayoutCache.ixx" />
+    <ClCompile Include="src\DescriptorSetLayoutParams.ixx" />
+    <ClCompile Include="src\GraphicsPipeline.cpp" />
+    <ClCompile Include="src\GraphicsPipeline.ixx" />
+    <ClCompile Include="src\GraphicsPipelineParams.ixx" />
+    <ClCompile Include="src\Matrix.ixx" />
+    <ClCompile Include="src\PipelineLayout.cpp" />
+    <ClCompile Include="src\PipelineLayout.ixx" />
+    <ClCompile Include="src\PipelineLayoutCache.cpp" />
+    <ClCompile Include="src\PipelineLayoutCache.ixx" />
+    <ClCompile Include="src\PipelineLayoutParams.ixx" />
     <ClCompile Include="src\mobula.engine.ixx" />
     <ClCompile Include="src\mobula.engine.gpu.ixx" />
+    <ClCompile Include="src\mobula.engine.util.ixx" />
+    <ClCompile Include="src\RenderPass.cpp" />
+    <ClCompile Include="src\RenderPass.ixx" />
+    <ClCompile Include="src\RenderPassCache.cpp" />
+    <ClCompile Include="src\RenderPassCache.ixx" />
+    <ClCompile Include="src\RenderPassParams.ixx" />
+    <ClCompile Include="src\PipelineShaderState.ixx" />
+    <ClCompile Include="src\ShaderModule.cpp" />
+    <ClCompile Include="src\ShaderModule.ixx" />
+    <ClCompile Include="src\ShaderModuleCache.cpp" />
+    <ClCompile Include="src\ShaderModuleCache.ixx" />
+    <ClCompile Include="src\Vector.ixx" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
