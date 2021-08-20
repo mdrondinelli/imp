@@ -15,8 +15,8 @@ namespace mobula {
   export class DescriptorSetLayoutCache {
   public:
     /**
-     * \param device a device to be used by this cache to create descriptor
-     * set layouts.
+     * \param device The vulkan device which this cache will use to create
+     * descriptor set layouts.
      */
     explicit DescriptorSetLayoutCache(vk::Device device);
 
@@ -26,9 +26,9 @@ namespace mobula {
      * invocation. Otherwise, this function creates and returns a new descriptor
      * set layout.
      *
-     * \param params the parameters of a descriptor set layout.
+     * \param params The parameters of a descriptor set layout.
      *
-     * \return a pointer to the descriptor set layout described by params.
+     * \return A pointer to the descriptor set layout described by params.
      */
     DescriptorSetLayout const *get(DescriptorSetLayoutParams const &params);
 

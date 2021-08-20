@@ -8,7 +8,7 @@ import :RenderPassParams;
 
 namespace mobula {
   /**
-   * A class that creates and caches render passes.
+   * \brief Cache for render passes.
    */
   export class RenderPassCache {
   public:

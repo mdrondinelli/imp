@@ -11,7 +11,7 @@ export import :ShaderModule;
 
 namespace mobula {
   /**
-   * A class that creates and caches shader modules.
+   * \brief Cache for shader modules.
    */
   export class ShaderModuleCache {
   public:

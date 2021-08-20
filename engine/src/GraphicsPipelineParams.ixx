@@ -14,6 +14,9 @@ import :RenderPass;
 // clang-format on
 
 namespace mobula {
+  /**
+   * \brief Holds the parameters of a graphics pipeline.
+   */
   export struct GraphicsPipelineParams {
     struct VertexBindingParams {
       std::uint32_t stride;
@@ -346,26 +349,21 @@ namespace mobula {
         lhs.geometryStage != rhs.geometryStage) {
       return false;
     }
-    return lhs.rasterization.has_value() ==
-               rhs.rasterization.has_value() &&
+    return lhs.rasterization.has_value() == rhs.rasterization.has_value() &&
            (!lhs.rasterization.has_value() ||
-            lhs.rasterization->viewports ==
-                    rhs.rasterization->viewports &&
-                lhs.rasterization->scissors ==
-                    rhs.rasterization->scissors &&
+            lhs.rasterization->viewports == rhs.rasterization->viewports &&
+                lhs.rasterization->scissors == rhs.rasterization->scissors &&
                 lhs.rasterization->depthClampEnable ==
                     rhs.rasterization->depthClampEnable &&
                 lhs.rasterization->polygonMode ==
                     rhs.rasterization->polygonMode &&
-                lhs.rasterization->depthBias ==
-                    rhs.rasterization->depthBias &&
+                lhs.rasterization->depthBias == rhs.rasterization->depthBias &&
                 lhs.rasterization->fragmentStage ==
                     rhs.rasterization->fragmentStage &&
                 (!lhs.renderPass->getParams()
                       .subpasses[lhs.subpass]
                       .depthStencilAttachment ||
-                 lhs.rasterization->depthTest ==
-                         rhs.rasterization->depthTest &&
+                 lhs.rasterization->depthTest == rhs.rasterization->depthTest &&
                      lhs.rasterization->depthBoundsTest ==
                          rhs.rasterization->depthBoundsTest &&
                      lhs.rasterization->stencilTest ==
@@ -373,8 +371,7 @@ namespace mobula {
                 (lhs.renderPass->getParams()
                      .subpasses[lhs.subpass]
                      .colorAttachments.empty() ||
-                 lhs.rasterization->blending ==
-                     rhs.rasterization->blending));
+                 lhs.rasterization->blending == rhs.rasterization->blending));
   }
 
   export std::size_t hash_value(GraphicsPipelineParams const &params) noexcept {

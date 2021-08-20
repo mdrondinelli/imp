@@ -7,6 +7,9 @@ import <vector>;
 // clang-format on
 
 namespace mobula {
+  /**
+   * \brief Holds the parameters of a render pass.
+   */
   export struct RenderPassParams {
     struct AttachmentDescription {
       vk::AttachmentDescriptionFlags flags;

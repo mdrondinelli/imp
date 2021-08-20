@@ -12,21 +12,13 @@ namespace mobula {
   export class DescriptorSetLayout {
   public:
     /**
-     * \param device a vulkan device to be used to create this descriptor set
-     * layout.
+     * \param device The vulkan device with which this descriptor set layout
+     * will be created.
      *
-     * \param params a struct describing the parameters of this descriptor set
-     * layout.
+     * \param params The parameters of this descriptor set layout.
      */
     explicit DescriptorSetLayout(
         vk::Device device, DescriptorSetLayoutParams const &params);
-
-    /**
-     * \return the underlying vulkan handle.
-     */
-    vk::DescriptorSetLayout getHandle() const noexcept {
-      return *handle_;
-    }
 
     /**
      * \return the parameters of this descriptor set layout.
@@ -35,8 +27,15 @@ namespace mobula {
       return params_;
     }
 
+    /**
+     * \return the underlying vulkan handle.
+     */
+    vk::DescriptorSetLayout getHandle() const noexcept {
+      return *handle_;
+    }
+
   private:
-    vk::UniqueDescriptorSetLayout handle_;
     DescriptorSetLayoutParams params_;
+    vk::UniqueDescriptorSetLayout handle_;
   };
 } // namespace mobula

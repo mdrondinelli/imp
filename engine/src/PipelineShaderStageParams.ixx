@@ -13,7 +13,7 @@ import :ShaderModuleCache;
 
 namespace mobula {
   /**
-   * Holds the parameters of a shader stage of a pipeline.
+   * \brief Holds the parameters of a shader stage of a pipeline.
    */
   export struct PipelineShaderStageParams {
     std::filesystem::path module;

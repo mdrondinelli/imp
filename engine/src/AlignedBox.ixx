@@ -9,6 +9,9 @@ import :Vector;
 // clang-format on
 
 namespace mobula {
+  /**
+   * \brief Axis-aligned bounding box.
+   */
   export template<typename Scalar, int Dimension>
   class AlignedBox {
   public:

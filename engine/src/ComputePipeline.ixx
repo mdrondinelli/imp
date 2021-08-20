@@ -13,12 +13,12 @@ namespace mobula {
   export class ComputePipeline {
   public:
     /**
-     * \param device a vulkan device to be used to create this pipeline.
+     * \param device The vulkan device with which this pipeline will be created.
      *
-     * \param shaderModules a shader module cache to be queries while creating
-     * this pipeline.
+     * \param shaderModules The shader module cache to be queried during
+     * construction.
      *
-     * \param params a struct describing the parameters of this pipeline.
+     * \param params The parameters of this pipeline.
      */
     explicit ComputePipeline(
         vk::Device device,
@@ -26,21 +26,21 @@ namespace mobula {
         ComputePipelineParams const &params);
 
     /**
-     * \return the underlying vulkan handle.
-     */
-    vk::Pipeline getHandle() const noexcept {
-      return *handle_;
-    }
-
-    /**
-     * \return the parameters of this pipeline.
+     * \return The parameters of this pipeline.
      */
     ComputePipelineParams const &getParams() const noexcept {
       return params_;
     }
 
+    /**
+     * \return The underlying vulkan handle.
+     */
+    vk::Pipeline getHandle() const noexcept {
+      return *handle_;
+    }
+
   private:
-    vk::UniquePipeline handle_;
     ComputePipelineParams params_;
+    vk::UniquePipeline handle_;
   };
 } // namespace mobula

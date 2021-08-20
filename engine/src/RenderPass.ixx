@@ -7,7 +7,7 @@ import :RenderPassParams;
 
 namespace mobula {
   /**
-   * A class that wraps a vk::RenderPass.
+   * \brief Wrapper around a vulkan render pass.
    */
   export class RenderPass {
   public:

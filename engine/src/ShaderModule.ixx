@@ -6,6 +6,9 @@ import <filesystem>;
 // clang-format on
 
 namespace mobula {
+  /**
+   * \brief Wrapper around a vulkan shader module.
+   */
   export class ShaderModule {
   public:
     explicit ShaderModule(vk::Device device, std::filesystem::path const &path);
@@ -14,7 +17,7 @@ namespace mobula {
       return *handle_;
     }
 
-    std::filesystem::path const& getPath() const noexcept {
+    std::filesystem::path const &getPath() const noexcept {
       return path_;
     }
 

@@ -75,27 +75,22 @@ namespace imp {
   void GpuBuffer::flush() noexcept {
     auto info = VmaAllocationInfo{};
     vmaGetAllocationInfo(allocator_, allocation_, &info);
-    vmaFlushAllocation(allocator_, allocation_, info.offset, info.size);
+    vmaFlushAllocation(allocator_, allocation_, 0, info.size);
   }
 
   void GpuBuffer::flush(vk::DeviceSize offset, vk::DeviceSize size) noexcept {
-    auto info = VmaAllocationInfo{};
-    vmaGetAllocationInfo(allocator_, allocation_, &info);
-    vmaFlushAllocation(allocator_, allocation_, info.offset + offset, size);
+    vmaFlushAllocation(allocator_, allocation_, offset, size);
   }
 
   void GpuBuffer::invalidate() noexcept {
     auto info = VmaAllocationInfo{};
     vmaGetAllocationInfo(allocator_, allocation_, &info);
-    vmaInvalidateAllocation(allocator_, allocation_, info.offset, info.size);
+    vmaInvalidateAllocation(allocator_, allocation_, 0, info.size);
   }
 
   void
   GpuBuffer::invalidate(vk::DeviceSize offset, vk::DeviceSize size) noexcept {
-    auto info = VmaAllocationInfo{};
-    vmaGetAllocationInfo(allocator_, allocation_, &info);
-    vmaInvalidateAllocation(
-        allocator_, allocation_, info.offset + offset, size);
+    vmaInvalidateAllocation(allocator_, allocation_, offset, size);
   }
 
   char *GpuBuffer::getMappedData() const noexcept {

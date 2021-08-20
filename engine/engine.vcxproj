@@ -28,10 +28,15 @@
     <ClCompile Include="src\DescriptorSetLayoutCache.cpp" />
     <ClCompile Include="src\DescriptorSetLayoutCache.ixx" />
     <ClCompile Include="src\DescriptorSetLayoutParams.ixx" />
+    <ClCompile Include="src\GpuAllocationParams.ixx" />
+    <ClCompile Include="src\GpuBuffer.cpp" />
     <ClCompile Include="src\GpuBuffer.ixx" />
+    <ClCompile Include="src\GpuBufferParams.ixx" />
     <ClCompile Include="src\GraphicsPipeline.cpp" />
     <ClCompile Include="src\GraphicsPipeline.ixx" />
     <ClCompile Include="src\GraphicsPipelineParams.ixx" />
+    <ClCompile Include="src\MappedMemory.cpp" />
+    <ClCompile Include="src\MappedMemory.ixx" />
     <ClCompile Include="src\Matrix.ixx" />
     <ClCompile Include="src\PipelineCache.cpp" />
     <ClCompile Include="src\PipelineCache.ixx" />

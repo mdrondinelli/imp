@@ -8,17 +8,17 @@ import :ShaderModuleCache;
 
 namespace mobula {
   /**
-   * A class that wraps a vulkan graphics pipeline.
+   * \brief Wraper around a vulkan graphics pipeline.
    */
   export class GraphicsPipeline {
   public:
     /**
-     * \param device a vulkan device to be used to create this pipeline.
+     * \param device The vulkan device with which this pipeline will be created.
      *
-     * \param shaderModules a shader module cache to be queried while creating
-     * this pipeline.
+     * \param shaderModules The shader module cache to be queried during
+     * construction.
      *
-     * \param params a struct describing the parameters of this pipeline.
+     * \param params The parameters of this pipeline.
      */
     explicit GraphicsPipeline(
         vk::Device device,
@@ -26,21 +26,21 @@ namespace mobula {
         GraphicsPipelineParams const &params);
 
     /**
-     * \return the underlying vulkan handle.
-     */
-    vk::Pipeline getHandle() const noexcept {
-      return *handle_;
-    }
-
-    /**
-     * \return the parameters of this pipeline.
+     * \return The parameters of this pipeline.
      */
     GraphicsPipelineParams const &getParams() const noexcept {
       return params_;
     }
 
+    /**
+     * \return The underlying vulkan handle.
+     */
+    vk::Pipeline getHandle() const noexcept {
+      return *handle_;
+    }
+
   private:
-    vk::UniquePipeline handle_;
     GraphicsPipelineParams params_;
+    vk::UniquePipeline handle_;
   };
 } // namespace mobula

@@ -126,5 +126,20 @@
     <ClCompile Include="src\PipelineCache.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
+    <ClCompile Include="src\GpuBufferParams.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuAllocationParams.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuBuffer.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MappedMemory.ixx">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MappedMemory.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
