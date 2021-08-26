@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:DescriptorSetLayout;
+export module mobula.engine.vulkan:DescriptorSetLayout;
 import :DescriptorSetLayoutParams;
 // clang-format on
 

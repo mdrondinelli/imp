@@ -2,7 +2,7 @@
 module;
 #include <boost/container_hash/hash.hpp>
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:PipelineShaderStageParams;
+export module mobula.engine.vulkan:PipelineShaderStageParams;
 import <filesystem>;
 import <string>;
 import <variant>;

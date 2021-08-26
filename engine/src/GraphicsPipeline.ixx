@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:GraphicsPipeline;
+export module mobula.engine.vulkan:GraphicsPipeline;
 import :GraphicsPipelineParams;
 import :ShaderModuleCache;
 // clang-format on

@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-module mobula.engine.gpu;
+module mobula.engine.vulkan;
 import <cstring>;
 import <array>;
 import <span>;
@@ -23,8 +23,7 @@ namespace mobula {
     auto createInfo = vk::GraphicsPipelineCreateInfo{};
     auto stages = std::vector<vk::PipelineShaderStageCreateInfo>{};
     stages.reserve(
-        1 + 2 * params.tessellation.has_value() +
-        params.geometryStage.has_value() +
+        1 + params.geometryStage.has_value() +
         params.rasterization.has_value());
     auto vertexStageSpecializationInfo = vk::SpecializationInfo{};
     auto vertexStageSpecializationMapEntries =
@@ -38,34 +37,6 @@ namespace mobula {
         shaderModuleCache,
         vk::ShaderStageFlagBits::eVertex,
         params.vertexStage);
-    auto tessellationControlStageSpecializationInfo = vk::SpecializationInfo{};
-    auto tessellationControlStageSpecializationMapEntries =
-        std::vector<vk::SpecializationMapEntry>{};
-    auto tessellationControlStageSpecializationData = std::vector<std::byte>{};
-    auto tessellationEvaluationStageSpecializationInfo =
-        vk::SpecializationInfo{};
-    auto tessellationEvaluationStageSpecializationMapEntries =
-        std::vector<vk::SpecializationMapEntry>{};
-    auto tessellationEvaluationStageSpecializationData =
-        std::vector<std::byte>{};
-    if (params.tessellation) {
-      copyPipelineShaderStageParams(
-          stages.emplace_back(),
-          tessellationControlStageSpecializationInfo,
-          tessellationControlStageSpecializationMapEntries,
-          tessellationControlStageSpecializationData,
-          shaderModuleCache,
-          vk::ShaderStageFlagBits::eTessellationControl,
-          params.tessellation->controlStage);
-      copyPipelineShaderStageParams(
-          stages.emplace_back(),
-          tessellationEvaluationStageSpecializationInfo,
-          tessellationEvaluationStageSpecializationMapEntries,
-          tessellationEvaluationStageSpecializationData,
-          shaderModuleCache,
-          vk::ShaderStageFlagBits::eTessellationEvaluation,
-          params.tessellation->evaluationStage);
-    }
     auto geometryStageSpecializationInfo = vk::SpecializationInfo{};
     auto geometryStageSpecializationMapEntries =
         std::vector<vk::SpecializationMapEntry>{};
@@ -133,12 +104,6 @@ namespace mobula {
     inputAssemblyState.primitiveRestartEnable =
         params.inputAssembly.primitiveRestartEnable;
     createInfo.pInputAssemblyState = &inputAssemblyState;
-    auto tessellationState = vk::PipelineTessellationStateCreateInfo{};
-    if (params.tessellation) {
-      tessellationState.patchControlPoints =
-          params.tessellation->patchControlPoints;
-      createInfo.pTessellationState = &tessellationState;
-    }
     auto viewportState = vk::PipelineViewportStateCreateInfo{};
     auto viewports = std::vector<vk::Viewport>{};
     auto scissors = std::vector<vk::Rect2D>{};
@@ -159,12 +124,12 @@ namespace mobula {
         viewports.reserve(std::get<1>(params.rasterization->viewports).size());
         for (auto &viewport : std::get<1>(params.rasterization->viewports)) {
           viewports.emplace_back(
-              viewport.min().x(),
-              viewport.min().y(),
-              viewport.diagonal().x(),
-              viewport.diagonal().y(),
-              viewport.min().z(),
-              viewport.max().z());
+              viewport.min.x(),
+              viewport.min.y(),
+              viewport.max.x() - viewport.min.y(),
+              viewport.max.y() - viewport.min.y(),
+              viewport.min.z(),
+              viewport.max.z());
         }
         viewportState.viewportCount =
             static_cast<std::uint32_t>(viewports.size());
@@ -178,11 +143,13 @@ namespace mobula {
         scissors.reserve(std::get<1>(params.rasterization->scissors).size());
         for (auto &scissor : std::get<1>(params.rasterization->scissors)) {
           auto offset = vk::Offset2D{};
-          offset.x = scissor.min().x();
-          offset.y = scissor.min().y();
+          offset.x = scissor.min.x();
+          offset.y = scissor.min.y();
           auto extent = vk::Extent2D{};
-          extent.width = static_cast<std::uint32_t>(scissor.diagonal().x());
-          extent.height = static_cast<std::uint32_t>(scissor.diagonal().y());
+          extent.width =
+              static_cast<std::uint32_t>(scissor.max.x() - scissor.max.x());
+          extent.height =
+              static_cast<std::uint32_t>(scissor.max.y() - scissor.min.y());
           scissors.emplace_back(offset, extent);
         }
         viewportState.scissorCount =
@@ -233,9 +200,9 @@ namespace mobula {
       if (params.rasterization->depthBoundsTest) {
         depthStencilState.depthBoundsTestEnable = true;
         depthStencilState.minDepthBounds =
-            params.rasterization->depthBoundsTest->bounds.min()(0);
+            params.rasterization->depthBoundsTest->bounds.min;
         depthStencilState.maxDepthBounds =
-            params.rasterization->depthBoundsTest->bounds.max()(0);
+            params.rasterization->depthBoundsTest->bounds.max;
       }
       if (params.rasterization->stencilTest) {
         depthStencilState.stencilTestEnable = true;
@@ -276,11 +243,15 @@ namespace mobula {
           if (attachment.blending) {
             colorBlendAttachmentStates.emplace_back(
                 true,
-                attachment.blending->srcColorFactor,
-                attachment.blending->dstColorFactor,
+                static_cast<vk::BlendFactor>(
+                    attachment.blending->srcColorFactor),
+                static_cast<vk::BlendFactor>(
+                    attachment.blending->dstColorFactor),
                 attachment.blending->colorOp,
-                attachment.blending->srcAlphaFactor,
-                attachment.blending->dstAlphaFactor,
+                static_cast<vk::BlendFactor>(
+                    attachment.blending->srcAlphaFactor),
+                static_cast<vk::BlendFactor>(
+                    attachment.blending->dstAlphaFactor),
                 attachment.blending->alphaOp);
           } else {
             colorBlendAttachmentStates.emplace_back();

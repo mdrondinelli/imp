@@ -1,5 +1,5 @@
 // clang-format off
-export module mobula.engine.gpu:RenderPassCache;
+export module mobula.engine.vulkan:RenderPassCache;
 import <mutex>;
 import <unordered_set>;
 import :RenderPass;

@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-module mobula.engine.gpu;
+module mobula.engine.vulkan;
 import <mutex>;
 // clang-format on
 

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -18,85 +18,35 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\ComputePipeline.cpp" />
-    <ClCompile Include="src\ComputePipeline.ixx" />
-    <ClCompile Include="src\ComputePipelineParams.ixx" />
-    <ClCompile Include="src\DescriptorSetLayout.cpp" />
-    <ClCompile Include="src\DescriptorSetLayout.ixx" />
-    <ClCompile Include="src\DescriptorSetLayoutCache.cpp" />
-    <ClCompile Include="src\DescriptorSetLayoutCache.ixx" />
-    <ClCompile Include="src\DescriptorSetLayoutParams.ixx" />
-    <ClCompile Include="src\Extent.ixx" />
-    <ClCompile Include="src\Flags.ixx" />
-    <ClCompile Include="src\Image.cpp" />
-    <ClCompile Include="src\Image.ixx" />
-    <ClCompile Include="src\ImageParams.ixx" />
-    <ClCompile Include="src\Bounds.ixx" />
-    <ClCompile Include="src\Matrix.ixx" />
-    <ClCompile Include="src\Sampler.cpp" />
-    <ClCompile Include="src\Sampler.ixx" />
-    <ClCompile Include="src\SamplerCache.ixx" />
-    <ClCompile Include="src\SamplerParams.ixx" />
-    <ClCompile Include="src\GraphicsPipeline.cpp" />
-    <ClCompile Include="src\GraphicsPipeline.ixx" />
-    <ClCompile Include="src\GraphicsPipelineParams.ixx" />
-    <ClCompile Include="src\MappedMemory.cpp" />
-    <ClCompile Include="src\MappedMemory.ixx" />
-    <ClCompile Include="src\PipelineCache.cpp" />
-    <ClCompile Include="src\PipelineCache.ixx" />
-    <ClCompile Include="src\PipelineLayout.cpp" />
-    <ClCompile Include="src\PipelineLayout.ixx" />
-    <ClCompile Include="src\PipelineLayoutCache.cpp" />
-    <ClCompile Include="src\PipelineLayoutCache.ixx" />
-    <ClCompile Include="src\PipelineLayoutParams.ixx" />
-    <ClCompile Include="src\mobula.engine.vulkan.ixx" />
-    <ClCompile Include="src\mobula.engine.util.ixx" />
-    <ClCompile Include="src\RenderPass.cpp" />
-    <ClCompile Include="src\RenderPass.ixx" />
-    <ClCompile Include="src\RenderPassCache.cpp" />
-    <ClCompile Include="src\RenderPassCache.ixx" />
-    <ClCompile Include="src\RenderPassParams.ixx" />
-    <ClCompile Include="src\PipelineShaderStageParams.ixx" />
-    <ClCompile Include="src\ShaderModule.cpp" />
-    <ClCompile Include="src\ShaderModule.ixx" />
-    <ClCompile Include="src\ShaderModuleCache.cpp" />
-    <ClCompile Include="src\ShaderModuleCache.ixx" />
-    <ClCompile Include="src\AllocationParams.ixx" />
-    <ClCompile Include="src\Buffer.cpp" />
-    <ClCompile Include="src\Buffer.ixx" />
-    <ClCompile Include="src\BufferParams.ixx" />
-    <ClCompile Include="src\Vector.ixx" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{efafddc1-0f85-4f47-baf0-d6e1770362d1}</ProjectGuid>
-    <RootNamespace>engine</RootNamespace>
+    <ProjectGuid>{8a6b75ac-8933-4688-a7c0-0a35d3398175}</ProjectGuid>
+    <RootNamespace>enginetests</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -124,40 +74,33 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(Configuration)-$(Platform)\</IntDir>
-    <ExternalIncludePath>$(VULKAN_SDK)\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(Configuration)-$(Platform)\</IntDir>
-    <ExternalIncludePath>$(VULKAN_SDK)\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(Configuration)-$(Platform)\</IntDir>
-    <ExternalIncludePath>$(VULKAN_SDK)\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(Configuration)-$(Platform)\</IntDir>
-    <ExternalIncludePath>$(VULKAN_SDK)\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
-      <SubSystem>
-      </SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -167,16 +110,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
-      <SubSystem>
-      </SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -186,16 +126,13 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_LIB;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
-      <SubSystem>
-      </SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -205,21 +142,27 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_LIB;gsl_CONFIG_DEFAULTS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
-      <SubSystem>
-      </SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\FlagsTest.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\engine\engine.vcxproj">
+      <Project>{efafddc1-0f85-4f47-baf0-d6e1770362d1}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

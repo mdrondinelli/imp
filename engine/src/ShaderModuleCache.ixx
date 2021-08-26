@@ -2,7 +2,7 @@
 module;
 #include <boost/container_hash/hash.hpp>
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:ShaderModuleCache;
+export module mobula.engine.vulkan:ShaderModuleCache;
 import <filesystem>;
 import <mutex>;
 import <unordered_set>;

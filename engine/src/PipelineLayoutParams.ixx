@@ -2,7 +2,7 @@
 module;
 #include <vulkan/vulkan.hpp>
 #include <boost/container_hash/hash.hpp>
-export module mobula.engine.gpu:PipelineLayoutParams;
+export module mobula.engine.vulkan:PipelineLayoutParams;
 import <vector>;
 import :DescriptorSetLayout;
 // clang-format on

@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:RenderPass;
+export module mobula.engine.vulkan:RenderPass;
 import :RenderPassParams;
 // clang-format on
 

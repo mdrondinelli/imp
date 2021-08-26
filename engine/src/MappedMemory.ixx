@@ -2,7 +2,7 @@
 module;
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:MappedMemory;
+export module mobula.engine.vulkan:MappedMemory;
 import <cstddef>;
 // clang-format on
 

@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:PipelineCache;
+export module mobula.engine.vulkan:PipelineCache;
 import <mutex>;
 import <unordered_set>;
 import :ComputePipeline;

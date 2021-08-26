@@ -2,7 +2,7 @@
 module;
 #include <boost/container_hash/hash.hpp>
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:GraphicsPipelineParams;
+export module mobula.engine.vulkan:GraphicsPipelineParams;
 import <array>;
 import <optional>;
 import <variant>;
@@ -42,14 +42,6 @@ namespace mobula {
       bool operator==(InputAssemblyParams const &rhs) const = default;
     };
 
-    struct TessellationParams {
-      std::uint32_t patchControlPoints;
-      PipelineShaderStageParams controlStage;
-      PipelineShaderStageParams evaluationStage;
-
-      bool operator==(TessellationParams const &rhs) const = default;
-    };
-
     struct PolygonModeFillParams {
       vk::CullModeFlags cullMode;
       vk::FrontFace frontFace;
@@ -83,7 +75,7 @@ namespace mobula {
     };
 
     struct DepthBoundsTestParams {
-      AlignedBox1f bounds;
+      Bounds1f bounds;
 
       bool operator==(DepthBoundsTestParams const &rhs) const = default;
     };
@@ -107,12 +99,40 @@ namespace mobula {
       bool operator==(StencilTestParams const &rhs) const = default;
     };
 
+    enum class ColorFactor {
+      zero = VK_BLEND_FACTOR_ZERO,
+      one = VK_BLEND_FACTOR_ONE,
+      srcColor = VK_BLEND_FACTOR_SRC_COLOR,
+      oneMinusSrcColor = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+      dstColor = VK_BLEND_FACTOR_DST_COLOR,
+      oneMinusDstColor = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+      srcAlpha = VK_BLEND_FACTOR_SRC_ALPHA,
+      oneMinusSrcAlpha = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+      dstAlpha = VK_BLEND_FACTOR_DST_ALPHA,
+      oneMinusDstAlpha = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+      constantColor = VK_BLEND_FACTOR_CONSTANT_COLOR,
+      oneMinusConstantColor = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR,
+      constantAlpha = VK_BLEND_FACTOR_CONSTANT_ALPHA,
+      oneMinusConstantAlpha = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA
+    };
+
+    enum class AlphaFactor {
+      zero = VK_BLEND_FACTOR_ZERO,
+      one = VK_BLEND_FACTOR_ONE,
+      srcAlpha = VK_BLEND_FACTOR_SRC_ALPHA,
+      oneMinusSrcAlpha = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+      dstAlpha = VK_BLEND_FACTOR_DST_ALPHA,
+      oneMinusDstAlpha = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+      constantAlpha = VK_BLEND_FACTOR_CONSTANT_ALPHA,
+      oneMinusConstantAlpha = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA
+    };
+
     struct ColorAttachmentBlendingParams {
-      vk::BlendFactor srcColorFactor;
-      vk::BlendFactor dstColorFactor;
+      ColorFactor srcColorFactor;
+      ColorFactor dstColorFactor;
       vk::BlendOp colorOp;
-      vk::BlendFactor srcAlphaFactor;
-      vk::BlendFactor dstAlphaFactor;
+      AlphaFactor srcAlphaFactor;
+      AlphaFactor dstAlphaFactor;
       vk::BlendOp alphaOp;
 
       bool operator==(ColorAttachmentBlendingParams const &rhs) const = default;
@@ -128,13 +148,11 @@ namespace mobula {
     struct BlendingParams {
       std::vector<ColorAttachmentParams> attachments;
       std::array<float, 4> blendConstants;
-
-      bool operator==(BlendingParams const &rhs) const = default;
     };
 
     struct RasterizationParams {
-      std::variant<std::uint32_t, std::vector<AlignedBox3f>> viewports;
-      std::variant<std::uint32_t, std::vector<AlignedBox2i>> scissors;
+      std::variant<std::uint32_t, std::vector<Bounds3f>> viewports;
+      std::variant<std::uint32_t, std::vector<Bounds2i>> scissors;
       bool depthClampEnable;
       std::variant<
           PolygonModeFillParams,
@@ -155,7 +173,6 @@ namespace mobula {
     std::uint32_t subpass;
     InputAssemblyParams inputAssembly;
     PipelineShaderStageParams vertexStage;
-    std::optional<TessellationParams> tessellation;
     std::optional<PipelineShaderStageParams> geometryStage;
     std::optional<RasterizationParams> rasterization;
   };
@@ -187,16 +204,6 @@ namespace mobula {
     hash_combine(seed, params.primitiveRestartEnable);
     hash_combine(seed, params.vertexBindings);
     hash_combine(seed, params.vertexAttributes);
-    return seed;
-  }
-
-  export std::size_t
-  hash_value(GraphicsPipelineParams::TessellationParams const &state) noexcept {
-    using boost::hash_combine;
-    auto seed = std::size_t{};
-    hash_combine(seed, state.patchControlPoints);
-    hash_combine(seed, state.controlStage);
-    hash_combine(seed, state.evaluationStage);
     return seed;
   }
 
@@ -291,6 +298,43 @@ namespace mobula {
     return seed;
   }
 
+  export constexpr bool
+  blendConstantsUsed(GraphicsPipelineParams::ColorFactor factor) noexcept {
+    return factor == GraphicsPipelineParams::ColorFactor::constantColor ||
+           factor ==
+               GraphicsPipelineParams::ColorFactor::oneMinusConstantColor ||
+           factor == GraphicsPipelineParams::ColorFactor::constantAlpha ||
+           factor == GraphicsPipelineParams::ColorFactor::oneMinusConstantAlpha;
+  }
+
+  export constexpr bool
+  blendConstantsUsed(GraphicsPipelineParams::AlphaFactor factor) noexcept {
+    return factor == GraphicsPipelineParams::AlphaFactor::constantAlpha ||
+           factor == GraphicsPipelineParams::AlphaFactor::oneMinusConstantAlpha;
+  }
+
+  export bool operator==(
+      GraphicsPipelineParams::BlendingParams const &lhs,
+      GraphicsPipelineParams::BlendingParams const &rhs) noexcept {
+    if (lhs.attachments.size() != rhs.attachments.size()) {
+      return false;
+    }
+    auto blendConstants = false;
+    for (auto i = std::size_t{}; i < lhs.attachments.size(); ++i) {
+      if (lhs.attachments[i] != rhs.attachments[i]) {
+        return false;
+      }
+      if (!blendConstants && lhs.attachments[i].blending &&
+          (blendConstantsUsed(lhs.attachments[i].blending->srcColorFactor) ||
+           blendConstantsUsed(lhs.attachments[i].blending->dstColorFactor) ||
+           blendConstantsUsed(lhs.attachments[i].blending->srcAlphaFactor) ||
+           blendConstantsUsed(lhs.attachments[i].blending->dstAlphaFactor))) {
+        blendConstants = true;
+      }
+    }
+    return !blendConstants || lhs.blendConstants == rhs.blendConstants;
+  }
+
   export std::size_t
   hash_value(GraphicsPipelineParams::BlendingParams const &state) noexcept {
     using boost::hash_range;
@@ -303,53 +347,15 @@ namespace mobula {
     return seed;
   }
 
-  export std::size_t hash_value(
-      GraphicsPipelineParams::RasterizationParams const &state,
-      RenderPass const &renderPass,
-      std::uint32_t subpass) noexcept {
-    using boost::hash_combine;
-    auto seed = std::size_t{};
-    if (state.viewports.index() == 0) {
-      hash_combine(seed, std::get<0>(state.viewports));
-    } else {
-      for (auto &viewport : std::get<1>(state.viewports)) {
-        hash_combine(seed, hash_value(viewport));
-      }
-    }
-    if (state.scissors.index() == 0) {
-      hash_combine(seed, std::get<0>(state.scissors));
-    } else {
-      for (auto &scissor : std::get<1>(state.scissors)) {
-        hash_combine(seed, hash_value(scissor));
-      }
-    }
-    hash_combine(seed, state.depthClampEnable);
-    hash_combine(seed, state.polygonMode);
-    hash_combine(seed, state.depthBias);
-    hash_combine(seed, state.fragmentStage);
-    if (renderPass.getParams().subpasses[subpass].depthStencilAttachment) {
-      hash_combine(seed, state.depthTest);
-      hash_combine(seed, state.depthBoundsTest);
-      hash_combine(seed, state.stencilTest);
-    }
-    if (!renderPass.getParams().subpasses[subpass].colorAttachments.empty()) {
-      hash_combine(seed, state.blending);
-    }
-    return seed;
-  }
-
   export bool operator==(
       GraphicsPipelineParams const &lhs,
       GraphicsPipelineParams const &rhs) noexcept {
-    if (lhs.flags != rhs.flags || lhs.layout != rhs.layout ||
-        lhs.renderPass != rhs.renderPass || lhs.subpass != rhs.subpass ||
-        lhs.inputAssembly != rhs.inputAssembly ||
-        lhs.vertexStage != rhs.vertexStage ||
-        lhs.tessellation != rhs.tessellation ||
-        lhs.geometryStage != rhs.geometryStage) {
-      return false;
-    }
-    return lhs.rasterization.has_value() == rhs.rasterization.has_value() &&
+    return lhs.flags == rhs.flags && lhs.layout == rhs.layout &&
+           lhs.renderPass == rhs.renderPass && lhs.subpass == rhs.subpass &&
+           lhs.inputAssembly == rhs.inputAssembly &&
+           lhs.vertexStage == rhs.vertexStage &&
+           lhs.geometryStage == rhs.geometryStage &&
+           lhs.rasterization.has_value() == rhs.rasterization.has_value() &&
            (!lhs.rasterization.has_value() ||
             lhs.rasterization->viewports == rhs.rasterization->viewports &&
                 lhs.rasterization->scissors == rhs.rasterization->scissors &&
@@ -383,13 +389,38 @@ namespace mobula {
     hash_combine(seed, params.subpass);
     hash_combine(seed, params.inputAssembly);
     hash_combine(seed, params.vertexStage);
-    hash_combine(seed, params.tessellation);
     hash_combine(seed, params.geometryStage);
     if (params.rasterization) {
-      hash_combine(
-          seed,
-          hash_value(
-              *params.rasterization, *params.renderPass, params.subpass));
+      if (params.rasterization->viewports.index() == 0) {
+        hash_combine(seed, std::get<0>(params.rasterization->viewports));
+      } else {
+        for (auto &viewport : std::get<1>(params.rasterization->viewports)) {
+          hash_combine(seed, hash_value(viewport));
+        }
+      }
+      if (params.rasterization->scissors.index() == 0) {
+        hash_combine(seed, std::get<0>(params.rasterization->scissors));
+      } else {
+        for (auto &scissor : std::get<1>(params.rasterization->scissors)) {
+          hash_combine(seed, hash_value(scissor));
+        }
+      }
+      hash_combine(seed, params.rasterization->depthClampEnable);
+      hash_combine(seed, params.rasterization->polygonMode);
+      hash_combine(seed, params.rasterization->depthBias);
+      hash_combine(seed, params.rasterization->fragmentStage);
+      if (params.renderPass->getParams()
+              .subpasses[params.subpass]
+              .depthStencilAttachment) {
+        hash_combine(seed, params.rasterization->depthTest);
+        hash_combine(seed, params.rasterization->depthBoundsTest);
+        hash_combine(seed, params.rasterization->stencilTest);
+      }
+      if (!params.renderPass->getParams()
+               .subpasses[params.subpass]
+               .colorAttachments.empty()) {
+        hash_combine(seed, params.rasterization->blending);
+      }
     }
     return seed;
   }

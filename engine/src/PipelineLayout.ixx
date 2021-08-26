@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:PipelineLayout;
+export module mobula.engine.vulkan:PipelineLayout;
 import :PipelineLayoutParams;
 // clang-format on
 

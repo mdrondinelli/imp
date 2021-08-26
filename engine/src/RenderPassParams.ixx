@@ -2,7 +2,7 @@
 module;
 #include <boost/container_hash/hash.hpp>
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:RenderPassParams;
+export module mobula.engine.vulkan:RenderPassParams;
 import <vector>;
 // clang-format on
 

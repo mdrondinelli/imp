@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:PipelineLayoutCache;
+export module mobula.engine.vulkan:PipelineLayoutCache;
 import <mutex>;
 import <unordered_set>;
 import :PipelineLayout;
@@ -15,7 +15,7 @@ namespace mobula {
   export class PipelineLayoutCache {
   public:
     /**
-     * \param device the device to be used by this cache to create pipeline
+     * \param device The device to be used by this cache to create pipeline
      * layouts.
      */
     explicit PipelineLayoutCache(vk::Device device);
@@ -25,9 +25,9 @@ namespace mobula {
      * invocation, it returns the same pipeline layout as the first invocation.
      * Otherwise, this function creates and returns a new pipeline layout.
      * 
-     * \param params the parameters of a pipeline layout.
+     * \param params The parameters of a pipeline layout.
      * 
-     * \return a pointer to the pipeline layout described by params.
+     * \return A pointer to the pipeline layout described by params.
      */
     PipelineLayout const *get(PipelineLayoutParams const &params);
 

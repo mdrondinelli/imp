@@ -2,7 +2,7 @@
 module;
 #include <boost/container_hash/hash.hpp>
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:ComputePipelineParams;
+export module mobula.engine.vulkan:ComputePipelineParams;
 import :PipelineLayout;
 import :PipelineShaderStageParams;
 // clang-format on

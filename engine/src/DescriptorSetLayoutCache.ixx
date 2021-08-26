@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.gpu:DescriptorSetLayoutCache;
+export module mobula.engine.vulkan:DescriptorSetLayoutCache;
 import <mutex>;
 import <unordered_set>;
 import :DescriptorSetLayout;

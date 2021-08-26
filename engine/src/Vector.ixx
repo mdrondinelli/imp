@@ -6,21 +6,31 @@ import :Matrix;
 // clang-format on
 
 namespace mobula {
-  export template<typename Scalar, int Rows>
-  using Vector = Matrix<Scalar, Rows, 1>;
-  export using Vector1f = Vector<float, 1>;
-  export using Vector2f = Vector<float, 2>;
-  export using Vector3f = Vector<float, 3>;
-  export using Vector4f = Vector<float, 4>;
-  export using VectorXf = Vector<float, Eigen::Dynamic>;
-  export using Vector1i = Vector<std::int32_t, 1>;
-  export using Vector2i = Vector<std::int32_t, 2>;
-  export using Vector3i = Vector<std::int32_t, 3>;
-  export using Vector4i = Vector<std::int32_t, 4>;
-  export using VectorXi = Vector<std::int32_t, Eigen::Dynamic>;
-  export using Vector1u = Vector<std::uint32_t, 1>;
-  export using Vector2u = Vector<std::uint32_t, 2>;
-  export using Vector3u = Vector<std::uint32_t, 3>;
-  export using Vector4u = Vector<std::uint32_t, 4>;
-  export using VectorXu = Vector<std::uint32_t, Eigen::Dynamic>;
+  export template<typename T, int Rows>
+  using Vector = Matrix<T, Rows, 1>;
+  export template<typename T>
+  using Vector1 = Vector<T, 1>;
+  export using Vector1f = Vector1<float>;
+  export using Vector1i = Vector1<std::int32_t>;
+  export using Vector1u = Vector1<std::uint32_t>;
+  export template<typename T>
+  using Vector2 = Vector<T, 2>;
+  export using Vector2f = Vector2<float>;
+  export using Vector2i = Vector2<std::int32_t>;
+  export using Vector2u = Vector2<std::uint32_t>;
+  export template<typename T>
+  using Vector3 = Vector<T, 3>;
+  export using Vector3f = Vector3<float>;
+  export using Vector3i = Vector3<std::int32_t>;
+  export using Vector3u = Vector3<std::uint32_t>;
+  export template<typename T>
+  using Vector4 = Vector<T, 4>;
+  export using Vector4f = Vector4<float>;
+  export using Vector4i = Vector4<std::int32_t>;
+  export using Vector4u = Vector4<std::uint32_t>;
+  export template<typename T>
+  using VectorX = Vector<T, Eigen::Dynamic>;
+  export using VectorXf = VectorX<float>;
+  export using VectorXi = VectorX<std::int32_t>;
+  export using VectorXu = VectorX<std::uint32_t>;
 }

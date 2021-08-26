@@ -1,7 +1,8 @@
 // clang-format off
+module;
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.hpp>
-module mobula.engine.gpu;
+module mobula.engine.vulkan;
 import <cstddef>;
 import <stdexcept>;
 // clang-format on
