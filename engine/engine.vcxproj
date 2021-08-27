@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\BufferParams.ixx" />
     <ClCompile Include="src\ComputePipeline.cpp" />
     <ClCompile Include="src\ComputePipeline.ixx" />
     <ClCompile Include="src\ComputePipelineParams.ixx" />
@@ -34,8 +35,10 @@
     <ClCompile Include="src\ImageParams.ixx" />
     <ClCompile Include="src\Bounds.ixx" />
     <ClCompile Include="src\Matrix.ixx" />
+    <ClCompile Include="src\mobula.gpu.ixx" />
     <ClCompile Include="src\Sampler.cpp" />
     <ClCompile Include="src\Sampler.ixx" />
+    <ClCompile Include="src\SamplerCache.cpp" />
     <ClCompile Include="src\SamplerCache.ixx" />
     <ClCompile Include="src\SamplerParams.ixx" />
     <ClCompile Include="src\GraphicsPipeline.cpp" />
@@ -50,8 +53,7 @@
     <ClCompile Include="src\PipelineLayoutCache.cpp" />
     <ClCompile Include="src\PipelineLayoutCache.ixx" />
     <ClCompile Include="src\PipelineLayoutParams.ixx" />
-    <ClCompile Include="src\mobula.engine.vulkan.ixx" />
-    <ClCompile Include="src\mobula.engine.util.ixx" />
+    <ClCompile Include="src\mobula.util.ixx" />
     <ClCompile Include="src\RenderPass.cpp" />
     <ClCompile Include="src\RenderPass.ixx" />
     <ClCompile Include="src\RenderPassCache.cpp" />
@@ -65,7 +67,6 @@
     <ClCompile Include="src\AllocationParams.ixx" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\Buffer.ixx" />
-    <ClCompile Include="src\BufferParams.ixx" />
     <ClCompile Include="src\Vector.ixx" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

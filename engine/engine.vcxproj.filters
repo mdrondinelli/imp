@@ -1,142 +1,136 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="vulkan">
-      <UniqueIdentifier>{2978446c-de71-4f85-a73f-24b12699cc96}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="vulkan\interface">
-      <UniqueIdentifier>{643ea484-9909-4cf9-8295-380a9b500435}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="vulkan\implementation">
-      <UniqueIdentifier>{8c72df43-9645-462e-a5e1-f11ed3a13e9e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="util">
       <UniqueIdentifier>{47027410-9dcd-4f3b-85b7-d5cbbd442c54}</UniqueIdentifier>
     </Filter>
     <Filter Include="util\interface">
       <UniqueIdentifier>{94caea8b-655e-48ba-acd2-c4861e91c372}</UniqueIdentifier>
     </Filter>
+    <Filter Include="gpu">
+      <UniqueIdentifier>{2978446c-de71-4f85-a73f-24b12699cc96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gpu\interface">
+      <UniqueIdentifier>{643ea484-9909-4cf9-8295-380a9b500435}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gpu\implementation">
+      <UniqueIdentifier>{8c72df43-9645-462e-a5e1-f11ed3a13e9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PipelineCache.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\PipelineLayout.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\PipelineLayoutCache.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\PipelineLayoutParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\PipelineShaderStageParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderPass.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderPassCache.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderPassParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\Sampler.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\SamplerParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\ShaderModule.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\ShaderModuleCache.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\ComputePipeline.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\ComputePipelineParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\DescriptorSetLayout.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\DescriptorSetLayoutCache.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\DescriptorSetLayoutParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\GraphicsPipeline.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\GraphicsPipelineParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\MappedMemory.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\ComputePipeline.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\DescriptorSetLayout.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\DescriptorSetLayoutCache.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\GraphicsPipeline.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\MappedMemory.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\PipelineCache.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\PipelineLayout.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\PipelineLayoutCache.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderPass.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderPassCache.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\Sampler.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\ShaderModule.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\ShaderModuleCache.cpp">
-      <Filter>vulkan\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mobula.engine.vulkan.ixx">
-      <Filter>vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mobula.engine.util.ixx">
-      <Filter>util</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\ImageParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\Buffer.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\BufferParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\AllocationParams.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\Buffer.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\Extent.ixx">
       <Filter>util\interface</Filter>
@@ -145,10 +139,10 @@
       <Filter>util\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\Image.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\Image.cpp">
-      <Filter>vulkan\implementation</Filter>
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
     <ClCompile Include="src\Bounds.ixx">
       <Filter>util\interface</Filter>
@@ -160,7 +154,14 @@
       <Filter>util\interface</Filter>
     </ClCompile>
     <ClCompile Include="src\SamplerCache.ixx">
-      <Filter>vulkan\interface</Filter>
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mobula.gpu.ixx">
+      <Filter>gpu</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mobula.util.ixx" />
+    <ClCompile Include="src\SamplerCache.cpp">
+      <Filter>gpu\implementation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

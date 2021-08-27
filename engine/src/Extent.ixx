@@ -2,7 +2,7 @@
 module;
 #include <Eigen/Dense>
 #include <boost/container_hash/hash.hpp>
-export module mobula.engine.util:Extent;
+export module mobula.util:Extent;
 import <compare>;
 // clang-format on
 

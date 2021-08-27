@@ -2,59 +2,61 @@
 module;
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.vulkan:MappedMemory;
+export module mobula.gpu:MappedMemory;
 import <cstddef>;
 // clang-format on
 
 namespace mobula {
-  /**
-   * \brief Wrapper around mapped vulkan memory.
-   */
-  export class MappedMemory {
-  public:
-    explicit MappedMemory(VmaAllocator allocator, VmaAllocation allocation);
-    ~MappedMemory();
-
-    MappedMemory(MappedMemory &&rhs) noexcept;
-    MappedMemory &operator=(MappedMemory &&rhs) noexcept;
-
+  namespace gpu {
     /**
-     * \return A pointer to the underlying mapped memory.
+     * \brief Wrapper around mapped vulkan memory.
      */
-    std::byte const *data() const noexcept {
-      return data_;
-    }
+    export class MappedMemory {
+    public:
+      explicit MappedMemory(VmaAllocator allocator, VmaAllocation allocation);
+      ~MappedMemory();
 
-    /**
-     * \sa MappedMemory::data
-     */
-    std::byte *data() noexcept {
-      return data_;
-    }
+      MappedMemory(MappedMemory &&rhs) noexcept;
+      MappedMemory &operator=(MappedMemory &&rhs) noexcept;
 
-    /**
-     * \brief Flushes the entirety of mapped memory.
-     */
-    void flush() noexcept;
+      /**
+       * \return A pointer to the underlying mapped memory.
+       */
+      std::byte const *data() const noexcept {
+        return data_;
+      }
 
-    /**
-     * \brief Flushes a subregion of mapped memory.
-     */
-    void flush(vk::DeviceSize offset, vk::DeviceSize size) noexcept;
+      /**
+       * \sa MappedMemory::data
+       */
+      std::byte *data() noexcept {
+        return data_;
+      }
 
-    /**
-     * \brief Invalidates the entirety of mapped memory.
-     */
-    void invalidate() noexcept;
+      /**
+       * \brief Flushes the entirety of mapped memory.
+       */
+      void flush() noexcept;
 
-    /**
-     * \brief Invalidates a subregion of mapped memory.
-     */
-    void invalidate(vk::DeviceSize offset, vk::DeviceSize size) noexcept;
+      /**
+       * \brief Flushes a subregion of mapped memory.
+       */
+      void flush(vk::DeviceSize offset, vk::DeviceSize size) noexcept;
 
-  private:
-    VmaAllocator allocator_;
-    VmaAllocation allocation_;
-    std::byte *data_;
-  };
+      /**
+       * \brief Invalidates the entirety of mapped memory.
+       */
+      void invalidate() noexcept;
+
+      /**
+       * \brief Invalidates a subregion of mapped memory.
+       */
+      void invalidate(vk::DeviceSize offset, vk::DeviceSize size) noexcept;
+
+    private:
+      VmaAllocator allocator_;
+      VmaAllocation allocation_;
+      std::byte *data_;
+    };
+  } // namespace gpu
 } // namespace mobula

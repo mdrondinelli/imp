@@ -1,5 +1,5 @@
 // clang-format off
-export module mobula.engine.util:Flags;
+export module mobula.util:Flags;
 import <cstddef>;
 import <type_traits>;
 // clang-format on

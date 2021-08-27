@@ -1,5 +1,5 @@
 // clang-format off
-export module mobula.engine.util;
+export module mobula.util;
 export import :Bounds;
 export import :Extent;
 export import :Flags;

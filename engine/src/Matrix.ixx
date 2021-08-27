@@ -2,7 +2,7 @@
 module;
 #include <boost/container_hash/hash.hpp>
 #include <Eigen/Dense>
-export module mobula.engine.util:Matrix;
+export module mobula.util:Matrix;
 // clang-format on
 
 namespace mobula {

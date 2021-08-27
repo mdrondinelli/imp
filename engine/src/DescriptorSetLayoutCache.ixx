@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.vulkan:DescriptorSetLayoutCache;
+export module mobula.gpu:DescriptorSetLayoutCache;
 import <mutex>;
 import <unordered_set>;
 import :DescriptorSetLayout;
@@ -9,68 +9,71 @@ import :DescriptorSetLayoutParams;
 // clang-format on
 
 namespace mobula {
-  /**
-   * \brief Cache for descriptor set layouts.
-   */
-  export class DescriptorSetLayoutCache {
-  public:
-    /**
-     * \param device The vulkan device which this cache will use to create
-     * descriptor set layouts.
-     */
-    explicit DescriptorSetLayoutCache(vk::Device device);
+  namespace gpu {
 
     /**
-     * If this function is called with params equal to the params of a previous
-     * invocation, it returns the same descriptor set layout as the first
-     * invocation. Otherwise, this function creates and returns a new descriptor
-     * set layout.
-     *
-     * \param params The parameters of a descriptor set layout.
-     *
-     * \return A pointer to the descriptor set layout described by params.
+     * \brief Cache for descriptor set layouts.
      */
-    DescriptorSetLayout const *get(DescriptorSetLayoutParams const &params);
+    export class DescriptorSetLayoutCache {
+    public:
+      /**
+       * \param device The vulkan device which this cache will use to create
+       * descriptor set layouts.
+       */
+      explicit DescriptorSetLayoutCache(vk::Device device);
 
-  private:
-    struct Hash {
-      using is_transparent = void;
+      /**
+       * If this function is called with params equal to the params of a
+       * previous invocation, it returns the same descriptor set layout as the
+       * first invocation. Otherwise, this function creates and returns a new
+       * descriptor set layout.
+       *
+       * \param params The parameters of a descriptor set layout.
+       *
+       * \return A pointer to the descriptor set layout described by params.
+       */
+      DescriptorSetLayout const *get(DescriptorSetLayoutParams const &params);
 
-      std::size_t operator()(
-          DescriptorSetLayout const &descriptorSetLayout) const noexcept {
-        return hash_value(descriptorSetLayout.getParams());
-      }
+    private:
+      struct Hash {
+        using is_transparent = void;
 
-      std::size_t
-      operator()(DescriptorSetLayoutParams const &params) const noexcept {
-        return hash_value(params);
-      }
+        std::size_t operator()(
+            DescriptorSetLayout const &descriptorSetLayout) const noexcept {
+          return hash_value(descriptorSetLayout.getParams());
+        }
+
+        std::size_t
+        operator()(DescriptorSetLayoutParams const &params) const noexcept {
+          return hash_value(params);
+        }
+      };
+
+      struct Equal {
+        using is_transparent = void;
+
+        bool operator()(
+            DescriptorSetLayout const &lhs,
+            DescriptorSetLayout const &rhs) const noexcept {
+          return &lhs == &rhs;
+        }
+
+        bool operator()(
+            DescriptorSetLayout const &lhs,
+            DescriptorSetLayoutParams const &rhs) const noexcept {
+          return lhs.getParams() == rhs;
+        }
+
+        bool operator()(
+            DescriptorSetLayoutParams const &lhs,
+            DescriptorSetLayout const &rhs) const noexcept {
+          return lhs == rhs.getParams();
+        }
+      };
+
+      vk::Device device_;
+      std::unordered_set<DescriptorSetLayout, Hash, Equal> cache_;
+      std::mutex mutex_;
     };
-
-    struct Equal {
-      using is_transparent = void;
-
-      bool operator()(
-          DescriptorSetLayout const &lhs,
-          DescriptorSetLayout const &rhs) const noexcept {
-        return &lhs == &rhs;
-      }
-
-      bool operator()(
-          DescriptorSetLayout const &lhs,
-          DescriptorSetLayoutParams const &rhs) const noexcept {
-        return lhs.getParams() == rhs;
-      }
-
-      bool operator()(
-          DescriptorSetLayoutParams const &lhs,
-          DescriptorSetLayout const &rhs) const noexcept {
-        return lhs == rhs.getParams();
-      }
-    };
-
-    vk::Device device_;
-    std::unordered_set<DescriptorSetLayout, Hash, Equal> cache_;
-    std::mutex mutex_;
-  };
+  }
 } // namespace mobula

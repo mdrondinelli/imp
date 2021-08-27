@@ -1,5 +1,5 @@
 // clang-format off
-export module mobula.engine.vulkan;
+export module mobula.gpu;
 export import :AllocationParams;
 export import :Buffer;
 export import :BufferParams;

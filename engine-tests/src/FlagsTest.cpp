@@ -2,7 +2,7 @@
 import <ostream>;
 import <type_traits>;
 #include <boost/test/unit_test.hpp>
-import mobula.engine.util;
+import mobula.util;
 // clang-format on
 
 namespace {

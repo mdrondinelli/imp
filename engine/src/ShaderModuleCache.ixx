@@ -2,7 +2,7 @@
 module;
 #include <boost/container_hash/hash.hpp>
 #include <vulkan/vulkan.hpp>
-export module mobula.engine.vulkan:ShaderModuleCache;
+export module mobula.gpu:ShaderModuleCache;
 import <filesystem>;
 import <mutex>;
 import <unordered_set>;
@@ -10,64 +10,70 @@ export import :ShaderModule;
 // clang-format on
 
 namespace mobula {
-  /**
-   * \brief Cache for shader modules.
-   */
-  export class ShaderModuleCache {
-  public:
-    explicit ShaderModuleCache(vk::Device device);
-
+  namespace gpu {
     /**
-     * If this function is called with params equal to the params of a previous
-     * invocation, it returns the same shader module as the first invocation.
-     * Otherwise, this function creates and returns a new shader module.
-     *
-     * \param path the path to a shader module.
-     *
-     * \return a pointer to the shader module at \c path.
+     * \brief Cache for shader modules.
      */
-    ShaderModule const *get(std::filesystem::path const &path);
+    export class ShaderModuleCache {
+    public:
+      explicit ShaderModuleCache(vk::Device device);
 
-    /**
-     * This function clears the cache, freeing up memory but requiring
-     * previously loaded shaders to be reloaded when requested.
-     */
-    void clear() noexcept;
+      /**
+       * If this function is called with params equal to the params of a
+       * previous invocation, it returns the same shader module as the first
+       * invocation. Otherwise, this function creates and returns a new shader
+       * module.
+       *
+       * \param path the path to a shader module.
+       *
+       * \return a pointer to the shader module at \c path.
+       */
+      ShaderModule const *get(std::filesystem::path const &path);
 
-  private:
-    struct Hash {
-      using is_transparent = void;
+      /**
+       * This function clears the cache, freeing up memory but requiring
+       * previously loaded shaders to be reloaded when requested.
+       */
+      void clear() noexcept;
 
-      std::size_t operator()(ShaderModule const &module) const noexcept {
-        return boost::hash<std::filesystem::path>{}(module.getPath());
-      }
+    private:
+      struct Hash {
+        using is_transparent = void;
 
-      std::size_t operator()(std::filesystem::path const &path) const noexcept {
-        return boost::hash<std::filesystem::path>{}(path);
-      }
+        std::size_t operator()(ShaderModule const &module) const noexcept {
+          return boost::hash<std::filesystem::path>{}(module.getPath());
+        }
+
+        std::size_t
+        operator()(std::filesystem::path const &path) const noexcept {
+          return boost::hash<std::filesystem::path>{}(path);
+        }
+      };
+
+      struct Equal {
+        using is_transparent = void;
+
+        bool operator()(
+            ShaderModule const &lhs, ShaderModule const &rhs) const noexcept {
+          return &lhs == &rhs;
+        }
+
+        bool operator()(
+            ShaderModule const &lhs,
+            std::filesystem::path const &rhs) const noexcept {
+          return lhs.getPath() == rhs;
+        }
+
+        bool operator()(
+            std::filesystem::path const &lhs,
+            ShaderModule const &rhs) const noexcept {
+          return lhs == rhs.getPath();
+        }
+      };
+
+      vk::Device device_;
+      std::unordered_set<ShaderModule, Hash, Equal> modules_;
+      std::mutex mutex_;
     };
-
-    struct Equal {
-      using is_transparent = void;
-
-      bool operator()(
-          ShaderModule const &lhs, ShaderModule const &rhs) const noexcept {
-        return &lhs == &rhs;
-      }
-
-      bool operator()(ShaderModule const &lhs, std::filesystem::path const &rhs)
-          const noexcept {
-        return lhs.getPath() == rhs;
-      }
-
-      bool operator()(std::filesystem::path const &lhs, ShaderModule const &rhs)
-          const noexcept {
-        return lhs == rhs.getPath();
-      }
-    };
-
-    vk::Device device_;
-    std::unordered_set<ShaderModule, Hash, Equal> modules_;
-    std::mutex mutex_;
-  };
+  } // namespace gpu
 } // namespace mobula

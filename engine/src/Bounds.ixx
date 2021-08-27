@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <boost/container_hash/hash.hpp>
-export module mobula.engine.util:Bounds;
+export module mobula.util:Bounds;
 import <limits>;
 import :Vector;
 // clang-format on

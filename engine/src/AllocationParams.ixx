@@ -1,12 +1,14 @@
 // clang-format off
 module;
 #include <vk_mem_alloc.h>
-export module mobula.engine.vulkan:AllocationParams;
+export module mobula.gpu:AllocationParams;
 // clang-format on
 
 namespace mobula {
-  export struct AllocationParams {
-    VmaAllocationCreateFlags flags;
-    VmaMemoryUsage usage;
-  };
-}
+  namespace gpu {
+    export struct AllocationParams {
+      VmaAllocationCreateFlags flags;
+      VmaMemoryUsage usage;
+    };
+  } // namespace gpu
+} // namespace mobula

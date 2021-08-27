@@ -1,7 +1,7 @@
 // clang-format off
 module;
 #include <Eigen/Dense>
-export module mobula.engine.util:Vector;
+export module mobula.util:Vector;
 import :Matrix;
 // clang-format on
 
