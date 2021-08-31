@@ -19,10 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Allocator.cpp" />
+    <ClCompile Include="src\Allocator.ixx" />
     <ClCompile Include="src\BufferParams.ixx" />
     <ClCompile Include="src\ComputePipeline.cpp" />
     <ClCompile Include="src\ComputePipeline.ixx" />
     <ClCompile Include="src\ComputePipelineParams.ixx" />
+    <ClCompile Include="src\Context.cpp" />
+    <ClCompile Include="src\Context.ixx" />
     <ClCompile Include="src\DescriptorSetLayout.cpp" />
     <ClCompile Include="src\DescriptorSetLayout.ixx" />
     <ClCompile Include="src\DescriptorSetLayoutCache.cpp" />

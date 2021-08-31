@@ -1,10 +1,12 @@
 // clang-format off
 export module mobula.gpu;
 export import :AllocationParams;
+export import :Allocator;
 export import :Buffer;
 export import :BufferParams;
 export import :ComputePipeline;
 export import :ComputePipelineParams;
+export import :Context;
 export import :DescriptorSetLayout;
 export import :DescriptorSetLayoutCache;
 export import :DescriptorSetLayoutParams;

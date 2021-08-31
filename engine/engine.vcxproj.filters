@@ -159,8 +159,22 @@
     <ClCompile Include="src\mobula.gpu.ixx">
       <Filter>gpu</Filter>
     </ClCompile>
-    <ClCompile Include="src\mobula.util.ixx" />
     <ClCompile Include="src\SamplerCache.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Context.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Allocator.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mobula.util.ixx">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Allocator.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Context.cpp">
       <Filter>gpu\implementation</Filter>
     </ClCompile>
   </ItemGroup>

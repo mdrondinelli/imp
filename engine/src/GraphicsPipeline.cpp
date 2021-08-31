@@ -23,9 +23,7 @@ namespace mobula {
         params_{params} {
       auto createInfo = vk::GraphicsPipelineCreateInfo{};
       auto stages = std::vector<vk::PipelineShaderStageCreateInfo>{};
-      stages.reserve(
-          1 + params.geometryStage.has_value() +
-          params.rasterization.has_value());
+      stages.reserve(1 + params.rasterization.has_value());
       auto vertexStageSpecializationInfo = vk::SpecializationInfo{};
       auto vertexStageSpecializationMapEntries =
           std::vector<vk::SpecializationMapEntry>{};
@@ -38,20 +36,6 @@ namespace mobula {
           shaderModuleCache,
           vk::ShaderStageFlagBits::eVertex,
           params.vertexStage);
-      auto geometryStageSpecializationInfo = vk::SpecializationInfo{};
-      auto geometryStageSpecializationMapEntries =
-          std::vector<vk::SpecializationMapEntry>{};
-      auto geometryStageSpecializationData = std::vector<std::byte>{};
-      if (params.geometryStage) {
-        copyPipelineShaderStageParams(
-            stages.emplace_back(),
-            geometryStageSpecializationInfo,
-            geometryStageSpecializationMapEntries,
-            geometryStageSpecializationData,
-            shaderModuleCache,
-            vk::ShaderStageFlagBits::eGeometry,
-            *params.geometryStage);
-      }
       auto fragmentStageSpecializationInfo = vk::SpecializationInfo{};
       auto fragmentStageSpecializationMapEntries =
           std::vector<vk::SpecializationMapEntry>{};
@@ -106,8 +90,8 @@ namespace mobula {
           params.inputAssembly.primitiveRestartEnable;
       createInfo.pInputAssemblyState = &inputAssemblyState;
       auto viewportState = vk::PipelineViewportStateCreateInfo{};
-      auto viewports = std::vector<vk::Viewport>{};
-      auto scissors = std::vector<vk::Rect2D>{};
+      auto viewport = vk::Viewport{};
+      auto scissor = vk::Rect2D{};
       auto rasterizationState = vk::PipelineRasterizationStateCreateInfo{};
       auto multisampleState = vk::PipelineMultisampleStateCreateInfo{};
       auto depthStencilState = vk::PipelineDepthStencilStateCreateInfo{};
@@ -117,78 +101,46 @@ namespace mobula {
       auto dynamicState = vk::PipelineDynamicStateCreateInfo{};
       auto dynamicStates = std::vector<vk::DynamicState>{};
       if (params.rasterization) {
-        if (params.rasterization->viewports.index() == 0) {
-          viewportState.viewportCount =
-              std::get<0>(params.rasterization->viewports);
+        viewportState.viewportCount = 1;
+        if (params.rasterization->viewport) {
+          viewport.x = params.rasterization->viewport->min.x();
+          viewport.y = params.rasterization->viewport->min.y();
+          viewport.width = params.rasterization->viewport->max.x() -
+                           params.rasterization->viewport->min.x();
+          viewport.height = params.rasterization->viewport->max.y() -
+                            params.rasterization->viewport->min.y();
+          viewport.minDepth = params.rasterization->viewport->min.z();
+          viewport.maxDepth = params.rasterization->viewport->max.z();
+          viewportState.pViewports = &viewport;
+        } else {
           dynamicStates.emplace_back(vk::DynamicState::eViewport);
-        } else {
-          viewports.reserve(
-              std::get<1>(params.rasterization->viewports).size());
-          for (auto &viewport : std::get<1>(params.rasterization->viewports)) {
-            viewports.emplace_back(
-                viewport.min.x(),
-                viewport.min.y(),
-                viewport.max.x() - viewport.min.y(),
-                viewport.max.y() - viewport.min.y(),
-                viewport.min.z(),
-                viewport.max.z());
-          }
-          viewportState.viewportCount =
-              static_cast<std::uint32_t>(viewports.size());
-          viewportState.pViewports = viewports.data();
         }
-        if (params.rasterization->scissors.index() == 0) {
-          viewportState.scissorCount =
-              std::get<0>(params.rasterization->scissors);
-          dynamicStates.emplace_back(vk::DynamicState::eScissor);
+        viewportState.scissorCount = 1;
+        if (params.rasterization->scissor) {
+          scissor.offset.x = params.rasterization->scissor->min.x();
+          scissor.offset.y = params.rasterization->scissor->min.y();
+          scissor.extent.width = static_cast<std::uint32_t>(
+              params.rasterization->scissor->max.x() -
+              params.rasterization->scissor->min.x());
+          scissor.extent.height = static_cast<std::uint32_t>(
+              params.rasterization->scissor->max.y() -
+              params.rasterization->scissor->min.y());
+          viewportState.pScissors = &scissor;
         } else {
-          scissors.reserve(std::get<1>(params.rasterization->scissors).size());
-          for (auto &scissor : std::get<1>(params.rasterization->scissors)) {
-            auto offset = vk::Offset2D{};
-            offset.x = scissor.min.x();
-            offset.y = scissor.min.y();
-            auto extent = vk::Extent2D{};
-            extent.width =
-                static_cast<std::uint32_t>(scissor.max.x() - scissor.max.x());
-            extent.height =
-                static_cast<std::uint32_t>(scissor.max.y() - scissor.min.y());
-            scissors.emplace_back(offset, extent);
-          }
-          viewportState.scissorCount =
-              static_cast<std::uint32_t>(scissors.size());
-          viewportState.pScissors = scissors.data();
+          dynamicStates.emplace_back(vk::DynamicState::eScissor);
         }
         createInfo.pViewportState = &viewportState;
-        rasterizationState.depthClampEnable =
-            params.rasterization->depthClampEnable;
-        switch (params.rasterization->polygonMode.index()) {
-        case 0: // PolygonModeFillState
-          rasterizationState.polygonMode = vk::PolygonMode::eFill;
-          rasterizationState.cullMode =
-              std::get<0>(params.rasterization->polygonMode).cullMode;
-          rasterizationState.frontFace =
-              std::get<0>(params.rasterization->polygonMode).frontFace;
-          rasterizationState.lineWidth = 1.0f;
-          break;
-        case 1: // PolygonModeLineState
-          rasterizationState.polygonMode = vk::PolygonMode::eLine;
-          rasterizationState.lineWidth =
-              std::get<1>(params.rasterization->polygonMode).lineWidth;
-          break;
-        case 2: // PolygonModePointState
-          rasterizationState.polygonMode = vk::PolygonMode::ePoint;
-          rasterizationState.lineWidth = 1.0f;
-          break;
-        }
+        rasterizationState.polygonMode = vk::PolygonMode::eFill;
+        rasterizationState.cullMode = params.rasterization->cullMode;
+        rasterizationState.frontFace = params.rasterization->frontFace;
         if (params.rasterization->depthBias) {
           rasterizationState.depthBiasEnable = true;
           rasterizationState.depthBiasConstantFactor =
               params.rasterization->depthBias->constantFactor;
-          rasterizationState.depthBiasClamp =
-              params.rasterization->depthBias->clamp;
           rasterizationState.depthBiasSlopeFactor =
               params.rasterization->depthBias->slopeFactor;
         }
+        rasterizationState.lineWidth = 1.0f;
         createInfo.pRasterizationState = &rasterizationState;
         multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
         createInfo.pMultisampleState = &multisampleState;
@@ -198,13 +150,6 @@ namespace mobula {
               params.rasterization->depthTest->writeEnable;
           depthStencilState.depthCompareOp =
               params.rasterization->depthTest->compareOp;
-        }
-        if (params.rasterization->depthBoundsTest) {
-          depthStencilState.depthBoundsTestEnable = true;
-          depthStencilState.minDepthBounds =
-              params.rasterization->depthBoundsTest->bounds.min;
-          depthStencilState.maxDepthBounds =
-              params.rasterization->depthBoundsTest->bounds.max;
         }
         if (params.rasterization->stencilTest) {
           depthStencilState.stencilTestEnable = true;
@@ -238,34 +183,43 @@ namespace mobula {
               params.rasterization->stencilTest->references[1];
         }
         createInfo.pDepthStencilState = &depthStencilState;
-        if (params.rasterization->blending) {
+        if (params.rasterization->color) {
           colorBlendAttachmentStates.reserve(
-              params.rasterization->blending->attachments.size());
-          for (auto &attachment : params.rasterization->blending->attachments) {
-            if (attachment.blending) {
+              params.rasterization->color->writeMasks.size());
+          if (params.rasterization->color->blend) {
+            for (auto writeMask : params.rasterization->color->writeMasks) {
               colorBlendAttachmentStates.emplace_back(
                   true,
                   static_cast<vk::BlendFactor>(
-                      attachment.blending->srcColorFactor),
+                      params.rasterization->color->blend->srcColorFactor),
                   static_cast<vk::BlendFactor>(
-                      attachment.blending->dstColorFactor),
-                  attachment.blending->colorOp,
+                      params.rasterization->color->blend->dstColorFactor),
+                  params.rasterization->color->blend->colorOp,
                   static_cast<vk::BlendFactor>(
-                      attachment.blending->srcAlphaFactor),
+                      params.rasterization->color->blend->srcAlphaFactor),
                   static_cast<vk::BlendFactor>(
-                      attachment.blending->dstAlphaFactor),
-                  attachment.blending->alphaOp);
-            } else {
-              colorBlendAttachmentStates.emplace_back();
+                      params.rasterization->color->blend->dstAlphaFactor),
+                  params.rasterization->color->blend->alphaOp,
+                  writeMask);
             }
-            colorBlendAttachmentStates.back().colorWriteMask =
-                attachment.writeMask;
+            colorBlendState.blendConstants =
+                params.rasterization->color->blend->constants;
+          } else {
+            for (auto writeMask : params.rasterization->color->writeMasks) {
+              colorBlendAttachmentStates.emplace_back(
+                  false,
+                  vk::BlendFactor::eZero,
+                  vk::BlendFactor::eZero,
+                  vk::BlendOp::eAdd,
+                  vk::BlendFactor::eZero,
+                  vk::BlendFactor::eZero,
+                  vk::BlendOp::eAdd,
+                  writeMask);
+            }
           }
           colorBlendState.attachmentCount =
               static_cast<std::uint32_t>(colorBlendAttachmentStates.size());
           colorBlendState.pAttachments = colorBlendAttachmentStates.data();
-          colorBlendState.blendConstants =
-              params.rasterization->blending->blendConstants;
         }
         createInfo.pColorBlendState = &colorBlendState;
         if (!dynamicStates.empty()) {

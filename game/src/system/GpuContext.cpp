@@ -148,7 +148,7 @@ namespace imp {
     auto physical_devices = std::vector<vk::PhysicalDevice>{};
     for (auto pd : instance_->enumeratePhysicalDevices()) {
       auto properties = pd.getProperties();
-      if (properties.apiVersion < VK_API_VERSION_1_1) {
+      if (properties.apiVersion < VK_API_VERSION_1_2) {
         continue;
       }
       auto features = pd.getFeatures();
