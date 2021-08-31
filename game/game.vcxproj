@@ -238,6 +238,11 @@
     <ClCompile Include="src\ui\RowWidget.cpp" />
     <ClCompile Include="src\ui\Widget.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\engine\engine.vcxproj">
+      <Project>{efafddc1-0f85-4f47-baf0-d6e1770362d1}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

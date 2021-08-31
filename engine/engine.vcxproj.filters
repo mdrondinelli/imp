@@ -18,164 +18,167 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\PipelineCache.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PipelineLayout.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PipelineLayoutCache.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PipelineLayoutParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PipelineShaderStageParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderPass.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderPassCache.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderPassParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Sampler.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SamplerParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ShaderModule.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ShaderModuleCache.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ComputePipeline.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ComputePipelineParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DescriptorSetLayout.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DescriptorSetLayoutCache.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DescriptorSetLayoutParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GraphicsPipeline.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GraphicsPipelineParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MappedMemory.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ComputePipeline.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DescriptorSetLayout.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DescriptorSetLayoutCache.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GraphicsPipeline.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MappedMemory.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PipelineCache.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PipelineLayout.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PipelineLayoutCache.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderPass.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderPassCache.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Sampler.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ShaderModule.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ShaderModuleCache.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImageParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Buffer.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\BufferParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AllocationParams.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Buffer.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Extent.ixx">
+    <ClCompile Include="src\util\Bounds.ixx">
       <Filter>util\interface</Filter>
     </ClCompile>
-    <ClCompile Include="src\Flags.ixx">
+    <ClCompile Include="src\util\Extent.ixx">
       <Filter>util\interface</Filter>
     </ClCompile>
-    <ClCompile Include="src\Image.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Image.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Bounds.ixx">
+    <ClCompile Include="src\util\Flags.ixx">
       <Filter>util\interface</Filter>
     </ClCompile>
-    <ClCompile Include="src\Matrix.ixx">
+    <ClCompile Include="src\util\Matrix.ixx">
       <Filter>util\interface</Filter>
     </ClCompile>
-    <ClCompile Include="src\Vector.ixx">
+    <ClCompile Include="src\util\Vector.ixx">
       <Filter>util\interface</Filter>
     </ClCompile>
-    <ClCompile Include="src\SamplerCache.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mobula.gpu.ixx">
-      <Filter>gpu</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SamplerCache.cpp">
-      <Filter>gpu\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Context.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Allocator.ixx">
-      <Filter>gpu\interface</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mobula.util.ixx">
+    <ClCompile Include="src\util\mobula.util.ixx">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="src\Allocator.cpp">
+    <ClCompile Include="src\gpu\Allocator.cpp">
       <Filter>gpu\implementation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Context.cpp">
+    <ClCompile Include="src\gpu\Buffer.cpp">
       <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\ComputePipeline.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\Context.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\DescriptorSetLayout.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\DescriptorSetLayoutCache.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\GraphicsPipeline.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\Image.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\MappedMemory.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\PipelineCache.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\PipelineLayout.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\PipelineLayoutCache.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\RenderPass.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\RenderPassCache.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\Sampler.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\SamplerCache.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\ShaderModule.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\ShaderModuleCache.cpp">
+      <Filter>gpu\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\AllocationParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\Allocator.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\Buffer.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\BufferParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\ComputePipeline.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\ComputePipelineParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\Context.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\DescriptorSetLayout.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\DescriptorSetLayoutCache.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\DescriptorSetLayoutParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\GraphicsPipeline.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\GraphicsPipelineParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\Image.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\ImageParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\MappedMemory.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\PipelineCache.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\PipelineLayout.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\PipelineLayoutCache.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\PipelineLayoutParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\PipelineShaderStageParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\RenderPass.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\RenderPassCache.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\RenderPassParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\Sampler.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\SamplerCache.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\SamplerParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\ShaderModule.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\ShaderModuleCache.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\VulkanMemoryParams.ixx">
+      <Filter>gpu\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gpu\mobula.gpu.ixx">
+      <Filter>gpu</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

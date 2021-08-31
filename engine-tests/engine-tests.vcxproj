@@ -155,8 +155,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\FlagsTest.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\util\FlagsTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\engine\engine.vcxproj">

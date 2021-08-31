@@ -8,6 +8,10 @@
 #include "system/Display.h"
 #include "system/GpuContext.h"
 
+// clang-format off
+import mobula.gpu;
+// clang-format on
+
 int main() {
   using namespace std::chrono_literals;
 
@@ -33,18 +37,16 @@ int main() {
         std::vector<imp::gsl::not_null<std::shared_ptr<imp::SceneView>>>{};
     for (auto i = 0; i < 1; ++i) {
       views.emplace_back(std::make_shared<imp::SceneView>(
-          renderer.getSceneViewFlyweight(),
-          scene,
-          imp::Extent2u{1920, 1080}));
+          renderer.getSceneViewFlyweight(), scene, imp::Extent2u{1920, 1080}));
     }
-    views[0]->setExposure(1.0f / 12.0f);
-    //views[1]->setExposure(1.0f / 12.0f);
-    //views[2]->setExposure(1.0f / 12.0f);
-    //views[3]->setExposure(1.0f / 12.0f);
-    views[0]->setBloomEnabled(true);
-    //views[1]->setBloomEnabled(true);
-    //views[2]->setBloomEnabled(true);
-    //views[3]->setBloomEnabled(true);
+    views[0]->setExposure(1.0f / 10.0f);
+    // views[1]->setExposure(1.0f / 12.0f);
+    // views[2]->setExposure(1.0f / 12.0f);
+    // views[3]->setExposure(1.0f / 12.0f);
+    // views[0]->setBloomEnabled(true);
+    // views[1]->setBloomEnabled(true);
+    // views[2]->setBloomEnabled(true);
+    // views[3]->setBloomEnabled(true);
     {
       auto viewMatrix = Eigen::Matrix4f::Identity().eval();
       viewMatrix(1, 3) = -64.0f;
@@ -70,9 +72,9 @@ int main() {
       projectionMatrix(2, 3) = n * f / (f - n);
       projectionMatrix(3, 2) = -1;
       views[0]->setProjectionMatrix(projectionMatrix);
-      //views[1]->setProjectionMatrix(projectionMatrix);
-      //views[2]->setProjectionMatrix(projectionMatrix);
-      //views[3]->setProjectionMatrix(projectionMatrix);
+      // views[1]->setProjectionMatrix(projectionMatrix);
+      // views[2]->setProjectionMatrix(projectionMatrix);
+      // views[3]->setProjectionMatrix(projectionMatrix);
     }
     // Eigen::Matrix4f getProjectionMatrix(Camera const &c) noexcept {
     //  //  auto w = 2 * c.getTanHalfFovX();
